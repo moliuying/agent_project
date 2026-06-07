@@ -45,6 +45,11 @@ const routes: RouteRecordRaw[] = [
         path: '/audio-clipper',
         name: 'AudioClipper',
         component: () => import('@/views/AudioClipper.vue')
+      },
+      {
+        path: '/ip-lookup',
+        name: 'IpLookup',
+        component: () => import('@/views/IpLookup.vue')
       }
     ]
   }

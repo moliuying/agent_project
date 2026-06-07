@@ -19,8 +19,9 @@ async function bootstrap() {
       { name: '贷款试算', path: '/loan-calculator', icon: 'Money', parentId: null, sort: 2, component: 'views/LoanCalculator.vue' },
       { name: '节假日查询', path: '/holiday-calendar', icon: 'Calendar', parentId: null, sort: 3, component: 'views/HolidayCalendar.vue' },
       { name: '音频剪辑', path: '/audio-clipper', icon: 'Headset', parentId: null, sort: 4, component: 'views/AudioClipper.vue' },
-      { name: '系统管理', path: '/system', icon: 'Setting', parentId: null, sort: 5, component: null },
-      { name: '菜单管理', path: '/system/menu', icon: 'Menu', parentId: 5, sort: 1, component: 'views/Menu.vue' },
+      { name: 'IP地址查询', path: '/ip-lookup', icon: 'Location', parentId: null, sort: 5, component: 'views/IpLookup.vue' },
+      { name: '系统管理', path: '/system', icon: 'Setting', parentId: null, sort: 6, component: null },
+      { name: '菜单管理', path: '/system/menu', icon: 'Menu', parentId: 6, sort: 1, component: 'views/Menu.vue' },
     ];
 
     for (const menu of menus) {
