@@ -40,6 +40,11 @@ const routes: RouteRecordRaw[] = [
         path: '/word-counter',
         name: 'WordCounter',
         component: () => import('@/views/WordCounter.vue')
+      },
+      {
+        path: '/audio-clipper',
+        name: 'AudioClipper',
+        component: () => import('@/views/AudioClipper.vue')
       }
     ]
   }
