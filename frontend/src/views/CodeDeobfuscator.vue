@@ -180,8 +180,19 @@
             <div class="editor-header">
               <div class="editor-title">
                 <span class="editor-label">混淆代码（输入）</span>
-                <el-tooltip v-if="detectedLanguage" :content="`检测到：${detectedLanguage}`" placement="top">
-                  <el-tag size="small" type="primary">{{ detectedLanguage }}</el-tag>
+                <el-tooltip v-if="detectedLanguage" :content="languageSupportTooltip" placement="top">
+                  <el-tag
+                    size="small"
+                    :type="languageSupportTagType"
+                    effect="dark"
+                    class="language-tag"
+                  >
+                    <el-icon :size="11" style="margin-right: 3px">
+                      <component :is="languageSupportIcon" />
+                    </el-icon>
+                    {{ detectedLanguage }}
+                    {{ languageSupportShort }}
+                  </el-tag>
                 </el-tooltip>
               </div>
               <div class="editor-actions">
@@ -200,6 +211,23 @@
               @input="handleInputChange"
             />
             <div v-if="inputCode.trim()" class="detection-panel">
+              <div v-if="detectedLanguage" class="language-support-section" :class="languageSupportClass">
+                <div class="language-support-header">
+                  <el-icon :size="18" :color="languageSupportColor">
+                    <component :is="languageSupportIcon" />
+                  </el-icon>
+                  <div class="language-support-info">
+                    <div class="language-support-title">
+                      <span class="language-name">{{ detectedLanguage }}</span>
+                      <el-tag size="small" :type="languageSupportTagType" effect="dark">
+                        {{ languageSupportText }}
+                      </el-tag>
+                    </div>
+                    <div class="language-support-desc">{{ languageSupportDescription }}</div>
+                  </div>
+                </div>
+              </div>
+
               <div class="detection-header">
                 <el-icon :size="16" :color="detectionStatusColor">
                   <component :is="detectionStatusIcon" />
@@ -239,14 +267,32 @@
                 <p class="detection-hint">可能是明文代码、使用了自定义混淆算法，或内容不足以判断。可以尝试点击还原按钮查看结果。</p>
               </div>
 
+              <div v-if="!isLanguageSupported && detectedLanguage" class="language-warning">
+                <el-alert :title="languageWarningTitle" type="warning" :closable="false" show-icon>
+                  <template #default>
+                    {{ languageWarningDesc }}
+                  </template>
+                </el-alert>
+              </div>
+
               <div class="detection-actions">
                 <el-button size="small" type="primary" @click="runDeobfuscation">
                   <el-icon><View /></el-icon>
-                  立即还原
+                  {{ isLanguageSupported ? '立即还原' : '尝试还原（语言不完全支持）' }}
                 </el-button>
                 <el-button size="small" @click="clearAll">
                   <el-icon><Delete /></el-icon>
                   重新输入
+                </el-button>
+                <el-button
+                  v-if="!isLanguageSupported"
+                  size="small"
+                  type="warning"
+                  text
+                  @click="scrollToSupportSection"
+                >
+                  <el-icon><InfoFilled /></el-icon>
+                  查看支持范围
                 </el-button>
               </div>
             </div>
@@ -499,7 +545,8 @@ import {
   TrendCharts,
   VideoCamera,
   ArrowDown,
-  ArrowRight
+  ArrowRight,
+  Close
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
@@ -705,6 +752,189 @@ const formatOutput = ref(true)
 const transformations = ref<TransformationRecord[]>([])
 const detectedTypes = ref<string[]>([])
 const detectedLanguage = ref('')
+
+interface LanguageSupportConfig {
+  supported: 'full' | 'partial' | 'encoding' | 'none'
+  description: string
+  tip: string
+}
+
+const languageSupportMap: Record<string, LanguageSupportConfig> = {
+  'JavaScript': {
+    supported: 'full',
+    description: '完全支持：eval/Function 包装、各种字符串编码、变量名混淆等',
+    tip: 'JavaScript 是本工具的主要支持语言，可高效还原绝大多数混淆方式'
+  },
+  'TypeScript': {
+    supported: 'partial',
+    description: '部分支持：编译为 JS 后的混淆代码可还原',
+    tip: '编译后的 .js 代码可正常还原，原始 .ts 混淆效果取决于混淆方式'
+  },
+  'HTML': {
+    supported: 'partial',
+    description: '部分支持：HTML 实体编码、内联脚本编码可还原',
+    tip: 'HTML 中的内联 <script> 代码及实体编码可还原'
+  },
+  'HTML / CSS': {
+    supported: 'partial',
+    description: '部分支持：HTML 实体、内联脚本编码可还原',
+    tip: 'HTML 实体及内联脚本编码可还原'
+  },
+  'CSS': {
+    supported: 'encoding',
+    description: '编码支持：仅支持字符串编码类还原',
+    tip: 'CSS 中的 Base64、Unicode 等编码可还原'
+  },
+  'PHP': {
+    supported: 'encoding',
+    description: '编码支持：仅字符串编码类（Base64/Unicode 等）可还原',
+    tip: 'PHP 代码的字符串编码部分可还原，PHP 专用混淆暂不支持'
+  },
+  'Python': {
+    supported: 'encoding',
+    description: '编码支持：仅字符串编码类（Base64/Unicode 等）可还原',
+    tip: 'Python 代码的字符串编码部分可还原，Python 专用混淆暂不支持'
+  },
+  'Java': {
+    supported: 'none',
+    description: '暂不支持：Java 字节码混淆需要专用反混淆工具',
+    tip: '建议使用专业 Java 反混淆工具如 ProGuard、Fernflower 等'
+  },
+  'C++': {
+    supported: 'none',
+    description: '暂不支持：编译后的二进制代码需要专用逆向工具',
+    tip: '建议使用专业逆向分析工具如 IDA Pro、Ghidra 等'
+  },
+  '编码文本': {
+    supported: 'full',
+    description: '完全支持：Base64 编码文本可直接解码',
+    tip: '纯 Base64 编码内容可直接解码还原'
+  },
+  'URL 编码': {
+    supported: 'full',
+    description: '完全支持：URL 百分号编码可直接解码',
+    tip: '纯 URL 编码内容可直接解码还原'
+  },
+  'Unicode 编码': {
+    supported: 'full',
+    description: '完全支持：Unicode 转义可直接解码',
+    tip: '纯 Unicode 编码内容可直接解码还原'
+  },
+  '未知': {
+    supported: 'encoding',
+    description: '尝试解码：将尝试识别并还原通用编码方式',
+    tip: '无法准确判断语言，将尝试通用编码还原，效果取决于实际内容'
+  }
+}
+
+const languageSupportConfig = computed<LanguageSupportConfig>(() => {
+  const lang = detectedLanguage.value
+  if (lang && languageSupportMap[lang]) {
+    return languageSupportMap[lang]
+  }
+  return {
+    supported: 'encoding',
+    description: '尝试解码：将尝试识别并还原通用编码方式',
+    tip: '无法准确判断语言，将尝试通用编码还原'
+  }
+})
+
+const isLanguageSupported = computed(() => {
+  return languageSupportConfig.value.supported === 'full' ||
+    languageSupportConfig.value.supported === 'partial'
+})
+
+const languageSupportText = computed(() => {
+  const map = {
+    'full': '完全支持',
+    'partial': '部分支持',
+    'encoding': '仅编码还原',
+    'none': '暂不支持'
+  }
+  return map[languageSupportConfig.value.supported]
+})
+
+const languageSupportShort = computed(() => {
+  const map = {
+    'full': '✓ 支持',
+    'partial': '◐ 部分支持',
+    'encoding': '◐ 编码',
+    'none': '✗ 不支持'
+  }
+  return map[languageSupportConfig.value.supported]
+})
+
+const languageSupportTagType = computed<'success' | 'warning' | 'danger' | 'info' | 'primary'>(() => {
+  const map = {
+    'full': 'success',
+    'partial': 'warning',
+    'encoding': 'warning',
+    'none': 'danger'
+  }
+  return map[languageSupportConfig.value.supported] as 'success' | 'warning' | 'danger' | 'info' | 'primary'
+})
+
+const languageSupportColor = computed(() => {
+  const map = {
+    'full': '#67c23a',
+    'partial': '#e6a23c',
+    'encoding': '#e6a23c',
+    'none': '#f56c6c'
+  }
+  return map[languageSupportConfig.value.supported]
+})
+
+const languageSupportIcon = computed(() => {
+  const map = {
+    'full': CircleCheck,
+    'partial': Warning,
+    'encoding': Warning,
+    'none': Close
+  }
+  return map[languageSupportConfig.value.supported] || Warning
+})
+
+const languageSupportClass = computed(() => {
+  const map = {
+    'full': 'language-full',
+    'partial': 'language-partial',
+    'encoding': 'language-encoding',
+    'none': 'language-none'
+  }
+  return map[languageSupportConfig.value.supported] || 'language-partial'
+})
+
+const languageSupportDescription = computed(() => {
+  return languageSupportConfig.value.description
+})
+
+const languageSupportTooltip = computed(() => {
+  const lang = detectedLanguage.value
+  const config = languageSupportConfig.value
+  return `${lang}：${config.description} — ${config.tip}`
+})
+
+const languageWarningTitle = computed(() => {
+  const lang = detectedLanguage.value
+  if (languageSupportConfig.value.supported === 'none') {
+    return `${lang} 暂不支持直接反混淆`
+  }
+  if (languageSupportConfig.value.supported === 'encoding') {
+    return `${lang} 仅支持字符串编码还原`
+  }
+  return `${lang} 为部分支持`
+})
+
+const languageWarningDesc = computed(() => {
+  return languageSupportConfig.value.tip
+})
+
+const scrollToSupportSection = () => {
+  const el = document.querySelector('.scope-card')
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
 
 const supportedTypes: ObfuscationType[] = [
   'base64', 'unicode-escape', 'url-encode', 'hex-escape',
@@ -1345,6 +1575,74 @@ const getTransformationIcon = (type: string) => {
 
 .type-action {
   text-align: right;
+}
+
+.language-tag {
+  font-size: 11px;
+  padding: 0 8px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.language-support-section {
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  border: 2px solid #e4e7ed;
+}
+
+.language-support-section.language-full {
+  background: linear-gradient(135deg, #f0f9eb 0%, #e1f3d8 100%);
+  border-color: #67c23a;
+}
+
+.language-support-section.language-partial {
+  background: linear-gradient(135deg, #fdf6ec 0%, #faecd8 100%);
+  border-color: #e6a23c;
+}
+
+.language-support-section.language-encoding {
+  background: linear-gradient(135deg, #fdf6ec 0%, #faecd8 100%);
+  border-color: #e6a23c;
+}
+
+.language-support-section.language-none {
+  background: linear-gradient(135deg, #fef0f0 0%, #fde2e2 100%);
+  border-color: #f56c6c;
+}
+
+.language-support-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.language-support-info {
+  flex: 1;
+}
+
+.language-support-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.language-support-title .language-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #303133;
+}
+
+.language-support-desc {
+  font-size: 12px;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.language-warning {
+  margin-bottom: 12px;
 }
 
 .deobfuscator-card {
