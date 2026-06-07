@@ -193,7 +193,12 @@ const previewData = ref<CreateMenuDto[]>([])
 
 const iconList = [
   'Home', 'HomeFilled', 'Menu', 'Setting', 'User', 'Document',
-  'Folder', 'Files', 'DataLine', 'PieChart', 'Grid', 'List'
+  'Folder', 'Files', 'DataLine', 'PieChart', 'Grid', 'List',
+  'Calendar', 'Headset', 'Location', 'Edit', 'Cpu', 'Monitor',
+  'Money', 'ChatDotRound', 'Connection', 'DataBoard', 'Platform',
+  'TrendCharts', 'MagicStick', 'Search', 'Tools', 'PictureFilled',
+  'Link', 'Histogram', 'Promotion', 'ChatLineSquare', 'Tickets',
+  'Bell', 'CircleCheck', 'Warning', 'InfoFilled', 'Lightning'
 ]
 
 const formData = ref<Partial<Menu>>({

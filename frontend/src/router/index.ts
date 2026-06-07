@@ -60,6 +60,11 @@ const routes: RouteRecordRaw[] = [
         path: '/grid-paper',
         name: 'GridPaper',
         component: () => import('@/views/GridPaper.vue')
+      },
+      {
+        path: '/websocket-debugger',
+        name: 'WebSocketDebugger',
+        component: () => import('@/views/WebSocketDebugger.vue')
       }
     ]
   }
