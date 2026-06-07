@@ -140,6 +140,62 @@
               <div class="form-hint">打印后可用真实尺子核对，1cm刻度验证打印精度</div>
             </el-form-item>
 
+            <el-divider content-position="left">🖨️ 打印机缩放校正</el-divider>
+
+            <el-form-item label="校正系数">
+              <el-slider
+                v-model="settings.printScalePercent"
+                :min="90"
+                :max="110"
+                :step="0.1"
+                show-input
+                size="small"
+                @change="drawGrid"
+              />
+              <div class="unit-label">
+                当前：{{ settings.printScalePercent.toFixed(1) }}%
+                <span v-if="settings.printScalePercent !== 100" :class="{ 'scale-warn': true }">
+                  {{ settings.printScalePercent > 100 ? '放大补偿' : '缩小补偿' }} {{ Math.abs(settings.printScalePercent - 100).toFixed(1) }}%
+                </span>
+              </div>
+            </el-form-item>
+
+            <el-form-item label="智能校正">
+              <div class="calibration-input">
+                <span class="calibration-label">打印出的10cm实际长度：</span>
+                <el-input-number
+                  v-model="calibrateMeasuredMm"
+                  :min="80"
+                  :max="120"
+                  :step="0.1"
+                  :precision="1"
+                  size="small"
+                  controls-position="right"
+                  placeholder="95-105mm"
+                  style="width: 120px"
+                />
+                <span class="calibration-unit">mm</span>
+                <el-button
+                  size="small"
+                  type="primary"
+                  :icon="MagicStick"
+                  @click="autoCalibrate"
+                  :disabled="!calibrateMeasuredMm"
+                >
+                  自动计算
+                </el-button>
+              </div>
+              <div class="form-hint">
+                ① 先开启上方「校准参考尺」并打印 → ② 用真实尺子量打印纸上的10cm刻度 → ③ 将实际测量的毫米数填入上方 → ④ 点击自动计算
+              </div>
+            </el-form-item>
+
+            <el-form-item v-if="settings.printScalePercent !== 100">
+              <el-button size="small" :icon="RefreshLeft" @click="resetCalibration">
+                重置校正系数（恢复100%）
+              </el-button>
+            </el-form-item>
+
             <el-divider content-position="left">快捷预设</el-divider>
 
             <div class="preset-buttons">
@@ -214,6 +270,9 @@
             <el-tag size="small" type="warning">格子: {{ settings.gridSizeMm }}mm</el-tag>
             <el-tag size="small" type="info">边距: {{ settings.marginMm }}mm</el-tag>
             <el-tag size="small" v-if="settings.showRuler" type="danger">含校准尺</el-tag>
+            <el-tag size="small" v-if="settings.printScalePercent !== 100" type="danger">
+              校正: {{ settings.printScalePercent.toFixed(1) }}%
+            </el-tag>
           </div>
         </el-card>
       </el-col>
@@ -233,14 +292,21 @@
           <li>先用草稿纸打印校准尺验证，确认尺寸后再正式打印</li>
         </ol>
 
-        <h4>📏 如何校准？</h4>
-        <p>开启「校准参考尺」后打印，用真实尺子测量：</p>
+        <h4>📏 方法一：智能自动校准（推荐）</h4>
+        <ol>
+          <li>开启「校准参考尺」，打印一页测试纸</li>
+          <li>用真实尺子测量打印出的 10cm 刻度，记录实际毫米数</li>
+          <li>在「智能校正」输入框中填入测量值（如 98.5mm），点击「自动计算」</li>
+          <li>系统会自动计算并应用正确的校正系数</li>
+        </ol>
+
+        <h4>📏 方法二：手动微调</h4>
         <ul>
           <li>如果打印出的 10cm 比真实尺子短 → 增大打印缩放比例（如 102%）</li>
           <li>如果打印出的 10cm 比真实尺子长 → 减小打印缩放比例（如 98%）</li>
         </ul>
 
-        <el-alert title="不同打印机缩放比例可能略有差异，建议首次使用时先校准" type="warning" :closable="false"></el-alert>
+        <el-alert title="换打印机后请重新校准，不同打印机的默认缩放比例可能有差异" type="warning" :closable="false"></el-alert>
       </div>
     </el-dialog>
   </div>
@@ -261,7 +327,9 @@ import {
   Document,
   Grid,
   DataLine,
-  Warning
+  Warning,
+  MagicStick,
+  RefreshLeft
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -280,6 +348,7 @@ interface GridSettings {
   orientation: string
   marginMm: number
   showRuler: boolean
+  printScalePercent: number
 }
 
 interface PaperDim {
@@ -290,6 +359,7 @@ interface PaperDim {
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const previewContainer = ref<HTMLElement | null>(null)
 const showCalibrationHelp = ref(false)
+const calibrateMeasuredMm = ref<number | null>(null)
 
 const settings = reactive<GridSettings>({
   gridType: 'square',
@@ -300,8 +370,44 @@ const settings = reactive<GridSettings>({
   paperSize: 'a4',
   orientation: 'portrait',
   marginMm: 10,
-  showRuler: false
+  showRuler: false,
+  printScalePercent: 100
 })
+
+const printScaleFactor = computed(() => settings.printScalePercent / 100)
+
+const mmToPxCalibrated = (mm: number): number => {
+  return mmToPx(mm * printScaleFactor.value)
+}
+
+const autoCalibrate = () => {
+  if (!calibrateMeasuredMm.value) return
+  const expectedMm = 100
+  const actualMm = calibrateMeasuredMm.value
+  if (actualMm < 80 || actualMm > 120) {
+    ElMessage.warning('测量值异常，请确认在80-120mm范围内')
+    return
+  }
+  const newScale = (expectedMm / actualMm) * 100
+  settings.printScalePercent = Math.round(Math.min(110, Math.max(90, newScale)) * 10) / 10
+  ElMessage.success(
+    `已自动计算校正系数：${settings.printScalePercent.toFixed(1)}%（${
+      settings.printScalePercent > 100
+        ? `打印机偏小，需放大补偿 ${(settings.printScalePercent - 100).toFixed(1)}%`
+        : settings.printScalePercent < 100
+        ? `打印机偏大，需缩小补偿 ${(100 - settings.printScalePercent).toFixed(1)}%`
+        : '无需校正'
+    }）`
+  )
+  nextTick(() => drawGrid())
+}
+
+const resetCalibration = () => {
+  settings.printScalePercent = 100
+  calibrateMeasuredMm.value = null
+  ElMessage.success('已重置校正系数为100%')
+  nextTick(() => drawGrid())
+}
 
 const paperDimensionsMm: Record<string, PaperDim> = {
   a4: { widthMm: 210, heightMm: 297 },
@@ -368,9 +474,9 @@ const drawGrid = () => {
   if (!ctx) return
 
   const { width, height } = getPaperPixelDimensions()
-  const marginPx = mmToPx(settings.marginMm)
-  const gridSizePx = mmToPx(settings.gridSizeMm)
-  const lineWidthPx = mmToPx(settings.lineWidthMm)
+  const marginPx = mmToPxCalibrated(settings.marginMm)
+  const gridSizePx = mmToPxCalibrated(settings.gridSizeMm)
+  const lineWidthPx = mmToPxCalibrated(settings.lineWidthMm)
 
   canvas.width = width
   canvas.height = height
@@ -425,6 +531,18 @@ const drawGrid = () => {
 
   if (settings.showRuler) {
     drawCalibrationRuler(ctx, width, height, marginPx)
+  }
+
+  if (printScaleFactor.value !== 1) {
+    ctx.save()
+    ctx.fillStyle = 'rgba(220, 38, 38, 0.06)'
+    ctx.fillRect(0, 0, width, height)
+    ctx.fillStyle = 'rgba(220, 38, 38, 0.7)'
+    ctx.font = `bold ${mmToPx(3)}px sans-serif`
+    ctx.textAlign = 'right'
+    ctx.textBaseline = 'bottom'
+    ctx.fillText(`校正: ${settings.printScalePercent.toFixed(1)}%`, width - mmToPx(5), height - mmToPx(5))
+    ctx.restore()
   }
 
   ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)'
@@ -517,7 +635,7 @@ const drawLinedPaper = (
   fullWidth: number,
   marginPx: number
 ) => {
-  const redLineX = x + mmToPx(20)
+  const redLineX = x + mmToPxCalibrated(20)
 
   ctx.strokeStyle = 'rgba(255, 80, 80, 0.5)'
   ctx.lineWidth = Math.max(0.5, lineWidth * 1.5)
@@ -545,8 +663,8 @@ const drawCornellNotes = (
   lineHeight: number,
   lineWidth: number
 ) => {
-  const topSectionH = mmToPx(25)
-  const bottomSectionH = mmToPx(50)
+  const topSectionH = mmToPxCalibrated(25)
+  const bottomSectionH = mmToPxCalibrated(50)
   const cueW = w * 0.3
   const mainContentY = y + topSectionH
   const mainContentH = h - topSectionH - bottomSectionH
@@ -636,8 +754,8 @@ const drawCalibrationRuler = (
 ) => {
   const rulerColor = 'rgba(220, 38, 38, 0.9)'
   const rulerBg = 'rgba(255, 240, 240, 0.95)'
-  const rulerH = mmToPx(10)
-  const rulerW = mmToPx(110)
+  const rulerH = mmToPxCalibrated(10)
+  const rulerW = mmToPxCalibrated(110)
 
   const drawRuler = (rx: number, ry: number, horizontal: boolean) => {
     const w = horizontal ? rulerW : rulerH
@@ -652,43 +770,43 @@ const drawCalibrationRuler = (
     ctx.strokeRect(rx + 0.5, ry + 0.5, w - 1, h - 1)
 
     ctx.fillStyle = rulerColor
-    ctx.font = `bold ${mmToPx(2.5)}px sans-serif`
+    ctx.font = `bold ${mmToPxCalibrated(2.5)}px sans-serif`
     ctx.textBaseline = 'top'
 
     const maxCm = 10
     for (let cm = 0; cm <= maxCm; cm++) {
       const mm = cm * 10
-      const pos = mmToPx(mm)
+      const pos = mmToPxCalibrated(mm)
 
       if (horizontal) {
         const px = rx + pos
-        const longTick = mmToPx(5)
-        const shortTick = mmToPx(2.5)
+        const longTick = mmToPxCalibrated(5)
+        const shortTick = mmToPxCalibrated(2.5)
 
         if (cm % 1 === 0) {
           ctx.fillRect(px, ry, 1, longTick)
           if (cm <= maxCm) {
             ctx.textAlign = 'center'
-            ctx.fillText(`${cm}cm`, px, ry + longTick + mmToPx(0.5))
+            ctx.fillText(`${cm}cm`, px, ry + longTick + mmToPxCalibrated(0.5))
           }
         }
 
         for (let m = 1; m < 10 && cm < maxCm; m++) {
-          const subPx = rx + mmToPx(cm * 10 + m)
+          const subPx = rx + mmToPxCalibrated(cm * 10 + m)
           const tickH = m === 5 ? longTick * 0.7 : shortTick
           ctx.fillRect(subPx, ry, 0.5, tickH)
         }
       } else {
         const py = ry + pos
-        const longTick = mmToPx(5)
-        const shortTick = mmToPx(2.5)
+        const longTick = mmToPxCalibrated(5)
+        const shortTick = mmToPxCalibrated(2.5)
 
         if (cm % 1 === 0) {
           ctx.fillRect(rx, py, longTick, 1)
           if (cm <= maxCm) {
             ctx.textAlign = 'left'
             ctx.save()
-            ctx.translate(rx + longTick + mmToPx(0.5), py)
+            ctx.translate(rx + longTick + mmToPxCalibrated(0.5), py)
             ctx.rotate(-Math.PI / 2)
             ctx.fillText(`${cm}cm`, 0, 0)
             ctx.restore()
@@ -696,7 +814,7 @@ const drawCalibrationRuler = (
         }
 
         for (let m = 1; m < 10 && cm < maxCm; m++) {
-          const subPy = ry + mmToPx(cm * 10 + m)
+          const subPy = ry + mmToPxCalibrated(cm * 10 + m)
           const tickW = m === 5 ? longTick * 0.7 : shortTick
           ctx.fillRect(rx, subPy, tickW, 0.5)
         }
@@ -704,16 +822,16 @@ const drawCalibrationRuler = (
     }
   }
 
-  const rx = Math.max(margin * 0.5, mmToPx(5))
-  const ry = Math.max(margin * 0.5, mmToPx(5))
+  const rx = Math.max(margin * 0.5, mmToPxCalibrated(5))
+  const ry = Math.max(margin * 0.5, mmToPxCalibrated(5))
   drawRuler(rx, ry, true)
-  drawRuler(rx, ry + mmToPx(11), false)
+  drawRuler(rx, ry + mmToPxCalibrated(11), false)
 
   ctx.fillStyle = rulerColor
-  ctx.font = `bold ${mmToPx(2.8)}px sans-serif`
+  ctx.font = `bold ${mmToPxCalibrated(2.8)}px sans-serif`
   ctx.textAlign = 'left'
   ctx.textBaseline = 'top'
-  ctx.fillText('← 校准尺：请用真实尺子核对刻度 →', rx, ry + mmToPx(22))
+  ctx.fillText('← 校准尺：请用真实尺子核对刻度 →', rx, ry + mmToPxCalibrated(22))
 }
 
 const presets: Record<string, Partial<GridSettings>> = {
@@ -842,8 +960,10 @@ const printGrid = () => {
   const dims = paperDimensionsMm[settings.paperSize]
   const { width, height } = getPaperPixelDimensions()
   const isLandscape = settings.orientation === 'landscape'
-  const cssW = isLandscape ? dims.heightMm : dims.widthMm
-  const cssH = isLandscape ? dims.widthMm : dims.heightMm
+  const baseCssW = isLandscape ? dims.heightMm : dims.widthMm
+  const baseCssH = isLandscape ? dims.widthMm : dims.heightMm
+  const cssW = baseCssW * printScaleFactor.value
+  const cssH = baseCssH * printScaleFactor.value
 
   const printContent = `
     <!DOCTYPE html>
@@ -944,8 +1064,10 @@ const printGrid = () => {
         <h3>🖨️ 格子纸打印预览</h3>
         <p><strong>纸张：</strong>${paperSizeLabel.value}（${isLandscape ? '横向' : '竖向'}）</p>
         <p><strong>网格：</strong>${gridTypeLabel.value} · ${settings.gridSizeMm}mm/格</p>
+        ${settings.printScalePercent !== 100 ? `<p><strong>打印机校正系数：</strong><span style="color: #dc2626; font-weight: bold;">${settings.printScalePercent.toFixed(1)}%</span>（已根据打印机缩放自动补偿）</p>` : ''}
         <div class="warning">
           ⚠️ <strong>打印设置提示：</strong>请在打印对话框中设置「缩放 = 100%（实际大小）」、「边距 = 无」，否则尺寸可能不准！
+          ${settings.printScalePercent !== 100 ? '<br/>已应用校正系数，请<strong>保持100%缩放</strong>，不要再额外调整！' : ''}
         </div>
         <button onclick="window.print()">🖨️ 立即打印</button>
       </div>
@@ -1117,5 +1239,35 @@ onMounted(() => {
 
 .calibration-guide li {
   margin-bottom: 4px;
+}
+
+.calibration-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px;
+  background: #f0f9ff;
+  border-radius: 6px;
+  border: 1px solid #bae6fd;
+}
+
+.calibration-label {
+  font-size: 13px;
+  color: #334155;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.calibration-unit {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.scale-warn {
+  color: #dc2626;
+  font-weight: 600;
+  font-size: 13px;
 }
 </style>
