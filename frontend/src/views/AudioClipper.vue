@@ -9,12 +9,11 @@
           <span>使用说明</span>
         </div>
       </template>
-      <el-steps :active="0" finish-status="wait" simple class="guide-steps">
-        <el-step title="上传音频" description="支持 MP3、WAV、OGG 等常见音频格式" />
-        <el-step title="查看波形" description="上传后自动生成音频波形图，便于定位" />
-        <el-step title="选择片段" description="拖动左右两侧的标记线，设置起止位置" />
-        <el-step title="预览播放" description="点击播放按钮，试听所选片段效果" />
-        <el-step title="裁剪下载" description="确认无误后，点击导出下载裁剪结果" />
+      <el-steps :active="currentStep" finish-status="success" simple class="guide-steps">
+        <el-step title="上传音频" description="支持 MP3、WAV、OGG 等常见格式" />
+        <el-step title="选择片段" description="拖动橙色手柄，或直接填写时间" />
+        <el-step title="预览播放" description="点击播放按钮，试听所选片段" />
+        <el-step title="裁剪下载" description="确认无误后导出 WAV 文件" />
       </el-steps>
     </el-card>
 
@@ -65,10 +64,21 @@
           <el-tag v-if="audioDuration" size="small" type="info" class="header-tag">
             总时长 {{ formatTime(audioDuration) }}
           </el-tag>
+          <el-button
+            v-if="!showWaveformTips"
+            link
+            type="primary"
+            size="small"
+            class="header-hint-btn"
+            @click="resetOnboarding"
+          >
+            <el-icon><Guide /></el-icon>
+            <span>显示操作提示</span>
+          </el-button>
         </div>
       </template>
 
-      <div class="waveform-container" ref="waveformContainerRef">
+      <div class="waveform-container" ref="waveformContainerRef" @dblclick="resetSelection">
         <canvas
           ref="waveformCanvasRef"
           class="waveform-canvas"
@@ -90,18 +100,136 @@
           class="handle handle-start"
           :style="startHandleStyle"
           @mousedown="startHandleDrag('start', $event)"
+          @mouseenter="hoveredHandle = 'start'"
+          @mouseleave="hoveredHandle = null"
         >
           <div class="handle-bar" />
           <el-icon class="handle-icon"><DArrowLeft /></el-icon>
+          <div
+            v-if="showStartHint || hoveredHandle === 'start'"
+            class="handle-tooltip handle-tooltip-start"
+          >
+            <div class="tooltip-arrow" />
+            <div class="tooltip-content">
+              <strong>起始点</strong>
+              <span>左右拖动，设置片段开始时间</span>
+              <el-button
+                v-if="showStartHint"
+                link
+                size="small"
+                class="tooltip-close"
+                @click.stop="dismissHint('start')"
+              >
+                知道了
+              </el-button>
+            </div>
+          </div>
         </div>
         <div
           class="handle handle-end"
           :style="endHandleStyle"
           @mousedown="startHandleDrag('end', $event)"
+          @mouseenter="hoveredHandle = 'end'"
+          @mouseleave="hoveredHandle = null"
         >
           <div class="handle-bar" />
           <el-icon class="handle-icon"><DArrowRight /></el-icon>
+          <div
+            v-if="showEndHint || hoveredHandle === 'end'"
+            class="handle-tooltip handle-tooltip-end"
+          >
+            <div class="tooltip-arrow" />
+            <div class="tooltip-content">
+              <strong>结束点</strong>
+              <span>左右拖动，设置片段结束时间</span>
+              <el-button
+                v-if="showEndHint"
+                link
+                size="small"
+                class="tooltip-close"
+                @click.stop="dismissHint('end')"
+              >
+                知道了
+              </el-button>
+            </div>
+          </div>
         </div>
+
+        <transition name="fade">
+          <div v-if="showWaveformTips" class="onboarding-overlay">
+            <div class="onboarding-inner">
+              <div class="onboarding-title">
+                <el-icon :size="24" color="#e6a23c"><Star /></el-icon>
+                <span>快速上手</span>
+                <el-button
+                  link
+                  size="small"
+                  class="onboarding-close"
+                  @click="dismissHint('waveform')"
+                >
+                  <el-icon><Close /></el-icon>
+                </el-button>
+              </div>
+              <div class="onboarding-tips">
+                <div class="tip-item">
+                  <div class="tip-icon tip-icon-drag">
+                    <el-icon><Sort /></el-icon>
+                  </div>
+                  <div class="tip-text">
+                    <strong>拖动橙色手柄</strong>
+                    <span>左右两侧的橙色竖线用来标记起止位置，直接按住拖动即可</span>
+                  </div>
+                </div>
+                <div class="tip-item">
+                  <div class="tip-icon tip-icon-click">
+                    <el-icon><Aim /></el-icon>
+                  </div>
+                  <div class="tip-text">
+                    <strong>点击波形定位</strong>
+                    <span>在波形上任意位置点击，红色指针会跳到该位置，便于精确查找</span>
+                  </div>
+                </div>
+                <div class="tip-item">
+                  <div class="tip-icon tip-icon-input">
+                    <el-icon><Edit /></el-icon>
+                  </div>
+                  <div class="tip-text">
+                    <strong>输入精确时间</strong>
+                    <span>下方数字框可直接填写秒数，精确到 0.01 秒</span>
+                  </div>
+                </div>
+                <div class="tip-item">
+                  <div class="tip-icon tip-icon-play">
+                    <el-icon><VideoPlay /></el-icon>
+                  </div>
+                  <div class="tip-text">
+                    <strong>先试听再导出</strong>
+                    <span>建议先点击"播放片段"试听效果，确认满意再下载</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
+      </div>
+
+      <div class="quick-tips-bar">
+        <el-icon color="#e6a23c"><Lightning /></el-icon>
+        <span class="quick-tips-text">
+          技巧：拖动
+          <el-tag size="small" type="warning" effect="plain">橙色手柄</el-tag>
+          选片段 · 点击波形定位指针 · 双击空白可
+          <a href="javascript:void(0)" @click="resetSelection">重置选区</a>
+        </span>
+        <el-button
+          link
+          type="primary"
+          size="small"
+          @click="resetOnboarding"
+          class="quick-tips-btn"
+        >
+          查看完整指南
+        </el-button>
       </div>
 
       <div class="time-display">
@@ -183,7 +311,14 @@ import {
   Download,
   Headset,
   DArrowLeft,
-  DArrowRight
+  DArrowRight,
+  Guide,
+  Star,
+  Close,
+  Sort,
+  Aim,
+  Edit,
+  Lightning
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -205,6 +340,67 @@ const isPlaying = ref(false)
 const isPlayingSelection = ref(false)
 const isExporting = ref(false)
 const currentPlaybackTime = ref(0)
+
+const ONBOARDING_KEY = 'audio-clipper-onboarding'
+const showStartHint = ref(true)
+const showEndHint = ref(true)
+const showWaveformTips = ref(true)
+const hoveredHandle = ref<'start' | 'end' | null>(null)
+const hasAdjustedSelection = ref(false)
+const hasPlayed = ref(false)
+const hasExported = ref(false)
+
+const currentStep = computed(() => {
+  if (hasExported.value) return 4
+  if (hasPlayed.value) return 3
+  if (hasAdjustedSelection.value || audioBuffer.value) return 2
+  if (audioFile.value) return 1
+  return 0
+})
+
+const loadOnboardingState = () => {
+  try {
+    const saved = localStorage.getItem(ONBOARDING_KEY)
+    if (saved) {
+      const state = JSON.parse(saved)
+      showStartHint.value = state.showStartHint !== false
+      showEndHint.value = state.showEndHint !== false
+      showWaveformTips.value = state.showWaveformTips !== false
+    }
+  } catch (e) {}
+}
+
+const saveOnboardingState = () => {
+  try {
+    localStorage.setItem(ONBOARDING_KEY, JSON.stringify({
+      showStartHint: showStartHint.value,
+      showEndHint: showEndHint.value,
+      showWaveformTips: showWaveformTips.value
+    }))
+  } catch (e) {}
+}
+
+const dismissHint = (type: 'start' | 'end' | 'waveform') => {
+  if (type === 'start') showStartHint.value = false
+  if (type === 'end') showEndHint.value = false
+  if (type === 'waveform') showWaveformTips.value = false
+  saveOnboardingState()
+}
+
+const resetOnboarding = () => {
+  showStartHint.value = true
+  showEndHint.value = true
+  showWaveformTips.value = true
+  saveOnboardingState()
+}
+
+const resetSelection = () => {
+  if (!audioBuffer.value) return
+  startTime.value = 0
+  endTime.value = audioDuration.value
+  currentPlaybackTime.value = 0
+  ElMessage.info('已重置选区')
+}
 
 let audioContext: AudioContext | null = null
 let sourceNode: AudioBufferSourceNode | null = null
@@ -304,10 +500,16 @@ const handleFileChange = async (file: { raw: File }) => {
     endTime.value = decoded.duration
     startTimeInput.value = 0
     endTimeInput.value = Number(decoded.duration.toFixed(2))
+    hasAdjustedSelection.value = false
+    hasPlayed.value = false
+    hasExported.value = false
 
     await nextTick()
     drawWaveform()
-    ElMessage.success('音频加载成功')
+    ElMessage.success({
+      message: '音频加载成功，拖动橙色手柄选择要裁剪的片段',
+      duration: 3000
+    })
   } catch (error) {
     console.error('Failed to decode audio:', error)
     ElMessage.error('音频解码失败，请尝试其他格式')
@@ -388,10 +590,12 @@ const handleCanvasMouseMove = (e: MouseEvent) => {
     const time = Math.min(getTimeFromMouseX(e.clientX), endTime.value - 0.1)
     startTime.value = Math.max(0, time)
     startTimeInput.value = Number(startTime.value.toFixed(2))
+    hasAdjustedSelection.value = true
   } else if (dragType === 'end') {
     const time = Math.max(getTimeFromMouseX(e.clientX), startTime.value + 0.1)
     endTime.value = Math.min(audioDuration.value, time)
     endTimeInput.value = Number(endTime.value.toFixed(2))
+    hasAdjustedSelection.value = true
   }
 }
 
@@ -405,6 +609,7 @@ const onStartTimeInputChange = (val: number) => {
     startTimeInput.value = Number(val.toFixed(2))
   }
   startTime.value = Math.max(0, val)
+  hasAdjustedSelection.value = true
 }
 
 const onEndTimeInputChange = (val: number) => {
@@ -413,6 +618,7 @@ const onEndTimeInputChange = (val: number) => {
     endTimeInput.value = Number(val.toFixed(2))
   }
   endTime.value = Math.min(audioDuration.value, val)
+  hasAdjustedSelection.value = true
 }
 
 const stopPlayback = () => {
@@ -463,6 +669,7 @@ const togglePlay = () => {
   source.start(0, offset)
   sourceNode = source
   isPlaying.value = true
+  hasPlayed.value = true
 
   source.onended = () => {
     isPlaying.value = false
@@ -490,6 +697,7 @@ const togglePlaySelection = () => {
   sourceNode = source
   isPlayingSelection.value = true
   currentPlaybackTime.value = startTime.value
+  hasPlayed.value = true
 
   source.onended = () => {
     isPlayingSelection.value = false
@@ -610,6 +818,7 @@ const exportClip = async () => {
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
 
+    hasExported.value = true
     ElMessage.success(`导出成功：${fileName}`)
   } catch (error) {
     console.error('Export failed:', error)
@@ -654,6 +863,7 @@ watch(endTime, (val) => {
 })
 
 onMounted(() => {
+  loadOnboardingState()
   window.addEventListener('resize', handleResize)
 })
 
@@ -896,5 +1106,228 @@ onUnmounted(() => {
 
 .native-audio {
   width: 100%;
+}
+
+.header-hint-btn {
+  margin-left: auto;
+}
+
+.handle-tooltip {
+  position: absolute;
+  top: 12px;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.handle-tooltip-start {
+  left: 30px;
+}
+
+.handle-tooltip-end {
+  right: 30px;
+}
+
+.handle-tooltip-end .tooltip-arrow {
+  left: auto;
+  right: -6px;
+  transform: translateY(-50%) rotate(135deg);
+}
+
+.tooltip-arrow {
+  position: absolute;
+  top: 50%;
+  left: -6px;
+  transform: translateY(-50%) rotate(-45deg);
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-left: 1px solid #e4e7ed;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.tooltip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-size: 13px;
+  min-width: 140px;
+}
+
+.tooltip-content strong {
+  color: #e6a23c;
+  font-size: 14px;
+}
+
+.tooltip-content span {
+  color: #606266;
+  font-size: 12px;
+  white-space: normal;
+  max-width: 180px;
+}
+
+.tooltip-close {
+  align-self: flex-end;
+  margin-top: 2px;
+  padding: 0;
+}
+
+.onboarding-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.onboarding-inner {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: onboarding-pop 0.3s ease-out;
+}
+
+@keyframes onboarding-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.onboarding-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #303133;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.onboarding-close {
+  margin-left: auto;
+  color: #909399;
+}
+
+.onboarding-close:hover {
+  color: #303133;
+}
+
+.onboarding-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tip-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #fff;
+}
+
+.tip-icon-drag {
+  background: linear-gradient(135deg, #e6a23c, #f0c78a);
+}
+
+.tip-icon-click {
+  background: linear-gradient(135deg, #165DFF, #409eff);
+}
+
+.tip-icon-input {
+  background: linear-gradient(135deg, #67c23a, #95d475);
+}
+
+.tip-icon-play {
+  background: linear-gradient(135deg, #f56c6c, #f89898);
+}
+
+.tip-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tip-text strong {
+  font-size: 14px;
+  color: #303133;
+}
+
+.tip-text span {
+  font-size: 12px;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.quick-tips-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #fdf6ec 0%, #faecd8 100%);
+  border: 1px solid #f5dab1;
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+
+.quick-tips-text {
+  font-size: 13px;
+  color: #606266;
+  flex: 1;
+}
+
+.quick-tips-text a {
+  color: #165DFF;
+  text-decoration: none;
+  margin: 0 2px;
+}
+
+.quick-tips-text a:hover {
+  text-decoration: underline;
+}
+
+.quick-tips-btn {
+  flex-shrink: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
