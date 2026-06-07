@@ -55,6 +55,11 @@ const routes: RouteRecordRaw[] = [
         path: '/code-deobfuscator',
         name: 'CodeDeobfuscator',
         component: () => import('@/views/CodeDeobfuscator.vue')
+      },
+      {
+        path: '/grid-paper',
+        name: 'GridPaper',
+        component: () => import('@/views/GridPaper.vue')
       }
     ]
   }

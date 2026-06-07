@@ -81,6 +81,17 @@
               </el-card>
             </el-col>
             <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/grid-paper')" class="feature-card">
+                <el-icon :size="40" color="#fa8c16">
+                  <Grid />
+                </el-icon>
+                <h3>格子纸生成</h3>
+                <p>方格/点阵/康奈尔笔记模板</p>
+              </el-card>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20" style="margin-top: 20px">
+            <el-col :span="6">
               <el-card shadow="hover" @click="navigateTo('/system/menu')" class="feature-card">
                 <el-icon :size="40" color="#909399">
                   <Setting />
