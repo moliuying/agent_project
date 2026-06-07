@@ -7,34 +7,43 @@
             <DataLine />
           </el-icon>
           <span>WebSocket 调试工具</span>
-          <el-tag size="small" type="primary">实时连接 · 消息收发 · 双向调试</el-tag>
+          <el-tag size="small" type="primary">实时连接 · 请求响应配对 · 高频消息调试</el-tag>
         </div>
       </template>
       <el-row :gutter="24">
-        <el-col :span="8">
+        <el-col :span="6">
           <div class="feature-item">
             <el-icon :size="18" color="#67c23a"><CircleCheck /></el-icon>
             <div>
-              <div class="feature-title">方向区分</div>
-              <div class="feature-desc">发送消息右对齐、接收消息左对齐，气泡布局一目了然</div>
+              <div class="feature-title">气泡布局</div>
+              <div class="feature-desc">发送右对齐、接收左对齐，方向一目了然</div>
             </div>
           </div>
         </el-col>
-        <el-col :span="8">
+        <el-col :span="6">
+          <div class="feature-item">
+            <el-icon :size="18" color="#722ed1"><Link /></el-icon>
+            <div>
+              <div class="feature-title">请求响应配对</div>
+              <div class="feature-desc">自动关联请求与响应，计算响应耗时，同色边框标识</div>
+            </div>
+          </div>
+        </el-col>
+        <el-col :span="6">
           <div class="feature-item">
             <el-icon :size="18" color="#409eff"><Grid /></el-icon>
             <div>
               <div class="feature-title">类型标识</div>
-              <div class="feature-desc">自动识别文本/JSON/二进制消息，标签 + 颜色双重区分</div>
+              <div class="feature-desc">自动识别文本/JSON/二进制，标签颜色双重区分</div>
             </div>
           </div>
         </el-col>
-        <el-col :span="8">
+        <el-col :span="6">
           <div class="feature-item">
             <el-icon :size="18" color="#e6a23c"><Search /></el-icon>
             <div>
               <div class="feature-title">搜索过滤</div>
-              <div class="feature-desc">按方向、类型、关键词快速筛选定位目标消息</div>
+              <div class="feature-desc">按方向/类型/配对状态筛选，关键词精准搜索</div>
             </div>
           </div>
         </el-col>
@@ -131,14 +140,30 @@
           </el-icon>
           <span>消息调试</span>
           <div class="header-stats">
-            <el-tag size="small" type="primary" effect="plain">
-              <el-icon :size="11"><Top /></el-icon>
-              发送 {{ stats.send }}
-            </el-tag>
-            <el-tag size="small" type="success" effect="plain">
-              <el-icon :size="11"><Bottom /></el-icon>
-              接收 {{ stats.receive }}
-            </el-tag>
+            <el-tooltip content="已发送消息数" placement="bottom">
+              <el-tag size="small" type="primary" effect="plain">
+                <el-icon :size="11"><Top /></el-icon>
+                {{ stats.send }}
+              </el-tag>
+            </el-tooltip>
+            <el-tooltip content="已接收消息数" placement="bottom">
+              <el-tag size="small" type="success" effect="plain">
+                <el-icon :size="11"><Bottom /></el-icon>
+                {{ stats.receive }}
+              </el-tag>
+            </el-tooltip>
+            <el-tooltip content="已成功配对的请求-响应对" placement="bottom">
+              <el-tag size="small" type="warning" effect="plain">
+                <el-icon :size="11"><Link /></el-icon>
+                {{ stats.paired }}
+              </el-tag>
+            </el-tooltip>
+            <el-tooltip content="平均响应延迟" placement="bottom" v-if="stats.avgLatency > 0">
+              <el-tag size="small" type="danger" effect="plain">
+                <el-icon :size="11"><Timer /></el-icon>
+                {{ formatLatency(stats.avgLatency) }}
+              </el-tag>
+            </el-tooltip>
             <el-tag size="small" type="info" effect="plain">共 {{ messages.length }} 条</el-tag>
           </div>
         </div>
@@ -160,6 +185,24 @@
                 <el-radio-button label="json">JSON</el-radio-button>
                 <el-radio-button label="binary">二进制</el-radio-button>
               </el-radio-group>
+              <el-radio-group v-model="filterPairStatus" size="small">
+                <el-radio-button label="all">全部状态</el-radio-button>
+                <el-radio-button label="paired">
+                  <el-icon :size="11"><Link /></el-icon>
+                  已配对
+                </el-radio-button>
+                <el-radio-button label="pending">
+                  <el-icon :size="11"><Timer /></el-icon>
+                  等待响应
+                </el-radio-button>
+                <el-radio-button label="unpaired">未配对</el-radio-button>
+              </el-radio-group>
+              <el-switch
+                v-model="pairViewMode"
+                active-text="配对视图"
+                inactive-text="列表视图"
+                size="small"
+              />
             </div>
             <div class="search-group">
               <el-input
@@ -179,9 +222,9 @@
           <div class="messages-subheader">
             <div class="messages-title">
               <el-icon><Tickets /></el-icon>
-              <span>消息记录</span>
+              <span>{{ pairViewMode ? '请求-响应对' : '消息记录' }}</span>
               <el-tag v-if="filteredMessages.length !== messages.length" size="small" type="warning" effect="light">
-                筛选后 {{ filteredMessages.length }} 条
+                筛选后 {{ pairViewMode ? pairedGroups.length : filteredMessages.length }} 条
               </el-tag>
             </div>
             <div class="messages-actions">
@@ -217,9 +260,9 @@
           <div
             ref="messagesContainer"
             class="messages-container"
-            :class="{ 'is-empty': filteredMessages.length === 0 }"
+            :class="{ 'is-empty': (pairViewMode ? pairedGroups : filteredMessages).length === 0 }"
           >
-            <div v-if="filteredMessages.length === 0" class="messages-empty">
+            <div v-if="(pairViewMode ? pairedGroups : filteredMessages).length === 0" class="messages-empty">
               <el-icon :size="48" color="#c0c4cc"><ChatLineSquare /></el-icon>
               <p>{{ messages.length === 0 ? '暂无消息记录' : '没有匹配的消息' }}</p>
               <p class="empty-hint">
@@ -227,113 +270,242 @@
               </p>
             </div>
 
-            <div
-              v-for="msg in filteredMessages"
-              :key="msg.id"
-              class="message-item"
-              :class="[
-                `msg-${msg.type}`,
-                `dir-${msg.direction}`
-              ]"
-            >
-              <div class="message-bubble" :class="`bubble-${msg.type}`">
-                <div class="bubble-header">
-                  <div class="bubble-meta">
-                    <span class="msg-seq">#{{ msg.seq }}</span>
-                    <el-tag
-                      size="small"
-                      :type="getDirectionTagType(msg.direction)"
-                      effect="dark"
-                      class="direction-tag"
-                    >
-                      <el-icon :size="10">
-                        <component :is="getDirectionIcon(msg.direction)" />
-                      </el-icon>
-                      {{ getDirectionLabel(msg.direction) }}
-                    </el-tag>
-                    <el-tag
-                      v-if="msg.contentType"
-                      size="small"
-                      :type="getContentTypeTagType(msg.contentType)"
-                      effect="plain"
-                      class="content-type-tag"
-                    >
-                      <el-icon :size="10">
-                        <component :is="getContentTypeIcon(msg.contentType)" />
-                      </el-icon>
-                      {{ getContentTypeLabel(msg.contentType) }}
-                    </el-tag>
-                    <el-tag
-                      v-if="msg.size !== undefined"
-                      size="small"
-                      type="info"
-                      effect="light"
-                      class="size-tag"
-                    >
-                      <el-icon :size="10"><Files /></el-icon>
-                      {{ formatBytes(msg.size) }}
-                    </el-tag>
-                  </div>
-                  <div class="bubble-actions">
-                    <span class="message-time">{{ msg.time }}</span>
-                    <el-dropdown
-                      v-if="msg.type !== 'system' && msg.type !== 'error'"
-                      trigger="click"
-                      @command="(cmd: string) => handleMsgAction(cmd, msg)"
-                    >
-                      <el-button size="small" text type="primary" class="msg-more-btn">
-                        <el-icon><MoreFilled /></el-icon>
-                      </el-button>
-                      <template #dropdown>
-                        <el-dropdown-menu>
-                          <el-dropdown-item command="copy">
-                            <el-icon><CopyDocument /></el-icon>复制内容
-                          </el-dropdown-item>
-                          <el-dropdown-item command="copyRaw" v-if="msg.contentType === 'binary'">
-                            <el-icon><Document /></el-icon>复制原始数据
-                          </el-dropdown-item>
-                          <el-dropdown-item command="download" v-if="msg.contentType === 'binary'">
-                            <el-icon><Download /></el-icon>下载为文件
-                          </el-dropdown-item>
-                        </el-dropdown-menu>
-                      </template>
-                    </el-dropdown>
-                  </div>
-                </div>
-
-                <div class="bubble-content">
-                  <span v-if="msg.type === 'system'" class="system-text">
-                    <el-icon :size="12"><InfoFilled /></el-icon>
-                    {{ msg.content }}
-                  </span>
-                  <span v-else-if="msg.type === 'error'" class="error-text">
-                    <el-icon :size="12"><WarningFilled /></el-icon>
-                    {{ msg.content }}
-                  </span>
-                  <template v-else-if="msg.contentType === 'binary'">
-                    <div class="binary-preview">
-                      <div class="binary-info">
-                        <el-icon :size="14" color="#e6a23c"><Files /></el-icon>
-                        <span>二进制数据，共 {{ formatBytes(msg.size || 0) }}</span>
-                      </div>
-                      <div class="binary-hex">
-                        <pre><code>{{ msg.binaryPreview || '(无法预览)' }}</code></pre>
-                      </div>
-                      <div class="binary-actions">
-                        <el-button size="small" @click="downloadBinary(msg)">
-                          <el-icon><Download /></el-icon>下载文件
-                        </el-button>
-                        <el-button size="small" @click="copyBinary(msg)">
-                          <el-icon><CopyDocument /></el-icon>复制十六进制
-                        </el-button>
-                      </div>
+            <template v-if="!pairViewMode">
+              <div
+                v-for="msg in filteredMessages"
+                :key="msg.id"
+                ref="msgRefs"
+                class="message-item"
+                :class="[
+                  `msg-${msg.type}`,
+                  `dir-${msg.direction}`,
+                  { 'is-highlighted': highlightedMsgId === msg.id, 'is-paired': msg.pairId }
+                ]"
+                :style="msg.pairId ? { '--pair-color': getPairColor(msg.pairId) } : {}"
+                @click="handleMsgClick(msg)"
+              >
+                <div class="message-bubble" :class="[`bubble-${msg.type}`, { 'bubble-paired': msg.pairId }]">
+                  <div class="bubble-header">
+                    <div class="bubble-meta">
+                      <span class="msg-seq">#{{ msg.seq }}</span>
+                      <el-tag
+                        size="small"
+                        :type="getDirectionTagType(msg.direction)"
+                        effect="dark"
+                        class="direction-tag"
+                      >
+                        <el-icon :size="10">
+                          <component :is="getDirectionIcon(msg.direction)" />
+                        </el-icon>
+                        {{ getDirectionLabel(msg.direction) }}
+                      </el-tag>
+                      <el-tag
+                        v-if="msg.contentType"
+                        size="small"
+                        :type="getContentTypeTagType(msg.contentType)"
+                        effect="plain"
+                        class="content-type-tag"
+                      >
+                        <el-icon :size="10">
+                          <component :is="getContentTypeIcon(msg.contentType)" />
+                        </el-icon>
+                        {{ getContentTypeLabel(msg.contentType) }}
+                      </el-tag>
+                      <el-tag
+                        v-if="msg.size !== undefined"
+                        size="small"
+                        type="info"
+                        effect="light"
+                        class="size-tag"
+                      >
+                        <el-icon :size="10"><Files /></el-icon>
+                        {{ formatBytes(msg.size) }}
+                      </el-tag>
+                      <el-tag
+                        v-if="msg.direction === 'receive' && msg.latency !== undefined"
+                        size="small"
+                        :type="getLatencyTagType(msg.latency)"
+                        effect="dark"
+                        class="latency-tag"
+                      >
+                        <el-icon :size="10"><Timer /></el-icon>
+                        {{ formatLatency(msg.latency) }}
+                      </el-tag>
+                      <el-tag
+                        v-if="msg.direction === 'send' && msg.pendingResponse"
+                        size="small"
+                        type="warning"
+                        effect="dark"
+                        class="pending-tag"
+                      >
+                        <el-icon :size="10" class="spin"><Loading /></el-icon>
+                        等待响应
+                      </el-tag>
                     </div>
-                  </template>
-                  <pre v-else class="text-content" :class="{ 'json-content': msg.contentType === 'json' }">
+                    <div class="bubble-actions">
+                      <span class="message-time">{{ msg.time }}</span>
+                      <el-dropdown
+                        v-if="msg.type !== 'system' && msg.type !== 'error'"
+                        trigger="click"
+                        @command="(cmd) => handleMsgAction(cmd, msg)"
+                        @click.stop
+                      >
+                        <el-button size="small" text type="primary" class="msg-more-btn" @click.stop>
+                          <el-icon><MoreFilled /></el-icon>
+                        </el-button>
+                        <template #dropdown>
+                          <el-dropdown-menu>
+                            <el-dropdown-item command="jumpPair" v-if="msg.pairId">
+                              <el-icon><Aim /></el-icon>跳转至{{ msg.direction === 'send' ? '响应' : '请求' }}
+                            </el-dropdown-item>
+                            <el-dropdown-item command="copy">
+                              <el-icon><CopyDocument /></el-icon>复制内容
+                            </el-dropdown-item>
+                            <el-dropdown-item command="copyRaw" v-if="msg.contentType === 'binary'">
+                              <el-icon><Document /></el-icon>复制十六进制
+                            </el-dropdown-item>
+                            <el-dropdown-item command="download" v-if="msg.contentType === 'binary'">
+                              <el-icon><Download /></el-icon>下载为文件
+                            </el-dropdown-item>
+                          </el-dropdown-menu>
+                        </template>
+                      </el-dropdown>
+                    </div>
+                  </div>
+
+                  <div class="bubble-content">
+                    <span v-if="msg.type === 'system'" class="system-text">
+                      <el-icon :size="12"><InfoFilled /></el-icon>
+                      {{ msg.content }}
+                    </span>
+                    <span v-else-if="msg.type === 'error'" class="error-text">
+                      <el-icon :size="12"><WarningFilled /></el-icon>
+                      {{ msg.content }}
+                    </span>
+                    <template v-else-if="msg.contentType === 'binary'">
+                      <div class="binary-preview">
+                        <div class="binary-info">
+                          <el-icon :size="14" color="#e6a23c"><Files /></el-icon>
+                          <span>二进制数据，共 {{ formatBytes(msg.size || 0) }}</span>
+                        </div>
+                        <div class="binary-hex">
+                          <pre><code>{{ msg.binaryPreview || '(无法预览)' }}</code></pre>
+                        </div>
+                        <div class="binary-actions">
+                          <el-button size="small" @click.stop="downloadBinary(msg)">
+                            <el-icon><Download /></el-icon>下载文件
+                          </el-button>
+                          <el-button size="small" @click.stop="copyBinary(msg)">
+                            <el-icon><CopyDocument /></el-icon>复制十六进制
+                          </el-button>
+                        </div>
+                      </div>
+                    </template>
+                    <pre v-else class="text-content" :class="{ 'json-content': msg.contentType === 'json' }">
 <code v-html="highlightJson(msg.content)"></code></pre>
+                  </div>
                 </div>
               </div>
-            </div>
+            </template>
+
+            <template v-else>
+              <div
+                v-for="group in pairedGroups"
+                :key="group.id"
+                class="pair-group"
+                :style="{ '--pair-color': getPairColor(group.id) }"
+                :class="{ 'is-collapsed': collapsedPairs[group.id] }"
+              >
+                <div class="pair-header" @click="togglePairCollapse(group.id)">
+                  <div class="pair-header-left">
+                    <el-icon class="pair-collapse-icon"><ArrowRight /></el-icon>
+                    <span class="pair-title">请求-响应对 #{{ group.seq }}</span>
+                    <el-tag size="small" type="success" effect="plain">
+                      <el-icon :size="11"><CircleCheck /></el-icon>
+                      已配对
+                    </el-tag>
+                    <el-tag size="small" :type="getLatencyTagType(group.latency)" effect="dark">
+                      <el-icon :size="11"><Timer /></el-icon>
+                      {{ formatLatency(group.latency) }}
+                    </el-tag>
+                    <el-tag size="small" type="info" effect="plain">
+                      <el-icon :size="11"><Files /></el-icon>
+                      请求 {{ formatBytes(group.request.size || 0) }} / 响应 {{ formatBytes(group.response.size || 0) }}
+                    </el-tag>
+                  </div>
+                  <div class="pair-header-right">
+                    <span class="pair-time">{{ group.request.time }} → {{ group.response.time }}</span>
+                    <el-button size="small" text type="primary" @click.stop="expandPairJump(group)">
+                      <el-icon><Aim /></el-icon>在列表中定位
+                    </el-button>
+                  </div>
+                </div>
+                <div class="pair-content" v-show="!collapsedPairs[group.id]">
+                  <div class="message-item dir-send msg-send" @click="handleMsgClick(group.request)">
+                    <div class="message-bubble bubble-send">
+                      <div class="bubble-header">
+                        <div class="bubble-meta">
+                          <span class="msg-seq">#{{ group.request.seq }}</span>
+                          <el-tag size="small" type="primary" effect="dark" class="direction-tag">
+                            <el-icon :size="10"><Top /></el-icon>请求
+                          </el-tag>
+                          <el-tag v-if="group.request.contentType" size="small" :type="getContentTypeTagType(group.request.contentType)" effect="plain" class="content-type-tag">
+                            <el-icon :size="10"><component :is="getContentTypeIcon(group.request.contentType)" /></el-icon>
+                            {{ getContentTypeLabel(group.request.contentType) }}
+                          </el-tag>
+                        </div>
+                        <div class="bubble-actions">
+                          <span class="message-time">{{ group.request.time }}</span>
+                        </div>
+                      </div>
+                      <div class="bubble-content">
+                        <template v-if="group.request.contentType === 'binary'">
+                          <div class="binary-info" style="color:#fff">
+                            <el-icon :size="14"><Files /></el-icon>
+                            <span>二进制数据，{{ formatBytes(group.request.size || 0) }}</span>
+                          </div>
+                        </template>
+                        <pre v-else class="text-content" :class="{ 'json-content': group.request.contentType === 'json' }">
+<code v-html="highlightJson(group.request.content)"></code></pre>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pair-arrow">
+                    <el-icon><Bottom /></el-icon>
+                    <span>{{ formatLatency(group.latency) }}</span>
+                  </div>
+                  <div class="message-item dir-receive msg-message" @click="handleMsgClick(group.response)">
+                    <div class="message-bubble bubble-message">
+                      <div class="bubble-header">
+                        <div class="bubble-meta">
+                          <span class="msg-seq">#{{ group.response.seq }}</span>
+                          <el-tag size="small" type="success" effect="dark" class="direction-tag">
+                            <el-icon :size="10"><Bottom /></el-icon>响应
+                          </el-tag>
+                          <el-tag v-if="group.response.contentType" size="small" :type="getContentTypeTagType(group.response.contentType)" effect="plain" class="content-type-tag">
+                            <el-icon :size="10"><component :is="getContentTypeIcon(group.response.contentType)" /></el-icon>
+                            {{ getContentTypeLabel(group.response.contentType) }}
+                          </el-tag>
+                        </div>
+                        <div class="bubble-actions">
+                          <span class="message-time">{{ group.response.time }}</span>
+                        </div>
+                      </div>
+                      <div class="bubble-content">
+                        <template v-if="group.response.contentType === 'binary'">
+                          <div class="binary-info">
+                            <el-icon :size="14" color="#e6a23c"><Files /></el-icon>
+                            <span>二进制数据，{{ formatBytes(group.response.size || 0) }}</span>
+                          </div>
+                        </template>
+                        <pre v-else class="text-content" :class="{ 'json-content': group.response.contentType === 'json' }">
+<code v-html="highlightJson(group.response.content)"></code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
         </el-col>
 
@@ -432,6 +604,33 @@
               </el-tag>
             </div>
           </div>
+
+          <div class="pair-settings-card" v-if="stats.paired > 0 || pendingSendIds.length > 0">
+            <div class="settings-title">
+              <el-icon :size="14" color="#722ed1"><Link /></el-icon>
+              <span>配对统计</span>
+            </div>
+            <div class="settings-grid">
+              <div class="stat-item">
+                <span class="stat-label">已配对</span>
+                <span class="stat-value stat-value-success">{{ stats.paired }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">等待响应</span>
+                <span class="stat-value stat-value-warning">{{ pendingSendIds.length }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">平均延迟</span>
+                <span class="stat-value" :class="stats.avgLatency > 0 ? getLatencyValueClass(stats.avgLatency) : ''">
+                  {{ stats.avgLatency > 0 ? formatLatency(stats.avgLatency) : '-' }}
+                </span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">配对超时</span>
+                <el-input-number v-model="pairTimeoutMs" :min="500" :max="60000" :step="500" size="small" style="width:120px" />
+              </div>
+            </div>
+          </div>
         </el-col>
       </el-row>
     </el-card>
@@ -464,18 +663,18 @@
             </div>
             <div class="tip-content">
               <div class="tip-title">发送消息</div>
-              <p>支持文本、JSON、十六进制三种格式发送，Ctrl+Enter 快捷发送。</p>
+              <p>支持文本、JSON、十六进制三种格式，Ctrl+Enter 快捷发送。</p>
             </div>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="tip-item">
             <div class="tip-icon tip-icon-purple">
-              <el-icon><Grid /></el-icon>
+              <el-icon><Link /></el-icon>
             </div>
             <div class="tip-content">
-              <div class="tip-title">查看响应</div>
-              <p>左侧气泡区分方向，发送右对齐、接收左对齐，自动识别消息类型。</p>
+              <div class="tip-title">请求响应配对</div>
+              <p>自动将请求与响应配对，显示响应耗时。可切换「配对视图」集中查看。</p>
             </div>
           </div>
         </el-col>
@@ -485,8 +684,8 @@
               <el-icon><Search /></el-icon>
             </div>
             <div class="tip-content">
-              <div class="tip-title">筛选搜索</div>
-              <p>按方向、消息类型快速筛选，或输入关键词精准搜索定位。</p>
+              <div class="tip-title">筛选定位</div>
+              <p>按方向/类型/配对状态快速筛选，点击气泡可跳转至配对消息。</p>
             </div>
           </div>
         </el-col>
@@ -496,7 +695,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, nextTick, onBeforeUnmount, reactive } from 'vue'
 import {
   DataLine,
   CircleCheck,
@@ -518,12 +717,14 @@ import {
   Lightning,
   WarningFilled,
   Warning,
-  Bell,
   MoreFilled,
   Files,
   Top,
   Bottom,
-  Position
+  Timer,
+  Aim,
+  ArrowRight,
+  Loading
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -533,6 +734,7 @@ type ContentType = 'text' | 'json' | 'binary'
 type SendFormat = 'text' | 'json' | 'hex'
 type FilterDirection = 'all' | 'send' | 'receive' | 'system'
 type FilterContentType = 'all' | 'text' | 'json' | 'binary'
+type FilterPairStatus = 'all' | 'paired' | 'pending' | 'unpaired'
 
 interface MessageRecord {
   id: string
@@ -545,6 +747,19 @@ interface MessageRecord {
   binaryPreview?: string
   size?: number
   time: string
+  timestamp: number
+  requestId?: string | number
+  pairId?: string
+  latency?: number
+  pendingResponse?: boolean
+}
+
+interface PairGroup {
+  id: string
+  seq: number
+  request: MessageRecord
+  response: MessageRecord
+  latency: number
 }
 
 interface PresetUrl {
@@ -558,6 +773,12 @@ interface QuickMessage {
   format: SendFormat
 }
 
+const PAIR_COLORS = [
+  '#165DFF', '#67c23a', '#e6a23c', '#722ed1',
+  '#f56c6c', '#13c2c2', '#eb2f96', '#fa8c16',
+  '#2f54eb', '#52c41a', '#faad14', '#a855f7'
+]
+
 const wsUrl = ref('')
 const messageToSend = ref('')
 const messages = ref<MessageRecord[]>([])
@@ -567,12 +788,20 @@ const autoScroll = ref(true)
 const sendFormat = ref<SendFormat>('text')
 const filterDirection = ref<FilterDirection>('all')
 const filterContentType = ref<FilterContentType>('all')
+const filterPairStatus = ref<FilterPairStatus>('all')
 const searchKeyword = ref('')
+const pairViewMode = ref(false)
+const highlightedMsgId = ref<string | null>(null)
+const pairTimeoutMs = ref(5000)
+const collapsedPairs = reactive<Record<string, boolean>>({})
 
 const messagesContainer = ref<HTMLElement>()
+const msgRefs = ref<Record<string, HTMLElement>>({})
 let seqCounter = 0
-
+let pairSeqCounter = 0
 let ws: WebSocket | null = null
+const pendingSendIds = ref<string[]>([])
+const pairTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
 const presetUrls: PresetUrl[] = [
   { name: 'Postman Echo', url: 'wss://ws.postman-echo.com/raw' },
@@ -581,21 +810,91 @@ const presetUrls: PresetUrl[] = [
 
 const quickMessages: QuickMessage[] = [
   { label: 'Ping', content: 'ping', format: 'text' },
-  { label: '问候 JSON', content: '{"type":"hello","message":"你好，服务端"}', format: 'json' },
-  { label: '订阅', content: '{"action":"subscribe","channel":"test"}', format: 'json' },
+  { label: '问候 JSON', content: '{"requestId":' + Date.now() + ',"type":"hello","message":"你好"}', format: 'json' },
+  { label: '订阅请求', content: '{"requestId":"req_' + Date.now() + '","action":"subscribe","channel":"test"}', format: 'json' },
   { label: '心跳', content: '{"type":"heartbeat","timestamp":' + Date.now() + '}', format: 'json' },
   { label: '二进制示例', content: '48656C6C6F20576F726C64', format: 'hex' }
 ]
 
-const stats = computed(() => ({
-  send: messages.value.filter(m => m.direction === 'send').length,
-  receive: messages.value.filter(m => m.direction === 'receive').length
-}))
+const getPairColor = (pairId: string): string => {
+  let hash = 0
+  for (let i = 0; i < pairId.length; i++) {
+    hash = pairId.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return PAIR_COLORS[Math.abs(hash) % PAIR_COLORS.length]
+}
+
+const stats = computed(() => {
+  const pairedMessages = messages.value.filter(m => m.pairId)
+  const latencies = messages.value.filter(m => m.latency !== undefined).map(m => m.latency as number)
+  return {
+    send: messages.value.filter(m => m.direction === 'send').length,
+    receive: messages.value.filter(m => m.direction === 'receive').length,
+    paired: pairedMessages.length / 2,
+    avgLatency: latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0
+  }
+})
+
+const pairedGroups = computed<PairGroup[]>(() => {
+  const pairMap = new Map<string, { request?: MessageRecord; response?: MessageRecord }>()
+  const seqMap = new Map<string, number>()
+
+  for (const msg of messages.value) {
+    if (!msg.pairId) continue
+    if (!pairMap.has(msg.pairId)) {
+      pairMap.set(msg.pairId, {})
+    }
+    const entry = pairMap.get(msg.pairId)!
+    if (msg.direction === 'send') {
+      entry.request = msg
+      seqMap.set(msg.pairId, msg.seq)
+    } else if (msg.direction === 'receive') {
+      entry.response = msg
+    }
+  }
+
+  const groups: PairGroup[] = []
+  for (const [pairId, entry] of pairMap) {
+    if (entry.request && entry.response) {
+      groups.push({
+        id: pairId,
+        seq: seqMap.get(pairId) || 0,
+        request: entry.request,
+        response: entry.response,
+        latency: entry.response.latency || 0
+      })
+    }
+  }
+
+  let pairSeq = 0
+  groups.sort((a, b) => a.seq - b.seq).forEach(g => { g.seq = ++pairSeq })
+
+  if (filterDirection.value !== 'all' || filterContentType.value !== 'all' || searchKeyword.value.trim()) {
+    return groups.filter(g => {
+      const kw = searchKeyword.value.trim().toLowerCase()
+      if (filterDirection.value === 'send' && !g.request) return false
+      if (filterDirection.value === 'receive' && !g.response) return false
+      if (filterContentType.value !== 'all') {
+        if (g.request?.contentType !== filterContentType.value && g.response?.contentType !== filterContentType.value) {
+          return false
+        }
+      }
+      if (kw) {
+        if (!g.request?.content.toLowerCase().includes(kw) && !g.response?.content.toLowerCase().includes(kw)) {
+          return false
+        }
+      }
+      return true
+    })
+  }
+
+  return groups
+})
 
 const sendFormatTip = computed(() => {
   const map: Record<SendFormat, string> = {
     text: '普通文本格式，支持任意字符串内容',
-    json: 'JSON 格式，发送前会自动校验格式正确性',
+    json: 'JSON 格式，发送前会自动校验格式正确性，支持 requestId 自动配对',
     hex: '十六进制格式，例如 48656C6C6F（不含 0x 前缀和空格）'
   }
   return map[sendFormat.value]
@@ -604,7 +903,7 @@ const sendFormatTip = computed(() => {
 const sendPlaceholder = computed(() => {
   const map: Record<SendFormat, string> = {
     text: '请输入要发送的文本内容...\n\n按 Ctrl + Enter 快速发送',
-    json: '请输入 JSON 内容，例如：\n{\n  "type": "message",\n  "data": "hello"\n}\n\n发送前会自动校验格式',
+    json: '请输入 JSON 内容（建议包含 requestId 字段用于自动配对），例如：\n{\n  "requestId": 1,\n  "type": "message",\n  "data": "hello"\n}\n\n发送前会自动校验格式',
     hex: '请输入十六进制数据，例如：\n48656C6C6F20576F726C64\n\n将作为二进制数据发送'
   }
   return map[sendFormat.value]
@@ -648,6 +947,11 @@ const filteredMessages = computed(() => {
     if (filterContentType.value !== 'all' && msg.contentType !== filterContentType.value) {
       return false
     }
+    if (filterPairStatus.value !== 'all') {
+      if (filterPairStatus.value === 'paired' && !msg.pairId) return false
+      if (filterPairStatus.value === 'pending' && !msg.pendingResponse) return false
+      if (filterPairStatus.value === 'unpaired' && (msg.pairId || msg.type === 'system' || msg.type === 'error')) return false
+    }
     if (searchKeyword.value.trim()) {
       const kw = searchKeyword.value.trim().toLowerCase()
       if (!msg.content.toLowerCase().includes(kw)) return false
@@ -687,6 +991,23 @@ const formatBytes = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
+const formatLatency = (ms: number): string => {
+  if (ms < 1000) return `${ms} ms`
+  return `${(ms / 1000).toFixed(2)} s`
+}
+
+const getLatencyTagType = (ms: number): 'success' | 'warning' | 'danger' => {
+  if (ms < 200) return 'success'
+  if (ms < 1000) return 'warning'
+  return 'danger'
+}
+
+const getLatencyValueClass = (ms: number): string => {
+  if (ms < 200) return 'stat-value-success'
+  if (ms < 1000) return 'stat-value-warning'
+  return 'stat-value-danger'
+}
+
 const detectContentType = (content: string): ContentType => {
   try {
     JSON.parse(content)
@@ -694,6 +1015,23 @@ const detectContentType = (content: string): ContentType => {
   } catch {
     return 'text'
   }
+}
+
+const extractRequestId = (content: string): string | number | undefined => {
+  try {
+    const obj = JSON.parse(content)
+    if (typeof obj === 'object' && obj !== null) {
+      const idKeys = ['requestId', 'reqId', 'msgId', 'messageId', 'id', 'traceId']
+      for (const key of idKeys) {
+        if (obj[key] !== undefined) {
+          return obj[key]
+        }
+      }
+    }
+  } catch {
+    return undefined
+  }
+  return undefined
 }
 
 const hexToBytes = (hex: string): Uint8Array => {
@@ -728,10 +1066,6 @@ const arrayBufferToUtf8 = (buf: ArrayBuffer): string | null => {
   }
 }
 
-const getBlobSize = async (blob: Blob): Promise<number> => {
-  return blob.size
-}
-
 const blobToArrayBuffer = (blob: Blob): Promise<ArrayBuffer> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -745,6 +1079,54 @@ const genId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 9)
 }
 
+const startPairTimeout = (sendMsgId: string) => {
+  const timer = setTimeout(() => {
+    const msg = messages.value.find(m => m.id === sendMsgId)
+    if (msg) {
+      msg.pendingResponse = false
+    }
+    pendingSendIds.value = pendingSendIds.value.filter(id => id !== sendMsgId)
+    pairTimers.delete(sendMsgId)
+  }, pairTimeoutMs.value)
+  pairTimers.set(sendMsgId, timer)
+  pendingSendIds.value.push(sendMsgId)
+}
+
+const tryPairMessages = (receiveMsg: MessageRecord) => {
+  if (pendingSendIds.value.length === 0) return
+
+  if (receiveMsg.requestId !== undefined) {
+    for (const sendId of pendingSendIds.value) {
+      const sendMsg = messages.value.find(m => m.id === sendId)
+      if (sendMsg && sendMsg.requestId === receiveMsg.requestId) {
+        doPair(sendMsg, receiveMsg)
+        return
+      }
+    }
+  }
+
+  const oldestPendingId = pendingSendIds.value[0]
+  const sendMsg = messages.value.find(m => m.id === oldestPendingId)
+  if (sendMsg) {
+    doPair(sendMsg, receiveMsg)
+  }
+}
+
+const doPair = (sendMsg: MessageRecord, receiveMsg: MessageRecord) => {
+  const pairId = `pair_${sendMsg.id}_${receiveMsg.id}`
+  sendMsg.pairId = pairId
+  receiveMsg.pairId = pairId
+  receiveMsg.latency = receiveMsg.timestamp - sendMsg.timestamp
+  sendMsg.pendingResponse = false
+
+  const timer = pairTimers.get(sendMsg.id)
+  if (timer) {
+    clearTimeout(timer)
+    pairTimers.delete(sendMsg.id)
+  }
+  pendingSendIds.value = pendingSendIds.value.filter(id => id !== sendMsg.id)
+}
+
 const addMessage = async (
   type: MessageType,
   content: string,
@@ -753,6 +1135,7 @@ const addMessage = async (
     rawData?: ArrayBuffer | Blob | Uint8Array
     size?: number
     binaryPreview?: string
+    requestId?: string | number
   }
 ) => {
   seqCounter++
@@ -774,6 +1157,7 @@ const addMessage = async (
     }
   }
 
+  const now = Date.now()
   const record: MessageRecord = {
     id: genId(),
     seq: seqCounter,
@@ -784,10 +1168,19 @@ const addMessage = async (
     rawData: finalRawData,
     binaryPreview: finalBinaryPreview,
     size: finalSize,
-    time: formatTime(new Date())
+    time: formatTime(new Date(now)),
+    timestamp: now,
+    requestId: options?.requestId,
+    pendingResponse: type === 'send'
   }
 
   messages.value.push(record)
+
+  if (type === 'send') {
+    startPairTimeout(record.id)
+  } else if (type === 'message') {
+    tryPairMessages(record)
+  }
 
   if (autoScroll.value) {
     nextTick(() => {
@@ -810,7 +1203,8 @@ const handleIncomingMessage = async (event: MessageEvent) => {
       const formatted = tryFormatJson(text)
       addMessage('message', formatted, {
         contentType: detectContentType(text),
-        size
+        size,
+        requestId: extractRequestId(text)
       })
     } else {
       addMessage('message', '[二进制数据]', {
@@ -828,7 +1222,8 @@ const handleIncomingMessage = async (event: MessageEvent) => {
       const formatted = tryFormatJson(text)
       addMessage('message', formatted, {
         contentType: detectContentType(text),
-        size
+        size,
+        requestId: extractRequestId(text)
       })
     } else {
       addMessage('message', '[二进制数据]', {
@@ -842,7 +1237,8 @@ const handleIncomingMessage = async (event: MessageEvent) => {
     const formatted = tryFormatJson(data)
     addMessage('message', formatted, {
       contentType: detectContentType(data),
-      size: new Blob([data]).size
+      size: new Blob([data]).size,
+      requestId: extractRequestId(data)
     })
   } else {
     addMessage('message', String(data))
@@ -938,6 +1334,29 @@ const escapeHtml = (text: string): string => {
   return div.innerHTML
 }
 
+const handleMsgClick = (msg: MessageRecord) => {
+  highlightedMsgId.value = msg.id
+  setTimeout(() => {
+    highlightedMsgId.value = null
+  }, 2000)
+}
+
+const togglePairCollapse = (pairId: string) => {
+  collapsedPairs[pairId] = !collapsedPairs[pairId]
+}
+
+const expandPairJump = (group: PairGroup) => {
+  pairViewMode.value = false
+  nextTick(() => {
+    highlightedMsgId.value = group.request.id
+    const el = document.querySelector(`[data-msg-id="${group.request.id}"]`) as HTMLElement
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    setTimeout(() => { highlightedMsgId.value = null }, 2000)
+  })
+}
+
 const connect = () => {
   const url = wsUrl.value.trim()
   if (!url) {
@@ -978,6 +1397,10 @@ const connect = () => {
       isConnected.value = false
       const reason = event.reason || '连接已关闭'
       addMessage('system', `连接已关闭 (code: ${event.code}) - ${reason}`)
+      for (const timer of pairTimers.values()) clearTimeout(timer)
+      pairTimers.clear()
+      pendingSendIds.value = []
+      messages.value.forEach(m => { m.pendingResponse = false })
       if (ws) {
         ws = null
       }
@@ -996,6 +1419,10 @@ const disconnect = () => {
   }
   isConnected.value = false
   isConnecting.value = false
+  for (const timer of pairTimers.values()) clearTimeout(timer)
+  pairTimers.clear()
+  pendingSendIds.value = []
+  messages.value.forEach(m => { m.pendingResponse = false })
   ElMessage.info('已断开 WebSocket 连接')
 }
 
@@ -1021,17 +1448,20 @@ const sendMessage = () => {
       })
     } else if (sendFormat.value === 'json') {
       const formatted = JSON.stringify(JSON.parse(content), null, 2)
-      ws.send(content)
+      const rawContent = content
+      ws.send(rawContent)
       addMessage('send', formatted, {
         contentType: 'json',
-        size: new Blob([content]).size
+        size: new Blob([rawContent]).size,
+        requestId: extractRequestId(rawContent)
       })
     } else {
       ws.send(content)
       const displayContent = tryFormatJson(content)
       addMessage('send', displayContent, {
         contentType: detectContentType(content),
-        size: new Blob([content]).size
+        size: new Blob([content]).size,
+        requestId: extractRequestId(content)
       })
     }
     messageToSend.value = ''
@@ -1054,6 +1484,11 @@ const clearMessages = async () => {
     )
     messages.value = []
     seqCounter = 0
+    pairSeqCounter = 0
+    for (const timer of pairTimers.values()) clearTimeout(timer)
+    pairTimers.clear()
+    pendingSendIds.value = []
+    Object.keys(collapsedPairs).forEach(k => { delete collapsedPairs[k] })
     ElMessage.success('已清空消息记录')
   } catch {
     // cancelled
@@ -1072,6 +1507,11 @@ const clearAll = () => {
   messageToSend.value = ''
   messages.value = []
   seqCounter = 0
+  pairSeqCounter = 0
+  for (const timer of pairTimers.values()) clearTimeout(timer)
+  pairTimers.clear()
+  pendingSendIds.value = []
+  Object.keys(collapsedPairs).forEach(k => { delete collapsedPairs[k] })
   ElMessage.success('已重置')
 }
 
@@ -1121,6 +1561,18 @@ const downloadBinary = (msg: MessageRecord) => {
 
 const handleMsgAction = (cmd: string, msg: MessageRecord) => {
   switch (cmd) {
+    case 'jumpPair':
+      if (msg.pairId) {
+        const pairedMsg = messages.value.find(m => m.pairId === msg.pairId && m.id !== msg.id)
+        if (pairedMsg) {
+          handleMsgClick(pairedMsg)
+          const el = document.querySelector(`.message-item[data-msg-id="${pairedMsg.id}"]`) as HTMLElement
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        }
+      }
+      break
     case 'copy':
       copyMessage(msg)
       break
@@ -1139,6 +1591,8 @@ const exportMessages = () => {
     let extra = ''
     if (m.contentType) extra += ` [${getContentTypeLabel(m.contentType)}]`
     if (m.size !== undefined) extra += ` (${formatBytes(m.size)})`
+    if (m.latency !== undefined) extra += ` <latency:${formatLatency(m.latency)}>`
+    if (m.pairId) extra += ` <paired>`
     return `[${m.time}] #${m.seq} [${getDirectionLabel(m.direction)}]${extra}\n${m.content}\n`
   }).join('\n')
   const blob = new Blob([lines], { type: 'text/plain;charset=utf-8' })
@@ -1161,6 +1615,7 @@ const selectPreset = (url: string) => {
 const loadTemplate = () => {
   if (sendFormat.value === 'json') {
     messageToSend.value = JSON.stringify({
+      requestId: Date.now(),
       type: 'message',
       data: {
         id: 1,
@@ -1194,12 +1649,14 @@ onBeforeUnmount(() => {
     ws.close(1000, '页面卸载')
     ws = null
   }
+  for (const timer of pairTimers.values()) clearTimeout(timer)
+  pairTimers.clear()
 })
 </script>
 
 <style scoped>
 .ws-debugger {
-  max-width: 1600px;
+  max-width: 1700px;
   margin: 0 auto;
 }
 
@@ -1220,6 +1677,7 @@ onBeforeUnmount(() => {
   margin-left: auto;
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .feature-item {
@@ -1263,610 +1721,380 @@ onBeforeUnmount(() => {
   display: inline-block;
 }
 
-.status-dot.status-success {
-  background: #67c23a;
-  box-shadow: 0 0 6px #67c23a;
-  animation: pulse 2s infinite;
-}
-
-.status-dot.status-warning {
-  background: #e6a23c;
-  box-shadow: 0 0 6px #e6a23c;
-  animation: pulse 1s infinite;
-}
-
-.status-dot.status-idle {
-  background: #909399;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.connection-form {
-  margin-bottom: 0;
-}
-
-.url-form-item {
-  flex: 1;
-  min-width: 400px;
-}
-
-.url-input {
-  width: 100%;
-}
-
-.preset-urls {
+.filter-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding-top: 16px;
-  margin-top: 16px;
-  border-top: 1px dashed #ebeef5;
-}
-
-.preset-label {
-  font-size: 13px;
-  color: #606266;
-  font-weight: 500;
-}
-
-.preset-tag {
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.preset-tag:hover:not(.is-disabled) {
-  transform: translateY(-1px);
-}
-
-.debug-card {
-  margin-bottom: 24px;
-}
-
-.debug-content {
-  min-height: 500px;
-}
-
-.messages-col,
-.send-col {
-  display: flex;
-  flex-direction: column;
-}
-
-.messages-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
   gap: 12px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
-}
-
-.filter-group {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.search-group {
-  flex-shrink: 0;
 }
 
 .search-input {
   width: 240px;
 }
 
-.messages-subheader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #ebeef5;
-}
-
-.messages-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.messages-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .messages-container {
-  flex: 1;
-  min-height: 480px;
-  max-height: 650px;
-  overflow-y: auto;
-  padding: 16px;
-  background: linear-gradient(180deg, #f7f8fa 0%, #f0f2f5 100%);
-  border: 1px solid #e4e7ed;
+  background: #f5f7fa;
   border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  padding: 20px;
+  max-height: 600px;
+  overflow-y: auto;
+  min-height: 300px;
 }
 
 .messages-container.is-empty {
-  justify-content: center;
+  display: flex;
   align-items: center;
-}
-
-.messages-empty {
-  text-align: center;
+  justify-content: center;
+  flex-direction: column;
   color: #909399;
 }
 
-.messages-empty p {
-  margin: 8px 0 0 0;
+.empty-tip {
+  margin-top: 12px;
   font-size: 14px;
 }
 
-.messages-empty .empty-hint {
-  font-size: 12px;
-  color: #c0c4cc;
-}
-
-.message-item {
+.message-row {
   display: flex;
-  width: 100%;
+  margin-bottom: 16px;
+  align-items: flex-start;
 }
 
-.message-item.dir-send {
+.message-row.row-send {
   justify-content: flex-end;
 }
 
-.message-item.dir-receive {
+.message-row.row-receive {
   justify-content: flex-start;
 }
 
-.message-item.dir-system {
+.message-row.row-system {
   justify-content: center;
+}
+
+.message-row.is-highlighted {
+  animation: highlight-pulse 1.5s ease-in-out 2;
+}
+
+@keyframes highlight-pulse {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(64, 158, 255, 0.1); }
 }
 
 .message-bubble {
-  max-width: 85%;
-  min-width: 35%;
+  max-width: 70%;
+  padding: 12px 16px;
   border-radius: 12px;
-  padding: 0;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  position: relative;
+  word-break: break-word;
+  border: 2px solid transparent;
 }
 
-.bubble-header {
+.bubble-send {
+  background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.bubble-send .message-content {
+  color: #fff;
+}
+
+.bubble-send .msg-meta {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.bubble-receive {
+  background: #fff;
+  color: #303133;
+  border: 1px solid #e4e7ed;
+  border-bottom-left-radius: 4px;
+}
+
+.bubble-system {
+  background: #f4f4f5;
+  color: #909399;
+  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: 16px;
+}
+
+.bubble-paired {
+  border-width: 3px;
+  border-style: solid;
+  border-color: var(--pair-color);
+}
+
+.message-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  padding: 8px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   flex-wrap: wrap;
-}
-
-.message-item.dir-send .bubble-header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.message-item.dir-receive .bubble-header {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.bubble-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  margin-bottom: 6px;
+  font-size: 11px;
+  opacity: 0.85;
 }
 
 .msg-seq {
-  font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
-  font-size: 11px;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  opacity: 0.9;
 }
 
-.message-item.dir-receive .msg-seq,
-.message-item.dir-system .msg-seq {
-  background: #f0f2f5;
-  color: #606266;
+.msg-time {
+  font-family: 'SF Mono', Menlo, monospace;
 }
 
-.direction-tag,
-.content-type-tag,
-.size-tag {
-  height: 20px;
+.msg-bytes {
+  font-family: 'SF Mono', Menlo, monospace;
+}
+
+.type-tag {
+  font-size: 10px;
+  padding: 0 4px;
+  height: 16px;
+  line-height: 16px;
+}
+
+.latency-tag {
+  font-size: 10px;
   padding: 0 6px;
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
+  height: 18px;
+  line-height: 18px;
+  font-weight: 600;
+  font-family: 'SF Mono', Menlo, monospace;
 }
 
-.bubble-actions {
+.pending-tag {
+  font-size: 10px;
+  padding: 0 6px;
+  height: 18px;
+  line-height: 18px;
+}
+
+.spin {
+  display: inline-flex;
+  animation: spin-rotate 1s linear infinite;
+}
+
+@keyframes spin-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.message-content {
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.json-key { color: #c7254e; }
+.json-string { color: #183691; }
+.json-number { color: #0086b3; }
+.json-boolean { color: #0086b3; }
+.json-null { color: #969896; }
+
+.bubble-send .json-key { color: #ffe58f; }
+.bubble-send .json-string { color: #bae7ff; }
+.bubble-send .json-number { color: #d9f7be; }
+.bubble-send .json-boolean { color: #d9f7be; }
+.bubble-send .json-null { color: #fff1b8; }
+
+.hex-view {
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+  overflow-x: auto;
+}
+
+.bubble-send .hex-view {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.hex-row {
   display: flex;
-  align-items: center;
   gap: 8px;
 }
 
-.message-time {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.85);
-  font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
-}
-
-.message-item.dir-receive .message-time,
-.message-item.dir-system .message-time {
+.hex-offset {
   color: #909399;
+  min-width: 60px;
 }
 
-.msg-more-btn {
-  color: rgba(255, 255, 255, 0.85) !important;
-  padding: 0 4px;
+.hex-bytes {
+  letter-spacing: 1px;
+  min-width: 240px;
 }
 
-.message-item.dir-receive .msg-more-btn,
-.message-item.dir-system .msg-more-btn {
-  color: #606266 !important;
+.hex-ascii {
+  color: #606266;
 }
 
-.bubble-content {
-  padding: 12px;
-}
-
-.message-item.msg-send .message-bubble {
-  background: linear-gradient(135deg, #165DFF 0%, #4080FF 100%);
-  color: #fff;
-  border: none;
-}
-
-.message-item.msg-message .message-bubble {
+.pair-group {
   background: #fff;
-  border: 1px solid #e4e7ed;
-}
-
-.message-item.msg-system .message-bubble,
-.message-item.msg-error .message-bubble {
-  background: transparent;
-  box-shadow: none;
-  max-width: 95%;
-}
-
-.message-item.msg-system .bubble-header,
-.message-item.msg-error .bubble-header {
-  display: none;
-}
-
-.system-text {
-  display: inline-block;
-  padding: 6px 14px;
-  background: rgba(144, 147, 153, 0.15);
+  border: 1px solid #ebeef5;
   border-radius: 12px;
-  font-size: 12px;
-  color: #909399;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.error-text {
-  display: inline-block;
-  padding: 6px 14px;
-  background: rgba(245, 108, 108, 0.12);
-  border-radius: 12px;
-  font-size: 12px;
-  color: #f56c6c;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.pair-group.is-collapsed {
+  border-radius: 8px;
 }
 
-.text-content {
-  margin: 0;
-  padding: 0;
-  background: transparent;
-  font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
-  font-size: 12px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.message-item.msg-send .text-content {
-  color: #fff;
-}
-
-.message-item.msg-message .text-content {
-  color: #303133;
-}
-
-.json-content code {
-  font-family: inherit;
-}
-
-.message-item.msg-message .json-content :deep(.json-key) {
-  color: #c41a16;
-}
-
-.message-item.msg-message .json-content :deep(.json-string) {
-  color: #1c7c54;
-}
-
-.message-item.msg-message .json-content :deep(.json-number) {
-  color: #1c00cf;
-}
-
-.message-item.msg-message .json-content :deep(.json-boolean) {
-  color: #aa0d91;
-}
-
-.message-item.msg-message .json-content :deep(.json-null) {
-  color: #808080;
-}
-
-.message-item.msg-send .text-content :deep(.json-key),
-.message-item.msg-send .text-content :deep(.json-string),
-.message-item.msg-send .text-content :deep(.json-number),
-.message-item.msg-send .text-content :deep(.json-boolean),
-.message-item.msg-send .text-content :deep(.json-null) {
-  filter: brightness(1.3);
-}
-
-.message-item.msg-send .json-content :deep(.json-key) {
-  color: #ffd5d5;
-}
-
-.message-item.msg-send .json-content :deep(.json-string) {
-  color: #d4ffe8;
-}
-
-.message-item.msg-send .json-content :deep(.json-number) {
-  color: #d6e4ff;
-}
-
-.message-item.msg-send .json-content :deep(.json-boolean) {
-  color: #ffd4f5;
-}
-
-.message-item.msg-send .json-content :deep(.json-null) {
-  color: #e4e7ed;
-}
-
-.binary-preview {
+.pair-header {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #f5f7fa 100%);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.pair-header:hover {
+  background: linear-gradient(135deg, #e6f4ff 0%, #ebeef5 100%);
+}
+
+.pair-header-left {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-.binary-info {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: inherit;
-}
-
-.message-item.msg-message .binary-info {
-  color: #e6a23c;
-}
-
-.binary-hex {
-  background: #1e1e1e;
-  border-radius: 6px;
-  padding: 10px 12px;
-}
-
-.binary-hex pre {
-  margin: 0;
-}
-
-.binary-hex code {
-  font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
-  font-size: 11px;
-  line-height: 1.6;
-  color: #d4d4d4;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.binary-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.binary-actions .el-button {
-  --el-button-bg-color: rgba(255, 255, 255, 0.15);
-  --el-button-border-color: rgba(255, 255, 255, 0.3);
-  --el-button-text-color: #fff;
-  --el-button-hover-bg-color: rgba(255, 255, 255, 0.25);
-  --el-button-hover-text-color: #fff;
-  --el-button-hover-border-color: rgba(255, 255, 255, 0.4);
-}
-
-.message-item.msg-message .binary-actions .el-button {
-  --el-button-bg-color: #f5f7fa;
-  --el-button-border-color: #dcdfe6;
-  --el-button-text-color: #606266;
-  --el-button-hover-bg-color: #ecf5ff;
-  --el-button-hover-text-color: #165DFF;
-  --el-button-hover-border-color: #165DFF;
-}
-
-.send-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.send-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.send-format-tip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  margin-bottom: 12px;
-}
-
-.send-format-tip.tip-text {
-  background: #f4f4f5;
-  color: #606266;
-}
-
-.send-format-tip.tip-json {
-  background: #f0f9eb;
-  color: #67c23a;
-}
-
-.send-format-tip.tip-hex {
-  background: #fdf6ec;
-  color: #e6a23c;
-}
-
-.send-textarea :deep(.el-textarea__inner) {
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.send-info {
-  margin-top: 8px;
-}
-
-.send-actions {
-  margin-top: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.send-tips {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
+.pair-collapse-icon {
+  transition: transform 0.2s ease;
   color: #909399;
 }
 
-.quick-messages {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px dashed #ebeef5;
+.pair-group:not(.is-collapsed) .pair-collapse-icon {
+  transform: rotate(90deg);
 }
 
-.quick-title {
+.pair-title {
+  font-weight: 600;
+  color: #303133;
+  font-size: 14px;
+}
+
+.pair-time {
+  color: #909399;
+  font-size: 12px;
+  font-family: 'SF Mono', Menlo, monospace;
+  margin-right: 12px;
+}
+
+.pair-header-right {
+  margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #606266;
-  margin-bottom: 10px;
-}
-
-.quick-list {
-  display: flex;
-  flex-wrap: wrap;
   gap: 8px;
 }
 
-.quick-tag {
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.quick-tag:hover:not(.is-disabled) {
-  transform: translateY(-1px);
-}
-
-.tips-card {
-  margin-bottom: 24px;
-  background: linear-gradient(135deg, #fdf6ec 0%, #fef9f3 100%);
-}
-
-.tips-grid {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.tip-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+.pair-content {
   padding: 16px;
-  background: #fff;
-  border-radius: 8px;
-  border: 1px solid #e4e7ed;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.tip-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+.pair-content .message-row {
+  margin-bottom: 0;
+}
+
+.pair-arrow {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
-  color: #fff;
+  gap: 8px;
+  padding: 4px 0;
+  color: #409eff;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'SF Mono', Menlo, monospace;
 }
 
-.tip-icon-blue {
-  background: linear-gradient(135deg, #409eff 0%, #165DFF 100%);
+.pair-settings-card {
+  margin-top: 16px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #f9f0ff 100%);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #d9ecff;
 }
 
-.tip-icon-green {
-  background: linear-gradient(135deg, #85ce61 0%, #67c23a 100%);
-}
-
-.tip-icon-orange {
-  background: linear-gradient(135deg, #ebb563 0%, #e6a23c 100%);
-}
-
-.tip-icon-purple {
-  background: linear-gradient(135deg, #b37feb 0%, #722ed1 100%);
-}
-
-.tip-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.tip-title {
+.settings-title {
   font-size: 14px;
   font-weight: 600;
   color: #303133;
-  margin-bottom: 6px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.tip-content p {
-  margin: 0;
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.stat-item {
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid #ebeef5;
+}
+
+.stat-label {
   font-size: 12px;
-  color: #606266;
-  line-height: 1.6;
+  color: #909399;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: 'SF Mono', Menlo, monospace;
+}
+
+.stat-value-success {
+  color: #67c23a;
+}
+
+.stat-value-warning {
+  color: #e6a23c;
+}
+
+.stat-value-danger {
+  color: #f56c6c;
+}
+
+.send-card {
+  margin-top: 24px;
+}
+
+.send-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.send-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.msg-list-container {
+  position: relative;
 }
 </style>
