@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, HttpException, HttpStatus, Query } from '@nestjs/common';
 import { IpLookupService, IpLookupResult, DataSourceInfo } from './ip-lookup.service';
 
 @Controller('ip-lookup')
@@ -10,10 +10,19 @@ export class IpLookupController {
     return this.ipLookupService.getAvailableSources();
   }
 
+  @Get('precision-levels')
+  getPrecisionLevels() {
+    return this.ipLookupService.getPrecisionLevels();
+  }
+
   @Get(':ip')
-  async lookup(@Param('ip') ip: string): Promise<IpLookupResult> {
+  async lookup(
+    @Param('ip') ip: string,
+    @Query('highPrecision') highPrecision: string,
+  ): Promise<IpLookupResult> {
     try {
-      return await this.ipLookupService.lookup(ip);
+      const highPrecisionMode = highPrecision === 'true' || highPrecision === '1';
+      return await this.ipLookupService.lookup(ip, highPrecisionMode);
     } catch (error) {
       throw new HttpException(
         error instanceof Error ? error.message : '查询失败',
@@ -23,13 +32,15 @@ export class IpLookupController {
   }
 
   @Post('batch')
-  async batchLookup(@Body() body: { ips: string[] }): Promise<IpLookupResult[]> {
+  async batchLookup(
+    @Body() body: { ips: string[]; highPrecision?: boolean },
+  ): Promise<IpLookupResult[]> {
     if (!body.ips || !Array.isArray(body.ips)) {
       throw new HttpException('请提供IP地址或域名列表', HttpStatus.BAD_REQUEST);
     }
     if (body.ips.length > 20) {
       throw new HttpException('单次最多查询20个IP或域名', HttpStatus.BAD_REQUEST);
     }
-    return await this.ipLookupService.batchLookup(body.ips);
+    return await this.ipLookupService.batchLookup(body.ips, body.highPrecision === true);
   }
 }

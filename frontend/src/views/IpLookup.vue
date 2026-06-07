@@ -10,10 +10,50 @@
         </div>
       </template>
       <el-steps :active="0" finish-status="wait" simple class="guide-steps">
-        <el-step title="输入IP或域名" description="系统会同时查询多个权威数据源" />
-        <el-step title="对比多源结果" description="自动聚合数据并标注可信度" />
-        <el-step title="查看差异说明" description="了解不同数据源差异的原因和建议" />
+        <el-step title="输入IP或域名" description="可开启高精度模式获取更精准定位" />
+        <el-step title="查看精度分级" description="国家级→省级→城市级→区县级→街道级" />
+        <el-step title="对比多源结果" description="结合精度和可信度综合判断" />
       </el-steps>
+    </el-card>
+
+    <el-card class="precision-level-card">
+      <template #header>
+        <div class="card-header">
+          <el-icon :size="20" color="#722ed1">
+            <Aim />
+          </el-icon>
+          <span>定位精度分级说明</span>
+          <el-tag size="small" type="info">IP定位并非GPS，无法精确到街道门牌号</el-tag>
+        </div>
+      </template>
+      <div class="precision-levels">
+        <div 
+          v-for="(lvl, idx) in precisionLevels" 
+          :key="lvl.level" 
+          class="precision-level-item"
+        >
+          <div 
+            class="level-bar" 
+            :style="{ 
+              background: precisionGradientColors[idx],
+              width: (lvl.score) + '%'
+            }"
+          >
+            <span class="level-label">{{ lvl.label }}</span>
+            <span class="level-score">{{ lvl.score }}分</span>
+          </div>
+          <p class="level-desc">{{ lvl.description }}</p>
+        </div>
+      </div>
+      <el-alert type="info" :closable="false" class="precision-alert">
+        <template #title>
+          <span><strong>精度与可信度的区别：</strong>
+          <br />• <strong>精度</strong> = 能定位到多细的粒度（国家/省/城市/区县/街道），取决于数据源本身的能力
+          <br />• <strong>可信度</strong> = 结果正确的可能性，取决于数据源质量 + 多源一致性 + 响应质量
+          <br />高精度但低可信度 = 看起来很细但可能不对；低精度但高可信度 = 虽然粗但基本正确
+          </span>
+        </template>
+      </el-alert>
     </el-card>
 
     <el-card class="data-source-info-card">
@@ -22,7 +62,7 @@
           <el-icon :size="20" color="#165DFF">
             <Coin />
           </el-icon>
-          <span>数据源说明</span>
+          <span>数据源精度对比</span>
           <el-tag size="small" type="info">共 {{ dataSources.length }} 个数据源</el-tag>
         </div>
       </template>
@@ -34,16 +74,16 @@
         >
           <div class="source-header">
             <span class="source-name">{{ source.name }}</span>
-            <el-rate 
-              disabled 
-              :model-value="Math.round(source.baseReliability / 20)" 
-              :show-text="true"
-              text-color="#165DFF"
-              size="small"
-            />
+            <el-tag size="small" :type="precisionTagType(source.nominalPrecision)">
+              标称精度：{{ precisionLabel(source.nominalPrecision) }}
+            </el-tag>
           </div>
           <p class="source-desc">{{ source.description }}</p>
           <div class="source-meta">
+            <div class="meta-item">
+              <span class="meta-label">典型误差</span>
+              <span class="meta-value highlight">{{ source.typicalAccuracyKm }}</span>
+            </div>
             <div class="meta-item">
               <span class="meta-label">覆盖范围</span>
               <span class="meta-value">{{ source.coverage }}</span>
@@ -55,6 +95,23 @@
             <div class="meta-item">
               <span class="meta-label">基础可信度</span>
               <span class="meta-value highlight">{{ source.baseReliability }}分</span>
+            </div>
+          </div>
+          <div class="precision-detail">
+            <el-icon color="#722ed1"><Aim /></el-icon>
+            <span class="precision-text">{{ source.precisionDescription }}</span>
+          </div>
+          <div class="source-suitable">
+            <div class="suitable-title">适用场景</div>
+            <div class="suitable-tags">
+              <el-tag 
+                v-for="(s, i) in source.suitableScenarios" 
+                :key="i" 
+                size="small" 
+                type="success"
+                effect="plain"
+                class="suitable-tag"
+              >{{ s }}</el-tag>
             </div>
           </div>
           <div class="source-pros-cons">
@@ -94,17 +151,42 @@
         </div>
       </template>
 
-      <div class="query-mode-switch">
-        <el-radio-group v-model="queryMode" size="default">
-          <el-radio-button label="single">
-            <el-icon><Search /></el-icon>
-            <span>单个查询</span>
-          </el-radio-button>
-          <el-radio-button label="batch">
-            <el-icon><List /></el-icon>
-            <span>批量查询</span>
-          </el-radio-button>
-        </el-radio-group>
+      <div class="query-settings">
+        <div class="query-mode-switch">
+          <el-radio-group v-model="queryMode" size="default">
+            <el-radio-button label="single">
+              <el-icon><Search /></el-icon>
+              <span>单个查询</span>
+            </el-radio-button>
+            <el-radio-button label="batch">
+              <el-icon><List /></el-icon>
+              <span>批量查询</span>
+            </el-radio-button>
+          </el-radio-group>
+        </div>
+        <div class="precision-mode-switch">
+          <el-tooltip 
+            content="开启后系统将优先采用精度更高的数据源，并对精准数据源赋予1.5倍权重" 
+            placement="top"
+            :show-after="300"
+          >
+            <div class="switch-wrapper">
+              <span class="switch-label">高精度模式</span>
+              <el-switch 
+                v-model="highPrecisionMode" 
+                active-color="#722ed1"
+                inactive-color="#dcdfe6"
+              />
+              <el-tag 
+                size="small" 
+                :type="highPrecisionMode ? 'success' : 'info'"
+                class="mode-tag"
+              >
+                {{ highPrecisionMode ? '已启用·精准优先' : '标准模式·多数投票' }}
+              </el-tag>
+            </div>
+          </el-tooltip>
+        </div>
       </div>
 
       <div class="input-section" v-if="queryMode === 'single'">
@@ -200,12 +282,27 @@
           </el-icon>
           <span>综合查询结果</span>
           <el-tag 
+            size="small"
+            type="purple"
+            effect="dark"
+          >
+            {{ singleResult.highPrecisionMode ? '高精度模式' : '标准模式' }}
+          </el-tag>
+          <el-tag 
             size="small" 
             :type="confidenceTagType(singleResult.overallConfidence)"
             class="confidence-tag"
           >
-            综合可信度: {{ singleResult.overallConfidenceScore }} 分
+            可信度 {{ singleResult.overallConfidenceScore }}分
             ({{ confidenceText(singleResult.overallConfidence) }})
+          </el-tag>
+          <el-tag 
+            size="small" 
+            :type="precisionTagType(singleResult.overallPrecision)"
+            class="precision-tag"
+          >
+            精度 {{ singleResult.overallPrecisionLabel }}
+            ({{ singleResult.overallPrecisionScore }}分)
           </el-tag>
           <el-button size="small" text class="copy-btn" @click="copyResult(singleResult)">
             <el-icon><CopyDocument /></el-icon>
@@ -214,25 +311,60 @@
         </div>
       </template>
 
-      <div class="confidence-bar-wrapper">
-        <div class="confidence-bar-label">
-          <span>整体可信度评分</span>
-          <span class="score" :style="{ color: confidenceColor(singleResult.overallConfidence) }">
-            {{ singleResult.overallConfidenceScore }} / 100
-          </span>
-        </div>
-        <el-progress
-          :percentage="singleResult.overallConfidenceScore"
-          :stroke-width="16"
-          :color="confidenceColor(singleResult.overallConfidence)"
-          :show-text="false"
-        />
-        <div class="confidence-levels">
-          <span class="level low" :class="{ active: singleResult.overallConfidence === 'low' }">低 (0-59)</span>
-          <span class="level medium" :class="{ active: singleResult.overallConfidence === 'medium' }">中 (60-79)</span>
-          <span class="level high" :class="{ active: singleResult.overallConfidence === 'high' }">高 (80-100)</span>
-        </div>
-      </div>
+      <el-row :gutter="16">
+        <el-col :span="12">
+          <div class="confidence-bar-wrapper">
+            <div class="confidence-bar-label">
+              <span><el-icon color="#165DFF"><Medal /></el-icon> 整体可信度</span>
+              <span class="score" :style="{ color: confidenceColor(singleResult.overallConfidence) }">
+                {{ singleResult.overallConfidenceScore }} / 100
+              </span>
+            </div>
+            <el-progress
+              :percentage="singleResult.overallConfidenceScore"
+              :stroke-width="14"
+              :color="confidenceColor(singleResult.overallConfidence)"
+              :show-text="false"
+            />
+            <div class="confidence-levels">
+              <span class="level low" :class="{ active: singleResult.overallConfidence === 'low' }">低(0-59)</span>
+              <span class="level medium" :class="{ active: singleResult.overallConfidence === 'medium' }">中(60-79)</span>
+              <span class="level high" :class="{ active: singleResult.overallConfidence === 'high' }">高(80-100)</span>
+            </div>
+          </div>
+        </el-col>
+        <el-col :span="12">
+          <div class="precision-bar-wrapper">
+            <div class="confidence-bar-label">
+              <span><el-icon color="#722ed1"><Aim /></el-icon> 综合定位精度</span>
+              <span class="score" :style="{ color: precisionColor(singleResult.overallPrecision) }">
+                {{ singleResult.overallPrecisionLabel }}
+                ({{ singleResult.overallPrecisionScore }}分)
+              </span>
+            </div>
+            <el-progress
+              :percentage="singleResult.overallPrecisionScore"
+              :stroke-width="14"
+              :color="precisionColor(singleResult.overallPrecision)"
+              :show-text="false"
+            />
+            <div class="precision-levels-bar">
+              <span 
+                v-for="lvl in precisionLevels.slice(0, 4)" 
+                :key="lvl.level"
+                class="level small"
+                :class="{ active: lvl.level === singleResult.overallPrecision }"
+                :style="{ color: precisionColor(lvl.level) }"
+              >{{ lvl.label }}</span>
+              <span 
+                class="level small"
+                :class="{ active: singleResult.overallPrecision === 'street' }"
+                :style="{ color: precisionColor('street') }"
+              >街道级</span>
+            </div>
+          </div>
+        </el-col>
+      </el-row>
 
       <div class="result-content">
         <el-row :gutter="16">
@@ -264,13 +396,70 @@
       </div>
     </el-card>
 
+    <el-card v-if="singleResult && !singleResult.isLocal" class="precision-compare-card">
+      <template #header>
+        <div class="card-header">
+          <el-icon :size="20" color="#722ed1">
+            <Aim />
+          </el-icon>
+          <span>各数据源精度对比</span>
+        </div>
+      </template>
+      <div class="precision-compare-list">
+        <div 
+          v-for="item in singleResult.precisionComparison" 
+          :key="item.sourceName"
+          class="precision-compare-item"
+        >
+          <div class="compare-header">
+            <span class="compare-source">{{ item.sourceName }}</span>
+            <el-tag size="small" :type="precisionTagType(item.precision)">
+              {{ item.precisionLabel }} ({{ item.score }}分)
+            </el-tag>
+          </div>
+          <el-progress
+            :percentage="item.score"
+            :stroke-width="10"
+            :color="precisionColor(item.precision)"
+            :show-text="false"
+          />
+          <div class="compare-accuracy">
+            <el-icon color="#909399"><InfoFilled /></el-icon>
+            <span>典型误差范围：{{ item.typicalAccuracy }}</span>
+          </div>
+        </div>
+      </div>
+      <el-alert 
+        v-if="singleResult.highPrecisionMode"
+        type="success" 
+        :closable="false" 
+        class="mode-alert"
+      >
+        <template #title>
+          <el-icon><CircleCheck /></el-icon>
+          <span>高精度模式已启用：结果优先采用精度评分更高的数据源，高精准数据源权重为1.5倍</span>
+        </template>
+      </el-alert>
+      <el-alert 
+        v-else
+        type="warning" 
+        :closable="false" 
+        class="mode-alert"
+        show-icon
+      >
+        <template #title>
+          <span>当前为标准模式（多数投票）。如需更细粒度定位，建议开启顶部的「高精度模式」</span>
+        </template>
+      </el-alert>
+    </el-card>
+
     <el-card v-if="singleResult && !singleResult.isLocal" class="field-consensus-card">
       <template #header>
         <div class="card-header">
           <el-icon :size="20" color="#165DFF">
             <Histogram />
           </el-icon>
-          <span>字段一致性分析</span>
+          <span>字段一致性与精度分析</span>
           <el-tag 
             size="small" 
             :type="unanimousFields === singleResult.fieldConsensus.length ? 'success' : 'warning'"
@@ -288,7 +477,17 @@
           :class="{ disagreed: !field.agreed }"
         >
           <div class="consensus-header">
-            <span class="field-label">{{ field.label }}</span>
+            <div class="header-left">
+              <span class="field-label">{{ field.label }}</span>
+              <el-tag 
+                size="small" 
+                :type="precisionTagType(field.precisionLevel)"
+                effect="plain"
+                class="precision-mini-tag"
+              >
+                {{ field.precisionLabel }}
+              </el-tag>
+            </div>
             <el-tag 
               size="small" 
               :type="field.agreed ? 'success' : (field.confidence === 'high' ? '' : (field.confidence === 'medium' ? 'warning' : 'danger'))"
@@ -339,7 +538,15 @@
                 size="small" 
                 :type="source.success ? confidenceTagType(source.confidence) : 'danger'"
               >
-                {{ source.success ? `${source.confidenceScore}分·${confidenceText(source.confidence)}` : '查询失败' }}
+                {{ source.success ? `可信度${source.confidenceScore}分` : '查询失败' }}
+              </el-tag>
+              <el-tag 
+                v-if="source.success"
+                size="small" 
+                :type="precisionTagType(source.actualPrecision)"
+                effect="plain"
+              >
+                {{ source.actualPrecisionLabel }} ({{ source.precisionScore }}分)
               </el-tag>
               <span class="source-time" v-if="source.success">{{ source.responseTime }}ms</span>
               <span class="source-error" v-else>{{ source.error }}</span>
@@ -362,7 +569,7 @@
                 <el-descriptions-item label="AS号" :span="2">{{ source.data?.as || '未知' }}</el-descriptions-item>
               </el-descriptions>
               <div class="confidence-reasons">
-                <div class="reasons-title">可信度评分依据：</div>
+                <div class="reasons-title">评分依据（可信度 + 精度）：</div>
                 <ul>
                   <li v-for="(reason, i) in source.confidenceReasons" :key="i">{{ reason }}</li>
                 </ul>
@@ -383,7 +590,17 @@
         </div>
       </template>
 
-      <div v-if="singleResult.explanation.differences.length > 0" class="explanation-section differences">
+      <div v-if="singleResult.explanation.precisionExplanation && singleResult.explanation.precisionExplanation.length > 0" class="explanation-section precision-exp">
+        <div class="section-title">
+          <el-icon color="#722ed1"><Aim /></el-icon>
+          <span>精度说明</span>
+        </div>
+        <ul class="explanation-list">
+          <li v-for="(pe, i) in singleResult.explanation.precisionExplanation" :key="i">{{ pe }}</li>
+        </ul>
+      </div>
+
+      <div v-if="singleResult.explanation.differences && singleResult.explanation.differences.length > 0" class="explanation-section differences">
         <div class="section-title">
           <el-icon color="#f56c6c"><Warning /></el-icon>
           <span>数据差异</span>
@@ -401,6 +618,29 @@
         <ul class="explanation-list">
           <li v-for="(rec, i) in singleResult.explanation.recommendations" :key="i">{{ rec }}</li>
         </ul>
+      </div>
+
+      <div v-if="singleResult.explanation.scenarioAdvice && singleResult.explanation.scenarioAdvice.length > 0" class="explanation-section scenario">
+        <div class="section-title">
+          <el-icon color="#165DFF"><Collection /></el-icon>
+          <span>场景选择建议</span>
+        </div>
+        <div class="scenario-list">
+          <div 
+            v-for="(sa, i) in singleResult.explanation.scenarioAdvice" 
+            :key="i"
+            class="scenario-item"
+          >
+            <div class="scenario-name">
+              <el-icon color="#165DFF"><Flag /></el-icon>
+              <span>{{ sa.scenario }}</span>
+            </div>
+            <div class="scenario-advice">{{ sa.advice }}</div>
+            <el-tag size="small" type="info" effect="plain">
+              推荐精度：{{ sa.recommendedPrecision }}
+            </el-tag>
+          </div>
+        </div>
       </div>
 
       <div class="explanation-section notes">
@@ -421,6 +661,9 @@
             <DataLine />
           </el-icon>
           <span>批量查询结果</span>
+          <el-tag size="small" type="purple" effect="dark" class="header-tag" v-if="highPrecisionMode">
+            高精度模式
+          </el-tag>
           <el-tag size="small" type="success" class="header-tag">
             共 {{ batchResults.length }} 条
           </el-tag>
@@ -449,13 +692,23 @@
               <span>{{ formatLocation(row.consensus) }}</span>
             </template>
           </el-table-column>
+          <el-table-column label="精度" width="110">
+            <template #default="{ row }">
+              <el-tag 
+                size="small" 
+                :type="precisionTagType(row.overallPrecision)"
+              >
+                {{ row.overallPrecisionLabel }}
+              </el-tag>
+            </template>
+          </el-table-column>
           <el-table-column label="城市" width="100">
             <template #default="{ row }">{{ row.consensus.city || '-' }}</template>
           </el-table-column>
           <el-table-column label="运营商" min-width="140">
             <template #default="{ row }">{{ row.consensus.isp || '-' }}</template>
           </el-table-column>
-          <el-table-column label="可信度" width="120">
+          <el-table-column label="可信度" width="110">
             <template #default="{ row }">
               <el-tag 
                 size="small" 
@@ -499,6 +752,9 @@
           <div class="history-main">
             <span class="history-ip mono-font">{{ item.ip }}</span>
             <span class="history-location">{{ formatLocation(item.result.consensus) }}</span>
+            <el-tag size="small" :type="precisionTagType(item.result.overallPrecision)" effect="plain">
+              {{ item.result.overallPrecisionLabel }}
+            </el-tag>
             <el-tag size="small" :type="confidenceTagType(item.result.overallConfidence)">
               {{ item.result.overallConfidenceScore }}分
             </el-tag>
@@ -543,7 +799,11 @@ import {
   Histogram,
   Reading,
   Warning,
-  CircleCheck
+  CircleCheck,
+  Aim,
+  Medal,
+  Collection,
+  Flag
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { 
@@ -551,7 +811,9 @@ import {
   type IpLookupResult, 
   type DataSourceInfo,
   type IpLookupData,
-  type ConfidenceLevel
+  type ConfidenceLevel,
+  type PrecisionLevel,
+  type PrecisionLevelInfo
 } from '@/api/ipLookup'
 
 interface HistoryItem {
@@ -563,6 +825,7 @@ interface HistoryItem {
 const STORAGE_KEY = 'ip_lookup_history'
 
 const queryMode = ref<'single' | 'batch'>('single')
+const highPrecisionMode = ref(false)
 const singleInput = ref('')
 const batchInput = ref('')
 const loading = ref(false)
@@ -571,6 +834,9 @@ const batchResults = ref<IpLookupResult[]>([])
 const history = ref<HistoryItem[]>([])
 const showAllHistory = ref(false)
 const dataSources = ref<DataSourceInfo[]>([])
+const precisionLevels = ref<PrecisionLevelInfo[]>([])
+
+const precisionGradientColors = ['#f56c6c', '#e6a23c', '#409eff', '#67c23a', '#722ed1']
 
 const quickExamples = [
   '8.8.8.8',
@@ -612,6 +878,21 @@ const confidenceTagType = (level: ConfidenceLevel): 'success' | 'warning' | 'dan
 
 const confidenceColor = (level: ConfidenceLevel): string => {
   const map = { high: '#67c23a', medium: '#e6a23c', low: '#f56c6c' }
+  return map[level]
+}
+
+const precisionLabel = (level: PrecisionLevel): string => {
+  const map = { country: '国家级', province: '省级', city: '城市级', district: '区县级', street: '街道级' }
+  return map[level]
+}
+
+const precisionTagType = (level: PrecisionLevel): 'danger' | 'warning' | 'primary' | 'success' | 'info' => {
+  const map = { country: 'danger', province: 'warning', city: 'primary', district: 'success', street: 'info' }
+  return map[level]
+}
+
+const precisionColor = (level: PrecisionLevel): string => {
+  const map = { country: '#f56c6c', province: '#e6a23c', city: '#409eff', district: '#67c23a', street: '#722ed1' }
   return map[level]
 }
 
@@ -677,6 +958,22 @@ const loadDataSources = async () => {
   }
 }
 
+const loadPrecisionLevels = async () => {
+  try {
+    const { data } = await ipLookupApi.getPrecisionLevels()
+    precisionLevels.value = data
+  } catch (e) {
+    console.error('Failed to load precision levels:', e)
+    precisionLevels.value = [
+      { level: 'country', label: '国家级', score: 20, description: '仅能定位到国家，误差可能达数千公里' },
+      { level: 'province', label: '省级', score: 40, description: '可定位到省/州一级，误差数百公里' },
+      { level: 'city', label: '城市级', score: 60, description: '可定位到城市，误差通常50-200公里' },
+      { level: 'district', label: '区县级', score: 80, description: '可定位到区县，误差通常10-50公里' },
+      { level: 'street', label: '街道级', score: 95, description: '可定位到街道/商圈，误差通常1-10公里' },
+    ]
+  }
+}
+
 const handleSingleLookup = async () => {
   if (!singleInput.value.trim()) {
     ElMessage.warning('请输入IP地址或域名')
@@ -688,10 +985,10 @@ const handleSingleLookup = async () => {
   batchResults.value = []
   
   try {
-    const { data } = await ipLookupApi.lookup(singleInput.value.trim())
+    const { data } = await ipLookupApi.lookup(singleInput.value.trim(), highPrecisionMode.value)
     singleResult.value = data
     addToHistory(data)
-    ElMessage.success('查询完成')
+    ElMessage.success(`查询完成${highPrecisionMode.value ? '（高精度模式）' : ''}`)
   } catch (error: any) {
     ElMessage.error(error?.response?.data?.message || '查询失败，请稍后重试')
   } finally {
@@ -716,7 +1013,7 @@ const handleBatchLookup = async () => {
   
   try {
     const lookupItems = items.slice(0, 20)
-    const { data } = await ipLookupApi.batchLookup(lookupItems)
+    const { data } = await ipLookupApi.batchLookup(lookupItems, highPrecisionMode.value)
     batchResults.value = data
     
     data.forEach(r => {
@@ -726,7 +1023,7 @@ const handleBatchLookup = async () => {
     })
     
     const successCount = data.filter(r => !r.isError).length
-    ElMessage.success(`查询完成，成功 ${successCount} 条，失败 ${data.length - successCount} 条`)
+    ElMessage.success(`查询完成${highPrecisionMode.value ? '（高精度模式）' : ''}，成功 ${successCount} 条，失败 ${data.length - successCount} 条`)
   } catch (error: any) {
     ElMessage.error(error?.response?.data?.message || '批量查询失败，请稍后重试')
   } finally {
@@ -771,29 +1068,42 @@ const pasteFromClipboard = async () => {
 const copyResult = (result: IpLookupResult) => {
   const lines: string[] = []
   lines.push('【IP查询结果 - 多源对比】')
+  lines.push(`查询模式：${result.highPrecisionMode ? '高精度模式' : '标准模式'}`)
   lines.push(`IP地址：${result.ip}`)
   lines.push(`综合归属地：${formatLocation(result.consensus)}`)
   lines.push(`综合可信度：${result.overallConfidenceScore}分 (${confidenceText(result.overallConfidence)})`)
+  lines.push(`综合精度：${result.overallPrecisionLabel} (${result.overallPrecisionScore}分)`)
   lines.push('')
   lines.push('--- 各字段详情 ---')
   result.fieldConsensus.forEach(f => {
-    lines.push(`${f.label}：${f.mostCommon || '未知'} ${f.agreed ? '(一致)' : `(${f.confidence === 'high' ? '基本一致' : f.confidence === 'medium' ? '有分歧' : '差异大'})`}`)
+    lines.push(`${f.label}（${f.precisionLabel}）：${f.mostCommon || '未知'} ${f.agreed ? '(一致)' : `(${f.confidence === 'high' ? '基本一致' : f.confidence === 'medium' ? '有分歧' : '差异大'})`}`)
   })
   lines.push('')
-  lines.push('--- 各数据源 ---')
+  lines.push('--- 各数据源精度对比 ---')
+  result.precisionComparison.forEach(p => {
+    lines.push(`[${p.sourceName}] ${p.precisionLabel}(${p.score}分) | 典型误差: ${p.typicalAccuracy}`)
+  })
+  lines.push('')
+  lines.push('--- 各数据源详情 ---')
   result.sources.forEach(s => {
     if (s.success && s.data) {
-      lines.push(`[${s.source.name}] ${formatLocation(s.data)} | ISP: ${s.data.isp || '未知'} | 可信度${s.confidenceScore}分 | ${s.responseTime}ms`)
+      lines.push(`[${s.source.name}] ${formatLocation(s.data)} | 精度${s.actualPrecisionLabel} | 可信度${s.confidenceScore}分 | ${s.responseTime}ms`)
     } else {
       lines.push(`[${s.source.name}] 查询失败: ${s.error}`)
     }
   })
   lines.push('')
+  lines.push('--- 精度说明 ---')
+  result.explanation.precisionExplanation?.forEach(p => lines.push(`· ${p}`))
+  lines.push('')
   lines.push('--- 建议 ---')
   result.explanation.recommendations.forEach(r => lines.push(`· ${r}`))
   lines.push('')
+  lines.push('--- 场景建议 ---')
+  result.explanation.scenarioAdvice?.forEach(s => lines.push(`· ${s.scenario}: ${s.advice}`))
+  lines.push('')
   lines.push('--- 说明 ---')
-  result.explanation.notes.slice(0, 3).forEach(n => lines.push(`· ${n}`))
+  result.explanation.notes.slice(0, 4).forEach(n => lines.push(`· ${n}`))
   
   navigator.clipboard.writeText(lines.join('\n')).then(() => {
     ElMessage.success('结果已复制到剪贴板')
@@ -803,9 +1113,9 @@ const copyResult = (result: IpLookupResult) => {
 }
 
 const copyBatchResults = () => {
-  const header = 'IP/域名\t综合归属地\t城市\t运营商\t可信度\t成功数据源\t类型'
+  const header = 'IP/域名\t综合归属地\t精度\t城市\t运营商\t可信度\t成功数据源\t类型'
   const rows = batchResults.value.map(r => 
-    `${r.ip}\t${formatLocation(r.consensus)}\t${r.consensus.city || ''}\t${r.consensus.isp || ''}\t${r.overallConfidenceScore}分\t${r.sources.filter(s => s.success).length}/${r.sources.length}\t${r.isError ? '失败' : (r.isLocal ? '内网' : '公网')}`
+    `${r.ip}\t${formatLocation(r.consensus)}\t${r.overallPrecisionLabel}\t${r.consensus.city || ''}\t${r.consensus.isp || ''}\t${r.overallConfidenceScore}分\t${r.sources.filter(s => s.success).length}/${r.sources.length}\t${r.isError ? '失败' : (r.isLocal ? '内网' : '公网')}`
   )
   const text = [header, ...rows].join('\n')
   
@@ -819,6 +1129,7 @@ const copyBatchResults = () => {
 const loadHistoryItem = (item: HistoryItem) => {
   queryMode.value = 'single'
   singleInput.value = item.ip
+  highPrecisionMode.value = item.result.highPrecisionMode
   singleResult.value = item.result
   batchResults.value = []
   ElMessage.success('已载入历史记录')
@@ -833,6 +1144,7 @@ const clearHistory = () => {
 onMounted(() => {
   loadHistoryFromStorage()
   loadDataSources()
+  loadPrecisionLevels()
 })
 </script>
 
@@ -850,13 +1162,64 @@ onMounted(() => {
   padding: 10px 0;
 }
 
+.precision-level-card {
+  margin-bottom: 24px;
+}
+
+.precision-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.precision-level-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.level-bar {
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  min-width: 60px;
+  transition: width 0.5s ease;
+}
+
+.level-bar .level-label {
+  font-size: 15px;
+}
+
+.level-bar .level-score {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.level-desc {
+  margin: 0;
+  font-size: 12px;
+  color: #909399;
+  padding-left: 4px;
+}
+
+.precision-alert {
+  margin-top: 8px;
+}
+
 .data-source-info-card {
   margin-bottom: 24px;
 }
 
 .sources-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -879,6 +1242,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .source-name {
@@ -895,10 +1260,47 @@ onMounted(() => {
 }
 
 .source-meta {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
   margin-bottom: 12px;
+}
+
+.precision-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #f9f0ff;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.precision-text {
+  font-size: 12px;
+  color: #722ed1;
+  line-height: 1.6;
+}
+
+.source-suitable {
+  margin-bottom: 10px;
+}
+
+.suitable-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 6px;
+}
+
+.suitable-tags {
+  display: flex;
   flex-wrap: wrap;
+  gap: 6px;
+}
+
+.suitable-tag {
+  font-size: 11px;
 }
 
 .meta-item {
@@ -988,14 +1390,47 @@ onMounted(() => {
   font-weight: 600;
 }
 
+.query-settings {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .query-mode-switch {
-  margin-bottom: 24px;
+  flex-shrink: 0;
 }
 
 .query-mode-switch :deep(.el-radio-button__inner) {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.precision-mode-switch {
+  flex-shrink: 0;
+}
+
+.switch-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #f9f0ff;
+  border-radius: 6px;
+  border: 1px solid #d3adf7;
+}
+
+.switch-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #722ed1;
+}
+
+.mode-tag {
+  font-weight: 600;
 }
 
 .input-section {
@@ -1084,11 +1519,19 @@ onMounted(() => {
   margin-bottom: 24px;
 }
 
-.confidence-bar-wrapper {
-  padding: 16px 20px;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+.confidence-bar-wrapper,
+.precision-bar-wrapper {
+  padding: 14px 18px;
   border-radius: 8px;
   margin-bottom: 20px;
+}
+
+.confidence-bar-wrapper {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.precision-bar-wrapper {
+  background: linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%);
 }
 
 .confidence-bar-label {
@@ -1102,22 +1545,31 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 600;
   color: #303133;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .confidence-bar-label .score {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
 }
 
-.confidence-levels {
+.confidence-levels,
+.precision-levels-bar {
   display: flex;
   justify-content: space-between;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
-.confidence-levels .level {
+.confidence-levels .level,
+.precision-levels-bar .level {
   font-size: 11px;
   color: #c0c4cc;
+}
+
+.precision-levels-bar .level.small {
+  font-size: 11px;
 }
 
 .confidence-levels .level.active.low {
@@ -1133,6 +1585,50 @@ onMounted(() => {
 .confidence-levels .level.active.high {
   color: #67c23a;
   font-weight: 600;
+}
+
+.precision-compare-card {
+  margin-bottom: 24px;
+}
+
+.precision-compare-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.precision-compare-item {
+  padding: 12px 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #ebeef5;
+}
+
+.compare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.compare-source {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.compare-accuracy {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #909399;
+}
+
+.mode-alert {
+  margin-top: 4px;
 }
 
 .result-content {
@@ -1233,6 +1729,18 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.precision-mini-tag {
+  font-size: 11px;
 }
 
 .field-label {
@@ -1293,6 +1801,7 @@ onMounted(() => {
   gap: 10px;
   font-size: 14px;
   font-weight: 500;
+  flex-wrap: wrap;
 }
 
 .source-time {
@@ -1378,6 +1887,41 @@ onMounted(() => {
 
 .explanation-section.recommendations .explanation-list li {
   color: #67c23a;
+}
+
+.explanation-section.precision-exp .explanation-list li {
+  color: #722ed1;
+}
+
+.explanation-section.scenario .scenario-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.scenario-item {
+  padding: 14px;
+  background: #f5f9ff;
+  border: 1px solid #d9ecff;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scenario-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #165DFF;
+}
+
+.scenario-advice {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
 }
 
 .batch-table-wrapper {
