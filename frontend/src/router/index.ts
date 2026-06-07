@@ -50,6 +50,11 @@ const routes: RouteRecordRaw[] = [
         path: '/ip-lookup',
         name: 'IpLookup',
         component: () => import('@/views/IpLookup.vue')
+      },
+      {
+        path: '/code-deobfuscator',
+        name: 'CodeDeobfuscator',
+        component: () => import('@/views/CodeDeobfuscator.vue')
       }
     ]
   }

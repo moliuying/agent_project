@@ -15,31 +15,78 @@
         <el-divider />
         <div class="features">
           <el-row :gutter="20">
-            <el-col :span="8">
-              <el-card shadow="hover">
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/loan-calculator')" class="feature-card">
                 <el-icon :size="40" color="#165DFF">
-                  <Menu />
+                  <Money />
                 </el-icon>
-                <h3>菜单管理</h3>
-                <p>动态菜单配置</p>
+                <h3>贷款试算</h3>
+                <p>房贷/车贷/公积金计算</p>
               </el-card>
             </el-col>
-            <el-col :span="8">
-              <el-card shadow="hover">
-                <el-icon :size="40" color="#165DFF">
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/holiday-calendar')" class="feature-card">
+                <el-icon :size="40" color="#67c23a">
+                  <Calendar />
+                </el-icon>
+                <h3>节假日查询</h3>
+                <p>法定节假日与调休查询</p>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/audio-clipper')" class="feature-card">
+                <el-icon :size="40" color="#e6a23c">
+                  <Headset />
+                </el-icon>
+                <h3>音频剪辑</h3>
+                <p>在线音频剪切工具</p>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/ip-lookup')" class="feature-card">
+                <el-icon :size="40" color="#f56c6c">
+                  <Location />
+                </el-icon>
+                <h3>IP地址查询</h3>
+                <p>IP归属地信息查询</p>
+              </el-card>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20" style="margin-top: 20px">
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/word-counter')" class="feature-card">
+                <el-icon :size="40" color="#722ed1">
+                  <Edit />
+                </el-icon>
+                <h3>字数统计</h3>
+                <p>文本字数详细统计</p>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/random-picker')" class="feature-card">
+                <el-icon :size="40" color="#13c2c2">
+                  <Cpu />
+                </el-icon>
+                <h3>随机选择</h3>
+                <p>随机选择/抽奖工具</p>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/code-deobfuscator')" class="feature-card">
+                <el-icon :size="40" color="#eb2f96">
+                  <Monitor />
+                </el-icon>
+                <h3>代码反混淆</h3>
+                <p>JS代码混淆还原工具</p>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/system/menu')" class="feature-card">
+                <el-icon :size="40" color="#909399">
                   <Setting />
                 </el-icon>
-                <h3>系统配置</h3>
-                <p>灵活的系统设置</p>
-              </el-card>
-            </el-col>
-            <el-col :span="8">
-              <el-card shadow="hover">
-                <el-icon :size="40" color="#165DFF">
-                  <DataLine />
-                </el-icon>
-                <h3>数据统计</h3>
-                <p>实时数据分析</p>
+                <h3>系统设置</h3>
+                <p>菜单与系统管理</p>
               </el-card>
             </el-col>
           </el-row>
@@ -50,6 +97,13 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const navigateTo = (path: string) => {
+  router.push(path)
+}
 </script>
 
 <style scoped>
