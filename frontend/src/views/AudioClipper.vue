@@ -98,13 +98,17 @@
         />
         <div
           class="handle handle-start"
+          :class="{ 'handle-pulse': !hasAdjustedSelection }"
           :style="startHandleStyle"
           @mousedown="startHandleDrag('start', $event)"
           @mouseenter="hoveredHandle = 'start'"
           @mouseleave="hoveredHandle = null"
         >
           <div class="handle-bar" />
-          <el-icon class="handle-icon"><DArrowLeft /></el-icon>
+          <div class="handle-icon-wrap">
+            <el-icon class="handle-icon"><DArrowLeft /></el-icon>
+            <div v-if="!hasAdjustedSelection" class="handle-drag-label">拖我</div>
+          </div>
           <div
             v-if="showStartHint || hoveredHandle === 'start'"
             class="handle-tooltip handle-tooltip-start"
@@ -127,13 +131,17 @@
         </div>
         <div
           class="handle handle-end"
+          :class="{ 'handle-pulse': !hasAdjustedSelection }"
           :style="endHandleStyle"
           @mousedown="startHandleDrag('end', $event)"
           @mouseenter="hoveredHandle = 'end'"
           @mouseleave="hoveredHandle = null"
         >
           <div class="handle-bar" />
-          <el-icon class="handle-icon"><DArrowRight /></el-icon>
+          <div class="handle-icon-wrap">
+            <el-icon class="handle-icon"><DArrowRight /></el-icon>
+            <div v-if="!hasAdjustedSelection" class="handle-drag-label">拖我</div>
+          </div>
           <div
             v-if="showEndHint || hoveredHandle === 'end'"
             class="handle-tooltip handle-tooltip-end"
@@ -282,9 +290,23 @@
           </el-button>
         </el-button-group>
 
-        <el-button type="primary" :icon="Download" size="large" @click="exportClip" :disabled="!audioBuffer || isExporting" :loading="isExporting">
-          {{ isExporting ? '导出中...' : '导出并下载' }}
-        </el-button>
+        <div class="export-area">
+          <div v-if="shouldWarnFullExport" class="export-warning">
+            <el-icon color="#e6a23c"><WarningFilled /></el-icon>
+            <span>还未选择片段，拖动橙色手柄后再导出</span>
+          </div>
+          <el-button
+            :type="shouldWarnFullExport ? 'warning' : 'primary'"
+            :icon="Download"
+            size="large"
+            @click="exportClip"
+            :disabled="!audioBuffer || isExporting"
+            :loading="isExporting"
+            class="export-btn"
+          >
+            {{ isExporting ? '导出中...' : (shouldWarnFullExport ? '仍要导出完整音频' : '导出并下载') }}
+          </el-button>
+        </div>
       </div>
 
       <el-card v-if="audioUrl" class="preview-card" shadow="never">
@@ -318,7 +340,8 @@ import {
   Sort,
   Aim,
   Edit,
-  Lightning
+  Lightning,
+  WarningFilled
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -349,6 +372,15 @@ const hoveredHandle = ref<'start' | 'end' | null>(null)
 const hasAdjustedSelection = ref(false)
 const hasPlayed = ref(false)
 const hasExported = ref(false)
+
+const isFullSelection = computed(() => {
+  if (!audioDuration.value) return false
+  return startTime.value < 0.05 && Math.abs(endTime.value - audioDuration.value) < 0.05
+})
+
+const shouldWarnFullExport = computed(() => {
+  return !hasAdjustedSelection.value && isFullSelection.value
+})
 
 const currentStep = computed(() => {
   if (hasExported.value) return 4
@@ -784,18 +816,37 @@ const exportClip = async () => {
     return
   }
 
-  try {
-    await ElMessageBox.confirm(
-      `即将导出从 ${formatTime(startTime.value)} 到 ${formatTime(endTime.value)} 的片段，时长 ${formatTime(selectionDuration.value)}。是否继续？`,
-      '确认导出',
-      {
-        confirmButtonText: '确认导出',
-        cancelButtonText: '取消',
-        type: 'info'
-      }
-    )
-  } catch {
-    return
+  if (shouldWarnFullExport.value) {
+    try {
+      await ElMessageBox.confirm(
+        '您还没有选择要裁剪的片段！\n\n当前选区是完整音频（从 00:00 到结尾），导出后和原文件几乎一样大。\n\n请先在波形图上拖动两端的橙色手柄，选择需要截取的片段。',
+        '还没有选择片段哦',
+        {
+          confirmButtonText: '我就要导出完整音频',
+          cancelButtonText: '好的，去选择片段',
+          type: 'warning',
+          dangerouslyUseHTMLString: false
+        }
+      )
+    } catch {
+      showWaveformTips.value = true
+      saveOnboardingState()
+      return
+    }
+  } else {
+    try {
+      await ElMessageBox.confirm(
+        `即将导出从 ${formatTime(startTime.value)} 到 ${formatTime(endTime.value)} 的片段，时长 ${formatTime(selectionDuration.value)}。是否继续？`,
+        '确认导出',
+        {
+          confirmButtonText: '确认导出',
+          cancelButtonText: '取消',
+          type: 'info'
+        }
+      )
+    } catch {
+      return
+    }
   }
 
   isExporting.value = true
@@ -1043,6 +1094,82 @@ onUnmounted(() => {
   background: #e6a23c;
   padding: 4px 2px;
   border-radius: 4px;
+}
+
+.handle-icon-wrap {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.handle-drag-label {
+  padding: 2px 6px;
+  background: #e6a23c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  border-radius: 3px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.handle-pulse .handle-bar {
+  animation: handle-pulse 1.8s ease-in-out infinite;
+}
+
+.handle-pulse .handle-icon {
+  animation: handle-icon-pulse 1.8s ease-in-out infinite;
+}
+
+.handle-pulse .handle-drag-label {
+  animation: handle-icon-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes handle-pulse {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(230, 162, 60, 0.6);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(230, 162, 60, 1), 0 0 30px rgba(230, 162, 60, 0.5);
+    opacity: 0.85;
+  }
+}
+
+@keyframes handle-icon-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.export-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.export-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #fdf6ec;
+  border: 1px solid #f5dab1;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #b88230;
+  font-weight: 500;
+}
+
+.export-btn {
+  min-width: 200px;
 }
 
 .time-display {
