@@ -91,7 +91,7 @@ print(Counter(words))  # Counter({'apple': 3, 'banana': 2, 'cherry': 1})`,
     pythonVersion: 'Python 3.x',
     dependencies: [],
     runCommand: 'python dict_ops.py',
-    notes: 'collections.Counter 是 Python 3.1+ 内置模块。字典推导式 Python 2.7+ 支持。字典合并用 {**a, **b} 需要 Python 3.5+，Python 3.9+ 可用 a | b。'
+notes: '【版本兼容】主体代码兼容 Python 3.x。\n【常见报错排查】\n❌ SyntaxError: invalid syntax 指向 a | b：\n   → 原因：Python 版本低于 3.9。字典合并运算符 | 仅 3.9+ 支持，低版本请改用 {**a, **b} 写法。\n❌ TypeError: unsupported operand type(s) for |: \'dict\' and \'dict\'\n   → 同上，Python 3.9 以下不支持 | 合并字典。\ncollections.Counter 是 Python 3.1+ 内置模块。字典推导式 Python 2.7+ 支持。字典合并用 {**a, **b} 需要 Python 3.5+。'
   },
   {
     id: 3,
@@ -933,7 +933,7 @@ if __name__ == "__main__":
     tags: ['FastAPI', 'Web', 'API', '后端'],
     code: `from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict  # Dict 兼容 Python 3.8
 import uvicorn
 
 app = FastAPI(title="图书管理 API", version="1.0")
@@ -949,7 +949,9 @@ class Book(BookCreate):
     id: int
 
 # 模拟数据库
-books_db: dict[int, Book] = {}
+# 使用 Dict[int, Book] 而非 dict[int, Book]，兼容 Python 3.8+
+# Python 3.9+ 也可直接写 dict[int, Book]
+books_db: Dict[int, Book] = {}
 next_id = 1
 
 # CRUD 接口
@@ -1010,14 +1012,15 @@ def delete_book(book_id: int):
     dependencies: ['fastapi', 'uvicorn', 'pydantic'],
     installCommand: 'pip install fastapi uvicorn',
     runCommand: 'uvicorn main:app --reload',
-    notes: '如报错 ModuleNotFoundError，请先 pip install fastapi uvicorn。启动后访问 http://localhost:8000/docs 即可看到交互式 API 文档。dict[int, Book] 类型提示需 Python 3.9+，旧版本可改用 Dict[int, Book]（从 typing 导入）。'
+notes: '【版本兼容】本示例代码已改为 Python 3.8 兼容写法（使用 Dict[int, Book]），3.8/3.9/3.10+ 均可运行。\n如运行报 SyntaxError: invalid syntax 且指向类型注解行，请检查：\n1) Python 版本是否低于 3.5（需升级 Python）\n2) 是否误将代码中的注释（# 开头）删除导致 3.9+ 语法被执行\n如报错 ModuleNotFoundError，请先 pip install fastapi uvicorn。启动后访问 http://localhost:8000/docs 即可看到交互式 API 文档。'
   },
   {
     id: 17,
     title: '类型提示与 mypy',
     category: 'basics',
     tags: ['类型提示', 'typing', 'mypy', '代码质量'],
-    code: `from typing import List, Dict, Optional, Union, Callable, Tuple, Set
+    code: `# ===== Python 3.8 兼容写法（推荐，兼容性最好）=====
+from typing import List, Dict, Optional, Union, Callable, Tuple, Set
 from typing import TypeVar, Generic
 
 # ========== 基础类型提示 ==========
@@ -1032,7 +1035,7 @@ age: int = 25
 is_active: bool = True
 price: float = 99.99
 
-# ========== 容器类型 ==========
+# ========== 容器类型（Python 3.8 必须从 typing 导入）==========
 
 # List
 def sum_numbers(numbers: List[int]) -> int:
@@ -1096,6 +1099,37 @@ UserDict = Dict[UserId, UserName]
 
 users: UserDict = {1: "Alice", 2: "Bob"}
 
+# ============================================================
+# ===== Python 3.9+ 新语法（更简洁，但低版本会报 SyntaxError）=====
+# ============================================================
+# 注意：以下代码仅 Python 3.9+ 可用，3.8 及以下会报语法错误！
+#
+# # 3.9+ 可以直接用 list[int]，无需从 typing 导入
+# def sum_numbers_new(numbers: list[int]) -> int:
+#     return sum(numbers)
+#
+# # dict[str, int] 替代 Dict[str, int]
+# user_info_new: dict[str, str | int] = {"name": "Alice", "age": 25}
+#
+# # set[str] 替代 Set[str]
+# tags_new: set[str] = {"python", "dev"}
+#
+# # tuple[str, int] 替代 Tuple[str, int]
+# point: tuple[str, int] = ("x", 100)
+#
+# ============================================================
+# ===== Python 3.10+ 新语法 =====
+# ============================================================
+# 注意：以下代码仅 Python 3.10+ 可用！
+#
+# # 3.10+ 可以用 | 替代 Union
+# def process_value_new(value: int | str) -> str:
+#     return str(value)
+#
+# # 3.10+ 可以用 X | None 替代 Optional[X]
+# def find_user_new(user_id: int) -> str | None:
+#     return f"用户{user_id}" if user_id > 0 else None
+
 # 运行: mypy your_file.py 进行静态类型检查`,
     description: 'Python 3.5+ 引入类型提示，配合 mypy 可以在不运行代码的情况下发现类型错误，提升大型项目的可维护性。',
     useCase: '大型项目开发、团队协作、开源库编写，现代 Python 开发的标准实践，FastAPI/Pydantic 等框架都重度依赖。',
@@ -1105,7 +1139,7 @@ users: UserDict = {1: "Alice", 2: "Bob"}
     dependencies: ['mypy (仅静态检查)'],
     installCommand: 'pip install mypy',
     runCommand: 'python typing_demo.py  # 运行\nmypy typing_demo.py  # 静态检查',
-    notes: '类型提示在运行时不强制，Python 依然是动态语言。Python 3.9+ 支持 list[int]、dict[str, int] 等原生泛型，无需从 typing 导入。如 mypy 报错 No library stub file，可忽略或安装对应库的 types-* 包。'
+notes: '【版本兼容】本示例主体代码兼容 Python 3.8+，3.9+ 和 3.10+ 新语法已用注释标出，不会影响运行。\n【常见报错排查】\n❌ SyntaxError: invalid syntax 指向 list[int] 或 dict[str, int] 行：\n   → 原因：Python 版本低于 3.9。请使用代码中的 List[int]/Dict[str, int] 写法（从 typing 导入）。\n❌ SyntaxError: invalid syntax 指向 int | str 或 str | None 行：\n   → 原因：Python 版本低于 3.10。请使用 Union[int, str] 或 Optional[str] 写法。\n类型提示在运行时不强制，Python 依然是动态语言。如 mypy 报错 No library stub file，可忽略或安装对应库的 types-* 包。'
   },
   {
     id: 18,

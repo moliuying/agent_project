@@ -55,6 +55,34 @@
           </el-checkbox>
         </el-checkbox-group>
       </div>
+      <el-divider />
+      <div class="version-selector-bar">
+        <div class="version-selector-label">
+          <el-icon :size="18" color="#16a34a"><Cpu /></el-icon>
+          <span>我的 Python 版本：</span>
+        </div>
+        <el-radio-group v-model="userPythonVersion" size="default">
+          <el-radio-button label="3.7">
+            <el-icon size="12" color="#909399"><Warning /></el-icon>
+            3.7
+          </el-radio-button>
+          <el-radio-button label="3.8">
+            <el-icon size="12" color="#67c23a"><CircleCheckFilled /></el-icon>
+            3.8（推荐）
+          </el-radio-button>
+          <el-radio-button label="3.9">
+            <el-icon size="12" color="#67c23a"><CircleCheckFilled /></el-icon>
+            3.9
+          </el-radio-button>
+          <el-radio-button label="3.10">
+            <el-icon size="12" color="#67c23a"><CircleCheckFilled /></el-icon>
+            3.10+
+          </el-radio-button>
+        </el-radio-group>
+        <el-tooltip content="选择你的 Python 版本后，卡片会自动标记是否兼容" placement="top">
+          <el-icon :size="16" color="#909399" class="tip-icon"><QuestionFilled /></el-icon>
+        </el-tooltip>
+      </div>
     </el-card>
 
     <el-card class="categories-card">
@@ -183,7 +211,23 @@
           <div class="env-item">
             <el-icon :size="14" color="#16a34a"><Cpu /></el-icon>
             <span class="env-label">Python 版本：</span>
-            <span class="env-value">{{ sample.pythonVersion }}</span>
+            <span class="env-value">
+              <el-tag
+                size="small"
+                :type="isVersionCompatible(sample.pythonVersion, userPythonVersion) ? 'success' : 'danger'"
+                effect="light"
+                class="version-tag"
+              >
+                {{ sample.pythonVersion }}
+              </el-tag>
+              <el-tooltip
+                v-if="!isVersionCompatible(sample.pythonVersion, userPythonVersion)"
+                content="与你的 Python 版本可能不兼容，请查看详情"
+                placement="top"
+              >
+                <el-icon :size="14" color="#ef4444" class="warn-icon"><WarningFilled /></el-icon>
+              </el-tooltip>
+            </span>
           </div>
           <div class="env-item" v-if="sample.dependencies && sample.dependencies.length > 0">
             <el-icon :size="14" color="#f59e0b"><Box /></el-icon>
@@ -297,6 +341,40 @@
         />
 
         <el-divider />
+
+        <div class="version-check-box">
+          <div class="version-check-header">
+            <el-icon :size="20" color="#ef4444"><Warning /></el-icon>
+            <span class="version-check-title">版本兼容性检查</span>
+            <el-select v-model="userPythonVersion" size="small" class="version-select">
+              <el-option label="我用的是 Python 3.7" value="3.7" />
+              <el-option label="我用的是 Python 3.8" value="3.8" />
+              <el-option label="我用的是 Python 3.9" value="3.9" />
+              <el-option label="我用的是 Python 3.10+" value="3.10" />
+            </el-select>
+          </div>
+          <div class="version-check-result">
+            <template v-if="isVersionCompatible(currentDetail.pythonVersion, userPythonVersion)">
+              <el-icon color="#16a34a" :size="18"><CircleCheckFilled /></el-icon>
+              <span class="compatible-text">✅ 兼容你的 Python {{ userPythonVersion }} 环境</span>
+            </template>
+            <template v-else>
+              <el-icon color="#ef4444" :size="18"><Warning /></el-icon>
+              <span class="incompatible-text">
+                ⚠️ 本示例要求 {{ currentDetail.pythonVersion }}，你的版本可能不兼容
+              </span>
+            </template>
+          </div>
+          <el-alert
+            v-if="!isVersionCompatible(currentDetail.pythonVersion, userPythonVersion)"
+            type="warning"
+            :closable="false"
+            show-icon
+            title="版本不兼容可能导致 SyntaxError"
+            description="低版本 Python 无法解析高版本语法（如 list[int]、dict[str, int]、match-case 等）。请升级 Python 或查看下方注意事项中的兼容写法。"
+            class="version-alert"
+          />
+        </div>
 
         <div class="detail-section">
           <div class="section-title">
@@ -480,6 +558,8 @@ import {
   Download,
   VideoPlay,
   Warning,
+  WarningFilled,
+  QuestionFilled,
   SetUp,
   InfoFilled
 } from '@element-plus/icons-vue'
@@ -491,6 +571,8 @@ import {
 } from '@/data/pythonCodeSamples'
 
 const FAVORITES_KEY = 'python_code_favorites'
+
+const userPythonVersion = ref('3.8')
 
 const searchKeyword = ref('')
 const activeCategory = ref('all')
@@ -720,6 +802,30 @@ const resetFilters = () => {
   selectedDifficulties.value = ['beginner', 'intermediate', 'advanced']
   currentPage.value = 1
 }
+
+const parseVersion = (versionStr: string): number => {
+  const match = versionStr.match(/(\d+)\.(\d+)/)
+  if (match) {
+    return parseInt(match[1]) * 100 + parseInt(match[2])
+  }
+  return 0
+}
+
+const isVersionCompatible = (requiredStr: string, userVersion: string): boolean => {
+  if (!requiredStr || !userVersion) return true
+  const userNum = parseVersion(userVersion)
+  if (userNum === 0) return true
+
+  if (requiredStr.includes('Python 2')) {
+    return true
+  }
+
+  const requiredMatch = requiredStr.match(/(\d+)\.(\d+)/)
+  if (!requiredMatch) return true
+
+  const requiredNum = parseVersion(requiredStr)
+  return userNum >= requiredNum
+}
 </script>
 
 <style scoped>
@@ -788,6 +894,27 @@ const resetFilters = () => {
   font-size: 14px;
   color: #606266;
   font-weight: 500;
+}
+
+.version-selector-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  flex-wrap: wrap;
+}
+
+.version-selector-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.tip-icon {
+  cursor: help;
 }
 
 .categories-card {
@@ -1139,6 +1266,72 @@ const resetFilters = () => {
 .notes-box span {
   flex: 1;
   color: #991b1b;
+}
+
+.version-tag {
+  font-weight: 600;
+}
+
+.warn-icon {
+  cursor: help;
+  margin-left: 4px;
+  animation: warnBlink 1.5s ease-in-out infinite;
+}
+
+@keyframes warnBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.version-check-box {
+  background: linear-gradient(135deg, #fef2f2 0%, #fffbeb 100%);
+  border: 2px solid #fca5a5;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.version-check-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.version-check-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #991b1b;
+  flex: 1;
+}
+
+.version-select {
+  width: 180px;
+}
+
+.version-check-result {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.compatible-text {
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.incompatible-text {
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.version-alert {
+  margin-top: 8px;
 }
 
 .card-footer {
@@ -1496,6 +1689,38 @@ const resetFilters = () => {
 
   .notes-box {
     font-size: 13px;
+  }
+
+  .version-selector-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .version-selector-label {
+    justify-content: flex-start;
+  }
+
+  .version-selector-bar .el-radio-group {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .version-selector-bar .el-radio-button {
+    width: 100%;
+  }
+
+  .version-select {
+    width: 100%;
+  }
+
+  .version-check-box {
+    padding: 14px;
+  }
+
+  .version-check-header {
+    flex-wrap: wrap;
   }
 }
 </style>
