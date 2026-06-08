@@ -10,6 +10,21 @@ export interface WordExample {
   zh: string
 }
 
+export interface AlternateDefinition {
+  meaning: string
+  partOfSpeech: string
+  context: string
+}
+
+export interface WordCandidate {
+  word: string
+  definition: string
+  confidence: number
+  reason: string
+}
+
+export type WordType = 'common' | 'brand' | 'technical' | 'proper' | 'compound' | 'ambiguous' | 'place'
+
 export interface WordItem {
   id: string
   word: string
@@ -23,6 +38,14 @@ export interface WordItem {
   synonyms?: string[]
   antonyms?: string[]
   confidence: number
+  wordType: WordType
+  wordTypeLabel: string
+  field?: string
+  contextHint?: string
+  alternateDefinitions?: AlternateDefinition[]
+  possibleMisspelling?: WordCandidate[]
+  compoundComponents?: string[]
+  relatedTerms?: string[]
   position?: {
     x: number
     y: number
@@ -36,6 +59,7 @@ export interface WordOcrRequest {
   language?: 'en' | 'zh-en'
   includeExamples?: boolean
   includePhonetic?: boolean
+  sceneType?: 'auto' | 'book' | 'sign' | 'product' | 'document'
 }
 
 export interface WordOcrResponse {
@@ -49,8 +73,13 @@ export interface WordOcrResponse {
     hasChinese: boolean
     qualityScore: number
     sceneType: 'book' | 'sign' | 'product' | 'document' | 'other'
+    sceneLabel: string
     totalLowConfidence: number
     difficultyLevel: 'beginner' | 'intermediate' | 'advanced'
+    brandCount: number
+    technicalTermCount: number
+    properNounCount: number
+    ambiguousCount: number
   }
   suggestions: string[]
 }

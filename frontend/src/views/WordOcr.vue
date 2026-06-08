@@ -7,14 +7,14 @@
             <Camera />
           </el-icon>
           <span>拍照识别单词</span>
-          <el-tag size="small" type="primary" class="header-tag">OCR · 音标 · 例句 · 生词本</el-tag>
+          <el-tag size="small" type="primary" class="header-tag">OCR · 音标 · 例句 · 品牌/术语识别</el-tag>
         </div>
       </template>
       <div class="intro-section">
         <el-steps :active="0" finish-status="wait" simple class="intro-steps">
-          <el-step title="上传/拍摄图片" description="支持拍照或相册上传包含英文单词的图片" />
-          <el-step title="AI 智能识别" description="自动识别单词、匹配释义、音标和例句" />
-          <el-step title="学习 & 收藏" description="跟读发音、查看例句、一键加入生词本" />
+          <el-step title="上传/拍摄图片" description="支持拍照或相册上传英文教材、路标、商品包装等" />
+          <el-step title="AI 智能识别" description="自动识别品牌名、专业术语、复合词，区分多义项" />
+          <el-step title="学习 & 收藏" description="查看场景释义、跟读发音、一键加入生词本" />
         </el-steps>
       </div>
     </el-card>
@@ -57,7 +57,7 @@
             <div v-if="!imagePreview" class="upload-placeholder">
               <el-icon :size="64" color="#c0c4cc"><CameraFilled /></el-icon>
               <p class="upload-text">点击上传或拖拽图片到此处</p>
-              <p class="upload-hint">支持教材页面、英文读物、路标、商品包装等（≤10MB）</p>
+              <p class="upload-hint">支持教材页面、英文读物、路标、商品包装、产品说明等（≤10MB）</p>
               <div class="upload-btns">
                 <el-button type="primary" size="default" @click.stop="triggerFileInput">
                   <el-icon><Upload /></el-icon>
@@ -100,7 +100,7 @@
           </template>
 
           <el-form label-position="top" class="config-form">
-            <el-form-item label="场景类型（选择场景可提升识别准确率）">
+            <el-form-item label="场景类型（选择场景可提升专业词、品牌名识别准确率）">
               <el-radio-group v-model="form.sceneType" size="default">
                 <el-radio-button value="auto">
                   <el-icon><MagicStick /></el-icon>
@@ -131,6 +131,8 @@
                 <el-checkbox value="examples">显示例句</el-checkbox>
                 <el-checkbox value="synonyms">显示同义词/反义词</el-checkbox>
                 <el-checkbox value="definitionEn">显示英文释义</el-checkbox>
+                <el-checkbox value="relatedTerms">显示相关词汇</el-checkbox>
+                <el-checkbox value="contextHint">显示场景/语境提示</el-checkbox>
               </el-checkbox-group>
             </el-form-item>
 
@@ -160,19 +162,19 @@
                 </el-icon>
                 <span>识别结果</span>
                 <el-tag size="small" type="success">
-                  {{ recognitionResult.words.length }} 个单词 · {{ recognitionResult.processingTime }}ms
+                  {{ recognitionResult.words.length }} 词 · {{ recognitionResult.processingTime }}ms
                 </el-tag>
                 <el-tag size="small" type="info">
-                  {{ sceneLabel }}
+                  {{ recognitionResult.imageAnalysis.sceneLabel }}
                 </el-tag>
                 <el-tag :type="difficultyType" size="small">
-                  难度：{{ difficultyLabel }}
+                  {{ difficultyLabel }}
                 </el-tag>
               </div>
               <div class="header-right">
                 <el-button size="small" @click="copyAllWords">
                   <el-icon><DocumentCopy /></el-icon>
-                  复制全部单词
+                  复制全部
                 </el-button>
                 <el-button size="small" type="primary" @click="exportToVocab">
                   <el-icon><Collection /></el-icon>
@@ -189,7 +191,7 @@
             show-icon
             class="review-alert"
             :title="`检测到 ${recognitionResult.imageAnalysis.totalLowConfidence} 个单词识别置信度较低，建议核对`"
-            description="下方黄色标记的单词识别置信度较低，请点击查看详情确认识别是否正确"
+            description="下方黄色标记的单词置信度较低，特别注意品牌名和专业术语"
           />
 
           <div class="analysis-section">
@@ -197,7 +199,7 @@
               <div class="analysis-item">
                 <span class="analysis-label">识别场景</span>
                 <el-tag type="primary" effect="light">
-                  {{ sceneLabel }}
+                  {{ recognitionResult.imageAnalysis.sceneLabel }}
                 </el-tag>
               </div>
               <div class="analysis-item">
@@ -219,15 +221,19 @@
               </div>
               <div class="analysis-item">
                 <span class="analysis-label">难度等级</span>
-                <el-tag :type="difficultyType" effect="light">
-                  {{ difficultyLabel }}
-                </el-tag>
+                <el-tag :type="difficultyType" effect="light">{{ difficultyLabel }}</el-tag>
               </div>
-              <div class="analysis-item" v-if="recognitionResult.imageAnalysis.totalLowConfidence > 0">
-                <span class="analysis-label">需核对</span>
-                <span class="analysis-value text-warning">
-                  {{ recognitionResult.imageAnalysis.totalLowConfidence }} 个
-                </span>
+              <div class="analysis-item" v-if="recognitionResult.imageAnalysis.brandCount > 0">
+                <span class="analysis-label">品牌名称</span>
+                <span class="analysis-value text-brand">{{ recognitionResult.imageAnalysis.brandCount }} 个</span>
+              </div>
+              <div class="analysis-item" v-if="recognitionResult.imageAnalysis.technicalTermCount > 0">
+                <span class="analysis-label">专业术语</span>
+                <span class="analysis-value text-technical">{{ recognitionResult.imageAnalysis.technicalTermCount }} 个</span>
+              </div>
+              <div class="analysis-item" v-if="recognitionResult.imageAnalysis.ambiguousCount > 0">
+                <span class="analysis-label">多义词</span>
+                <span class="analysis-value text-ambiguous">{{ recognitionResult.imageAnalysis.ambiguousCount }} 个</span>
               </div>
             </div>
           </div>
@@ -239,14 +245,15 @@
               <h4 class="section-title">
                 <el-icon :size="16"><Collection /></el-icon>
                 识别到的单词
-                <el-tag
-                  v-if="collectedCount > 0"
-                  type="success"
-                  size="small"
-                >
-                  已收藏 {{ collectedCount }} 个
-                </el-tag>
+                <el-tag v-if="collectedCount > 0" type="success" size="small">已收藏 {{ collectedCount }}</el-tag>
               </h4>
+              <div class="section-legend">
+                <el-tag size="small" effect="dark" type="warning" class="legend-tag">品牌</el-tag>
+                <el-tag size="small" effect="dark" type="danger" class="legend-tag">术语</el-tag>
+                <el-tag size="small" effect="dark" type="info" class="legend-tag">复合词</el-tag>
+                <el-tag size="small" effect="dark" type="primary" class="legend-tag">地名</el-tag>
+                <el-tag size="small" effect="plain" type="warning" class="legend-tag">多义</el-tag>
+              </div>
             </div>
 
             <div class="word-list">
@@ -254,26 +261,30 @@
                 v-for="(word, index) in recognitionResult.words"
                 :key="word.id"
                 class="word-card"
-                :class="{ 'low-confidence': word.confidence < 0.85, 'collected': collectedWords[word.id] }"
+                :class="[
+                  `word-type-${word.wordType}`,
+                  { 'low-confidence': word.confidence < 0.85, 'collected': collectedWords[word.id] }
+                ]"
               >
                 <div class="word-header">
                   <div class="word-header-left">
                     <span class="word-index">{{ index + 1 }}</span>
                     <h3 class="word-text">{{ word.word }}</h3>
-                    <el-button
-                      link
-                      type="primary"
-                      size="small"
-                      class="speak-btn"
-                      @click="speakWord(word.word)"
-                    >
+                    <el-tag size="small" :type="getWordTypeColor(word.wordType)" effect="dark" class="word-type-tag">
+                      {{ word.wordTypeLabel }}
+                    </el-tag>
+                    <el-tag v-if="word.field" size="small" type="info" effect="plain" class="field-tag">
+                      <el-icon :size="12"><Aim /></el-icon>
+                      {{ word.field }}
+                    </el-tag>
+                    <el-button link type="primary" size="small" class="speak-btn" @click="speakWord(word.word)">
                       <el-icon><VideoPlay /></el-icon>
                       发音
                     </el-button>
                   </div>
                   <div class="word-header-right">
                     <el-tag size="small" :type="getConfidenceType(word.confidence)">
-                      置信度 {{ (word.confidence * 100).toFixed(0) }}%
+                      {{ (word.confidence * 100).toFixed(0) }}%
                     </el-tag>
                     <el-button
                       size="small"
@@ -289,14 +300,17 @@
                   </div>
                 </div>
 
+                <div v-if="form.outputOptions.includes('contextHint') && word.contextHint" class="context-hint">
+                  <el-icon color="#e6a23c" :size="14"><InfoFilled /></el-icon>
+                  <span>场景提示：{{ word.contextHint }}</span>
+                </div>
+
                 <div v-if="form.outputOptions.includes('phonetic') && word.phonetic" class="phonetic-row">
                   <span v-if="word.phoneticUk" class="phonetic-item">
-                    <el-tag size="small" effect="plain">UK</el-tag>
-                    {{ word.phoneticUk }}
+                    <el-tag size="small" effect="plain">UK</el-tag>{{ word.phoneticUk }}
                   </span>
                   <span v-if="word.phoneticUs" class="phonetic-item">
-                    <el-tag size="small" effect="plain">US</el-tag>
-                    {{ word.phoneticUs }}
+                    <el-tag size="small" effect="plain">US</el-tag>{{ word.phoneticUs }}
                   </span>
                 </div>
 
@@ -314,16 +328,30 @@
                   </p>
                 </div>
 
+                <div v-if="word.alternateDefinitions && word.alternateDefinitions.length > 0" class="alternate-section">
+                  <h5 class="alternate-title">
+                    <el-icon :size="14" color="#e6a23c"><Warning /></el-icon>
+                    其他可能释义（请根据图片语境判断）
+                  </h5>
+                  <div
+                    v-for="(alt, altIdx) in word.alternateDefinitions"
+                    :key="altIdx"
+                    class="alternate-item"
+                  >
+                    <div class="alternate-header">
+                      <el-tag size="small" type="warning" effect="plain">{{ alt.partOfSpeech }}</el-tag>
+                      <span class="alternate-context">适用场景：{{ alt.context }}</span>
+                    </div>
+                    <p class="alternate-meaning">{{ alt.meaning }}</p>
+                  </div>
+                </div>
+
                 <div v-if="form.outputOptions.includes('examples') && word.examples && word.examples.length > 0" class="examples-section">
                   <h5 class="examples-title">
                     <el-icon :size="14" color="#67c23a"><Notebook /></el-icon>
                     例句
                   </h5>
-                  <div
-                    v-for="(ex, exIdx) in word.examples"
-                    :key="exIdx"
-                    class="example-item"
-                  >
+                  <div v-for="(ex, exIdx) in word.examples" :key="exIdx" class="example-item">
                     <p class="example-en">{{ ex.en }}</p>
                     <p class="example-zh">{{ ex.zh }}</p>
                   </div>
@@ -332,30 +360,57 @@
                 <div v-if="form.outputOptions.includes('synonyms') && (word.synonyms?.length || word.antonyms?.length)" class="synonyms-section">
                   <div v-if="word.synonyms?.length" class="synonym-group">
                     <span class="synonym-label">同义词：</span>
-                    <el-tag
-                      v-for="(syn, sIdx) in word.synonyms"
-                      :key="sIdx"
-                      size="small"
-                      type="success"
-                      effect="plain"
-                      class="synonym-tag"
-                    >
+                    <el-tag v-for="(syn, sIdx) in word.synonyms" :key="sIdx" size="small" type="success" effect="plain" class="synonym-tag">
                       {{ syn }}
                     </el-tag>
                   </div>
                   <div v-if="word.antonyms?.length" class="synonym-group">
                     <span class="synonym-label">反义词：</span>
-                    <el-tag
-                      v-for="(ant, aIdx) in word.antonyms"
-                      :key="aIdx"
-                      size="small"
-                      type="danger"
-                      effect="plain"
-                      class="synonym-tag"
-                    >
+                    <el-tag v-for="(ant, aIdx) in word.antonyms" :key="aIdx" size="small" type="danger" effect="plain" class="synonym-tag">
                       {{ ant }}
                     </el-tag>
                   </div>
+                </div>
+
+                <div v-if="form.outputOptions.includes('relatedTerms') && word.relatedTerms && word.relatedTerms.length > 0" class="related-section">
+                  <h5 class="related-title">
+                    <el-icon :size="14" color="#722ed1"><Connection /></el-icon>
+                    相关词汇
+                  </h5>
+                  <el-tag
+                    v-for="(term, tIdx) in word.relatedTerms"
+                    :key="tIdx"
+                    size="small"
+                    effect="plain"
+                    class="related-tag"
+                  >
+                    {{ term }}
+                  </el-tag>
+                </div>
+
+                <div v-if="word.possibleMisspelling && word.possibleMisspelling.length > 0" class="misspelling-section">
+                  <el-alert
+                    type="info"
+                    :closable="false"
+                    show-icon
+                    class="misspelling-alert"
+                    title="识别修正提示"
+                  >
+                    <template #default>
+                      <p class="misspelling-intro">OCR 可能存在以下误识别，请结合图片实际内容判断：</p>
+                      <div
+                        v-for="(cand, cIdx) in word.possibleMisspelling"
+                        :key="cIdx"
+                        class="candidate-item"
+                      >
+                        <div class="candidate-row">
+                          <span class="candidate-word">{{ cand.word }}</span>
+                          <span class="candidate-def">— {{ cand.definition }}</span>
+                        </div>
+                        <p class="candidate-reason">{{ cand.reason }}</p>
+                      </div>
+                    </template>
+                  </el-alert>
                 </div>
               </div>
             </div>
@@ -398,9 +453,12 @@
               <img :src="h.imagePreview" alt="历史图片" class="history-thumb" />
               <div class="history-info">
                 <p class="history-time">{{ formatTime(h.timestamp) }}</p>
-                <p class="history-desc">{{ h.sceneLabel }} · {{ h.wordCount }} 个单词</p>
+                <p class="history-desc">{{ h.sceneLabel }} · {{ h.wordCount }} 词</p>
                 <p class="history-meta" :class="{ 'text-warning': h.lowConfidenceCount > 0 }">
-                  {{ h.difficultyLabel }} · {{ h.lowConfidenceCount > 0 ? h.lowConfidenceCount + ' 个待核对' : '全部高置信' }}
+                  {{ h.difficultyLabel }}
+                  <template v-if="h.brandCount > 0"> · {{ h.brandCount }}品牌</template>
+                  <template v-if="h.technicalCount > 0"> · {{ h.technicalCount }}术语</template>
+                  <template v-if="h.lowConfidenceCount > 0"> · {{ h.lowConfidenceCount }}待核对</template>
                 </p>
               </div>
             </div>
@@ -411,31 +469,31 @@
           <div class="empty-state">
             <el-icon :size="64" color="#c0c4cc"><Picture /></el-icon>
             <p class="empty-text">上传包含英文单词的图片开始识别</p>
-            <p class="empty-hint">支持教材、读物、路标、商品包装等多场景识别，自动给出中文释义、音标和例句</p>
+            <p class="empty-hint">自动识别品牌名、专业术语、复合词，区分多义项，标注所属领域，避免字面翻译错误</p>
             <div class="feature-hints">
-              <el-tag size="small" effect="plain">
-                <el-icon><Camera /></el-icon>
-                拍照或上传图片
+              <el-tag size="small" effect="plain" type="warning">
+                <el-icon><Goods /></el-icon>
+                品牌名识别
               </el-tag>
-              <el-tag size="small" effect="plain">
-                <el-icon><Reading /></el-icon>
-                自动识别释义
+              <el-tag size="small" effect="plain" type="danger">
+                <el-icon><Aim /></el-icon>
+                专业术语
+              </el-tag>
+              <el-tag size="small" effect="plain" type="info">
+                <el-icon><Connection /></el-icon>
+                复合词保护
               </el-tag>
               <el-tag size="small" effect="plain">
                 <el-icon><Microphone /></el-icon>
                 英式/美式发音
               </el-tag>
               <el-tag size="small" effect="plain" type="warning">
-                <el-icon><Notebook /></el-icon>
-                多条例句学习
-              </el-tag>
-              <el-tag size="small" effect="plain">
-                <el-icon><Star /></el-icon>
-                一键收藏生词
+                <el-icon><Warning /></el-icon>
+                多义项消歧
               </el-tag>
               <el-tag size="small" effect="plain" type="success">
-                <el-icon><Connection /></el-icon>
-                同义词/反义词
+                <el-icon><Star /></el-icon>
+                生词收藏
               </el-tag>
             </div>
           </div>
@@ -472,10 +530,12 @@ import {
   Star,
   StarFilled,
   Microphone,
-  Connection
+  Connection,
+  Aim,
+  InfoFilled
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { wordOcrApi, type WordOcrResponse, type WordItem } from '@/api/wordOcr'
+import { wordOcrApi, type WordOcrResponse, type WordItem, type WordType } from '@/api/wordOcr'
 
 const HISTORY_KEY = 'word_ocr_history'
 const COLLECTED_KEY = 'word_ocr_collected'
@@ -488,6 +548,8 @@ interface HistoryItem {
   wordCount: number
   difficultyLabel: string
   lowConfidenceCount: number
+  brandCount: number
+  technicalCount: number
   result: WordOcrResponse
 }
 
@@ -517,17 +579,12 @@ const collectedWords = reactive<Record<string, boolean>>({})
 
 const form = reactive({
   sceneType: 'auto' as 'auto' | 'book' | 'sign' | 'product' | 'document',
-  outputOptions: ['phonetic', 'examples', 'synonyms', 'definitionEn'] as string[]
+  outputOptions: ['phonetic', 'examples', 'synonyms', 'definitionEn', 'relatedTerms', 'contextHint'] as string[]
 })
 
 const collectedCount = computed(() => {
   if (!recognitionResult.value) return 0
   return recognitionResult.value.words.filter(w => collectedWords[w.id]).length
-})
-
-const sceneLabel = computed(() => {
-  if (!recognitionResult.value) return ''
-  return sceneLabelMap[recognitionResult.value.imageAnalysis.sceneType] || '其他场景'
 })
 
 const difficultyLabel = computed(() => {
@@ -557,6 +614,19 @@ const getConfidenceType = (confidence: number): 'success' | 'warning' | 'danger'
   if (confidence >= 0.9) return 'success'
   if (confidence >= 0.75) return 'warning'
   return 'danger'
+}
+
+const getWordTypeColor = (type: WordType): 'primary' | 'success' | 'warning' | 'danger' | 'info' => {
+  const map: Record<WordType, 'primary' | 'success' | 'warning' | 'danger' | 'info'> = {
+    common: 'success',
+    brand: 'warning',
+    technical: 'danger',
+    proper: 'primary',
+    place: 'primary',
+    compound: 'info',
+    ambiguous: 'warning'
+  }
+  return map[type] || 'info'
 }
 
 const loadHistory = () => {
@@ -687,7 +757,8 @@ const recognizeWords = async () => {
       imageBase64: imageBase64.value,
       language: 'en',
       includeExamples: form.outputOptions.includes('examples'),
-      includePhonetic: form.outputOptions.includes('phonetic')
+      includePhonetic: form.outputOptions.includes('phonetic'),
+      sceneType: form.sceneType
     })
 
     recognitionResult.value = response.data
@@ -700,14 +771,25 @@ const recognizeWords = async () => {
       wordCount: response.data.words.length,
       difficultyLabel: difficultyLabelMap[response.data.imageAnalysis.difficultyLevel],
       lowConfidenceCount: response.data.imageAnalysis.totalLowConfidence,
+      brandCount: response.data.imageAnalysis.brandCount,
+      technicalCount: response.data.imageAnalysis.technicalTermCount,
       result: JSON.parse(JSON.stringify(response.data))
     })
     saveHistory()
 
+    const specialCounts: string[] = []
+    if (response.data.imageAnalysis.brandCount > 0) specialCounts.push(`${response.data.imageAnalysis.brandCount}个品牌名`)
+    if (response.data.imageAnalysis.technicalTermCount > 0) specialCounts.push(`${response.data.imageAnalysis.technicalTermCount}个专业术语`)
+    if (response.data.imageAnalysis.ambiguousCount > 0) specialCounts.push(`${response.data.imageAnalysis.ambiguousCount}个多义词`)
+
+    let msg = `成功识别 ${response.data.words.length} 个单词！`
+    if (specialCounts.length > 0) {
+      msg += `（含 ${specialCounts.join('、')}）`
+    }
     if (response.data.imageAnalysis.totalLowConfidence > 0) {
-      ElMessage.warning(`识别成功，共 ${response.data.words.length} 个单词，其中 ${response.data.imageAnalysis.totalLowConfidence} 个需要核对`)
+      ElMessage.warning(`${msg}，其中 ${response.data.imageAnalysis.totalLowConfidence} 个需要核对`)
     } else {
-      ElMessage.success(`成功识别 ${response.data.words.length} 个单词！`)
+      ElMessage.success(msg)
     }
   } catch (error: any) {
     ElMessage.error(error.response?.data?.message || '识别失败，请稍后重试')
@@ -758,20 +840,36 @@ const copyToClipboard = async (text: string, label: string) => {
 const copyAllWords = () => {
   if (!recognitionResult.value) return
   const wordStr = recognitionResult.value.words.map(w => {
-    const lines = [
-      `${w.word} ${w.phonetic || ''}`,
-      `${w.partOfSpeech} ${w.definition}`,
-      ...(w.examples || []).map(ex => `  - ${ex.en}\n    ${ex.zh}`)
-    ]
-    return lines.filter(l => l.trim()).join('\n')
-  }).join('\n\n')
+    const lines: string[] = []
+    lines.push(`${w.word}  【${w.wordTypeLabel}${w.field ? ' · ' + w.field : ''}】`)
+    if (w.phonetic) lines.push(`${w.phonetic}`)
+    lines.push(`${w.partOfSpeech}  ${w.definition}`)
+    if (w.alternateDefinitions && w.alternateDefinitions.length > 0) {
+      lines.push('其他释义：')
+      w.alternateDefinitions.forEach(alt => {
+        lines.push(`  - [${alt.context}] ${alt.meaning}`)
+      })
+    }
+    if (w.contextHint) lines.push(`提示：${w.contextHint}`)
+    if (w.examples && w.examples.length > 0 && form.outputOptions.includes('examples')) {
+      lines.push('例句：')
+      w.examples.forEach(ex => {
+        lines.push(`  ${ex.en}`)
+        lines.push(`  ${ex.zh}`)
+      })
+    }
+    return lines.join('\n')
+  }).join('\n\n---\n\n')
   copyToClipboard(wordStr, '全部单词')
 }
 
 const exportToVocab = () => {
   if (!recognitionResult.value) return
   const words = recognitionResult.value.words
-  const vocab = words.map(w => `${w.word}\t${w.definition}\t${w.phonetic || ''}`).join('\n')
+  const vocab = words.map(w => {
+    const typeInfo = w.wordType !== 'common' ? `【${w.wordTypeLabel}】` : ''
+    return `${w.word}\t${typeInfo}${w.definition}\t${w.phonetic || ''}`
+  }).join('\n')
   const header = '单词\t释义\t音标\n'
   copyToClipboard(header + vocab, '生词本格式')
 }
@@ -783,9 +881,7 @@ const exportToVocab = () => {
   margin: 0 auto;
 }
 
-.header-card {
-  margin-bottom: 20px;
-}
+.header-card { margin-bottom: 20px; }
 
 .card-header {
   display: flex;
@@ -795,30 +891,21 @@ const exportToVocab = () => {
   font-weight: bold;
 }
 
-.card-header.small {
-  font-size: 15px;
-}
+.card-header.small { font-size: 15px; }
 
 .header-tag {
   margin-left: 12px;
   font-weight: normal;
 }
 
-.intro-section {
-  margin-bottom: 10px;
-}
-
-.intro-steps {
-  padding: 10px 0;
-}
+.intro-section { margin-bottom: 10px; }
+.intro-steps { padding: 10px 0; }
 
 .upload-card,
 .config-card,
 .result-card,
 .history-card,
-.empty-result-card {
-  margin-bottom: 20px;
-}
+.empty-result-card { margin-bottom: 20px; }
 
 .upload-area {
   border: 2px dashed #dcdfe6;
@@ -900,9 +987,7 @@ const exportToVocab = () => {
   border-radius: 8px;
 }
 
-.config-form {
-  margin-top: 8px;
-}
+.config-form { margin-top: 8px; }
 
 .recognize-btn {
   width: 100%;
@@ -912,9 +997,7 @@ const exportToVocab = () => {
   font-weight: 500;
 }
 
-.result-header {
-  justify-content: space-between;
-}
+.result-header { justify-content: space-between; }
 
 .header-left {
   display: flex;
@@ -928,24 +1011,20 @@ const exportToVocab = () => {
   gap: 8px;
 }
 
-.review-alert {
-  margin-bottom: 16px;
-}
+.review-alert { margin-bottom: 16px; }
 
-.analysis-section {
-  margin-bottom: 8px;
-}
+.analysis-section { margin-bottom: 8px; }
 
 .analysis-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 12px;
 }
 
 .analysis-item {
   background: #f5f7fa;
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
 }
 
 .analysis-label {
@@ -953,7 +1032,7 @@ const exportToVocab = () => {
   font-size: 12px;
   color: #909399;
   font-weight: 500;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .analysis-value {
@@ -965,15 +1044,18 @@ const exportToVocab = () => {
   text-align: center;
 }
 
-.text-warning {
-  color: #e6a23c !important;
-}
+.text-warning { color: #e6a23c !important; }
+.text-brand { color: #e6a23c !important; }
+.text-technical { color: #f56c6c !important; }
+.text-ambiguous { color: #722ed1 !important; }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .section-title {
@@ -985,6 +1067,14 @@ const exportToVocab = () => {
   align-items: center;
   gap: 6px;
 }
+
+.section-legend {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.legend-tag { margin: 0; }
 
 .word-list {
   display: flex;
@@ -1005,15 +1095,34 @@ const exportToVocab = () => {
   background: linear-gradient(180deg, #fffbe6 0%, #fafbfc 100%);
 }
 
-.word-card.collected {
-  border-color: #67c23a;
+.word-card.collected { border-color: #67c23a; }
+
+.word-card.word-type-brand {
+  border-left: 4px solid #e6a23c;
+}
+
+.word-card.word-type-technical {
+  border-left: 4px solid #f56c6c;
+}
+
+.word-card.word-type-compound {
+  border-left: 4px solid #909399;
+}
+
+.word-card.word-type-place,
+.word-card.word-type-proper {
+  border-left: 4px solid #165DFF;
+}
+
+.word-card.word-type-ambiguous {
+  border-left: 4px dashed #e6a23c;
 }
 
 .word-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   flex-wrap: wrap;
   gap: 8px;
 }
@@ -1021,7 +1130,7 @@ const exportToVocab = () => {
 .word-header-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -1035,31 +1144,55 @@ const exportToVocab = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #165DFF;
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .word-text {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: #1f2937;
   margin: 0;
 }
 
-.speak-btn {
-  font-size: 12px !important;
+.word-type-tag {
+  margin: 0 2px;
 }
+
+.field-tag {
+  margin: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.speak-btn { font-size: 12px !important; }
+
+.context-hint {
+  background: #fff7e6;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #874d00;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.5;
+}
+
+.context-hint span { flex: 1; }
 
 .phonetic-row {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .phonetic-item {
@@ -1071,18 +1204,14 @@ const exportToVocab = () => {
   font-size: 14px;
 }
 
-.pos-row {
-  margin-bottom: 6px;
-}
+.pos-row { margin-bottom: 4px; }
 
-.definition-row {
-  margin-bottom: 8px;
-}
+.definition-row { margin-bottom: 6px; }
 
 .definition-zh {
   font-size: 15px;
   color: #303133;
-  margin: 0 0 4px 0;
+  margin: 0 0 3px 0;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1095,6 +1224,53 @@ const exportToVocab = () => {
   margin: 0;
   padding-left: 22px;
   font-style: italic;
+  line-height: 1.5;
+}
+
+.alternate-section {
+  margin-top: 10px;
+  padding: 12px;
+  background: #fff7e6;
+  border-radius: 8px;
+  border: 1px dashed #ffd591;
+}
+
+.alternate-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ad6800;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.alternate-item {
+  background: #fff;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+
+.alternate-item:last-child { margin-bottom: 0; }
+
+.alternate-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.alternate-context {
+  font-size: 12px;
+  color: #909399;
+}
+
+.alternate-meaning {
+  font-size: 14px;
+  color: #303133;
+  margin: 0;
   line-height: 1.5;
 }
 
@@ -1122,9 +1298,7 @@ const exportToVocab = () => {
   border-left: 3px solid #67c23a;
 }
 
-.example-item:last-child {
-  margin-bottom: 0;
-}
+.example-item:last-child { margin-bottom: 0; }
 
 .example-en {
   font-size: 14px;
@@ -1154,9 +1328,7 @@ const exportToVocab = () => {
   margin-bottom: 4px;
 }
 
-.synonym-group:last-child {
-  margin-bottom: 0;
-}
+.synonym-group:last-child { margin-bottom: 0; }
 
 .synonym-label {
   font-size: 12px;
@@ -1164,17 +1336,79 @@ const exportToVocab = () => {
   font-weight: 500;
 }
 
-.synonym-tag {
-  margin: 2px 4px 2px 0;
+.synonym-tag { margin: 2px 4px 2px 0; }
+
+.related-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #ebeef5;
 }
 
-.tip-alert {
-  margin-bottom: 8px;
+.related-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #722ed1;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.tip-alert:last-child {
-  margin-bottom: 0;
+.related-tag {
+  margin: 2px 6px 2px 0;
+  background: #f9f0ff;
+  border-color: #d3adf7;
+  color: #531dab;
 }
+
+.misspelling-section {
+  margin-top: 12px;
+}
+
+.misspelling-alert { padding: 12px; }
+
+.misspelling-intro {
+  font-size: 13px;
+  color: #606266;
+  margin: 0 0 8px 0;
+}
+
+.candidate-item {
+  background: #fff;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+
+.candidate-item:last-child { margin-bottom: 0; }
+
+.candidate-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.candidate-word {
+  font-weight: 600;
+  color: #165DFF;
+  font-size: 14px;
+}
+
+.candidate-def {
+  font-size: 13px;
+  color: #303133;
+}
+
+.candidate-reason {
+  font-size: 12px;
+  color: #909399;
+  margin: 0;
+}
+
+.tip-alert { margin-bottom: 8px; }
+.tip-alert:last-child { margin-bottom: 0; }
 
 .history-list {
   display: flex;
@@ -1191,9 +1425,7 @@ const exportToVocab = () => {
   transition: background 0.2s;
 }
 
-.history-item:hover {
-  background: #f5f7fa;
-}
+.history-item:hover { background: #f5f7fa; }
 
 .history-thumb {
   width: 60px;
@@ -1251,6 +1483,7 @@ const exportToVocab = () => {
   color: #909399;
   margin: 0;
   max-width: 420px;
+  line-height: 1.6;
 }
 
 .feature-hints {
