@@ -300,6 +300,30 @@
                   </div>
                 </div>
 
+                <el-alert
+                  v-if="word.wordType === 'brand' && word.compoundComponents && word.compoundComponents.length > 0"
+                  type="error"
+                  :closable="false"
+                  show-icon
+                  class="brand-split-warning"
+                  title="⚠️ 品牌名特别提示：请勿按字面拆分理解！"
+                >
+                  <template #default>
+                    <p class="brand-warning-text">
+                      这是一个由普通单词组合而成的<strong>品牌名称</strong>，不要拆分为字面含义理解：
+                    </p>
+                    <div class="brand-components-demo">
+                      <span
+                        v-for="(comp, cIdx) in word.compoundComponents"
+                        :key="cIdx"
+                        class="comp-tag"
+                      >{{ comp }} ≠ 字面意思</span>
+                      <span class="comp-arrow">→</span>
+                      <span class="comp-brand">{{ word.word }} 是品牌名整体</span>
+                    </div>
+                  </template>
+                </el-alert>
+
                 <div v-if="form.outputOptions.includes('contextHint') && word.contextHint" class="context-hint">
                   <el-icon color="#e6a23c" :size="14"><InfoFilled /></el-icon>
                   <span>场景提示：{{ word.contextHint }}</span>
@@ -421,12 +445,12 @@
           <div class="suggestions-section">
             <h4 class="section-title">
               <el-icon :size="16" color="#e6a23c"><Warning /></el-icon>
-              使用建议
+              使用建议 · 重要提示优先展示
             </h4>
             <el-alert
               v-for="(tip, idx) in recognitionResult.suggestions"
               :key="idx"
-              type="info"
+              :type="getSuggestionType(tip)"
               :closable="false"
               show-icon
               :title="tip"
@@ -627,6 +651,13 @@ const getWordTypeColor = (type: WordType): 'primary' | 'success' | 'warning' | '
     ambiguous: 'warning'
   }
   return map[type] || 'info'
+}
+
+const getSuggestionType = (tip: string): 'success' | 'warning' | 'danger' | 'info' => {
+  if (tip.includes('检测到连续出现') || tip.startsWith('⚠️')) return 'danger'
+  if (tip.includes('品牌') || tip.includes('专业术语') || tip.includes('多义') || tip.includes('拆分')) return 'warning'
+  if (tip.includes('置信度较低')) return 'warning'
+  return 'info'
 }
 
 const loadHistory = () => {
@@ -1187,6 +1218,54 @@ const exportToVocab = () => {
 }
 
 .context-hint span { flex: 1; }
+
+.brand-split-warning {
+  margin-bottom: 10px !important;
+  border-radius: 8px !important;
+  border: 2px solid #f56c6c !important;
+}
+.brand-split-warning :deep(.el-alert__title) {
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  color: #c45656 !important;
+}
+.brand-warning-text {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
+}
+.brand-warning-text strong {
+  color: #f56c6c;
+  font-weight: 700;
+}
+.brand-components-demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.comp-tag {
+  background: #fef0f0;
+  color: #c45656;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  border: 1px solid #fbc4c4;
+}
+.comp-arrow {
+  color: #f56c6c;
+  font-weight: 700;
+  font-size: 14px;
+}
+.comp-brand {
+  background: #f56c6c;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-weight: 700;
+}
 
 .phonetic-row {
   display: flex;

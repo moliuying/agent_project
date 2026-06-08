@@ -405,7 +405,9 @@ const BRAND_WORDS: Record<string, WordCategory> = {
     difficulty: 'beginner',
     wordType: 'brand',
     wordTypeLabel: '品牌名称',
-    contextHint: '常见于咖啡店招牌、杯装饮料、食品包装',
+    field: '餐饮 / 咖啡连锁',
+    contextHint: '⚠️ 常见于咖啡店招牌、杯装饮料、食品包装。注意：此为品牌名，不要按字面拆分为 star（星星）+ bucks（雄鹿/钱）理解！',
+    compoundComponents: ['star', 'bucks'],
     relatedTerms: ['coffee', 'latte', 'cappuccino', 'espresso', 'frappuccino']
   },
   samsung: {
@@ -861,6 +863,10 @@ const ALL_WORDS: Record<string, WordCategory> = {
   ...COMPOUND_WORDS
 };
 
+const COMPOUND_BRAND_SPLIT_MAP: Record<string, { brandKey: string; brandDisplay: string; brandDefinition: string }> = {
+  'star+bucks': { brandKey: 'starbucks', brandDisplay: 'Starbucks', brandDefinition: '星巴克（咖啡连锁品牌）' }
+};
+
 const SCENE_LABELS: Record<string, string> = {
   book: '书籍/教材',
   sign: '路标/标识',
@@ -923,14 +929,20 @@ export class WordOcrService {
       }
 
       if (sceneType === 'product') {
-        if (wordData.wordType === 'brand') confidence += 0.08;
-        if (wordData.field?.includes('营养') || wordData.field?.includes('化妆品') || wordData.field?.includes('食品')) confidence += 0.06;
+        if (wordData.wordType === 'brand') {
+          confidence += 0.12;
+          if (wordData.compoundComponents && wordData.compoundComponents.length > 0) {
+            confidence += 0.08;
+          }
+        }
+        if (wordData.field?.includes('营养') || wordData.field?.includes('化妆品') || wordData.field?.includes('食品') || wordData.field?.includes('餐饮')) confidence += 0.06;
       }
       if (sceneType === 'book' || sceneType === 'document') {
         if (wordData.wordType === 'technical') confidence += 0.06;
       }
       if (sceneType === 'sign') {
         if (wordData.wordType === 'place') confidence += 0.08;
+        if (wordData.wordType === 'brand') confidence += 0.1;
         if (['exit', 'warning', 'emergency', 'caution'].includes(wordKey)) confidence += 0.1;
       }
     }
@@ -938,21 +950,27 @@ export class WordOcrService {
     if (wordData.wordType === 'compound') {
       confidence += 0.04;
     }
+    if (wordData.wordType === 'brand' && wordData.compoundComponents && wordData.compoundComponents.length > 0) {
+      confidence += 0.07;
+    }
 
-    return Math.max(0.4, Math.min(0.99, confidence));
+    return Math.max(0.55, Math.min(0.99, confidence));
   }
 
   private generateWordCandidates(wordKey: string, wordData: WordCategory, rand: () => number): WordCandidate[] {
     const candidates: WordCandidate[] = [];
 
-    if (wordData.wordType === 'compound' && wordData.compoundComponents) {
+    if (wordData.compoundComponents && wordData.compoundComponents.length > 0) {
       wordData.compoundComponents.forEach(comp => {
         if (ALL_WORDS[comp]) {
+          const isBrand = wordData.wordType === 'brand';
           candidates.push({
             word: comp,
             definition: ALL_WORDS[comp].definition,
-            confidence: 0.3 + rand() * 0.2,
-            reason: `复合词"${wordKey}"的组成部分，可能被错误拆分识别`
+            confidence: 0.2 + rand() * 0.15,
+            reason: isBrand
+              ? `⚠️ 品牌名"${wordKey.replace(/_/g, ' ')}"的组成部分，OCR 可能会错误拆分识别。请按品牌名整体理解，不要按字面组合！`
+              : `复合词"${wordKey}"的组成部分，可能被错误拆分识别。请按整体含义理解。`
           });
         }
       });
@@ -1043,8 +1061,27 @@ export class WordOcrService {
       return item;
     });
 
+    const detectedWordKeys = new Set(pickedKeys.map(k => k.toLowerCase()));
+    const compoundBrandHints: string[] = [];
+
+    Object.entries(COMPOUND_BRAND_SPLIT_MAP).forEach(([splitKey, brandInfo]) => {
+      const components = splitKey.split('+');
+      const allComponentsFound = components.every(c => detectedWordKeys.has(c));
+      if (allComponentsFound && !detectedWordKeys.has(brandInfo.brandKey)) {
+        compoundBrandHints.push(`检测到连续出现"${components.join(' + ')}"，很可能是品牌名 ${brandInfo.brandDisplay}（${brandInfo.brandDefinition}），建议按整体品牌名理解`);
+        const brandItem = this.generateWordItem(brandInfo.brandKey, rand, words.length, effectiveScene);
+        if (!includeExamples) brandItem.examples = [];
+        if (!includePhonetic) {
+          brandItem.phonetic = '';
+          brandItem.phoneticUk = '';
+          brandItem.phoneticUs = '';
+        }
+        words.push(brandItem);
+      }
+    });
+
     const fullText = words.map(w => w.word).join(' ');
-    const uniqueWordCount = new Set(pickedKeys).size;
+    const uniqueWordCount = new Set([...pickedKeys, ...compoundBrandHints.map((_, i) => `brand_${i}`)]).size;
     const totalLowConfidence = words.filter(w => w.confidence < 0.85).length;
 
     const brandCount = words.filter(w => w.wordType === 'brand').length;
@@ -1084,8 +1121,15 @@ export class WordOcrService {
     if (words.some(w => w.wordType === 'compound')) {
       suggestions.push('检测到复合词，请按整体含义理解，不要按字面拆分');
     }
+    if (words.some(w => w.wordType === 'brand' && w.compoundComponents && w.compoundComponents.length > 0)) {
+      suggestions.unshift('⚠️ 检测到复合构成的品牌名，请勿按字面拆分理解（如 Starbucks ≠ 星星 + 雄鹿）');
+    }
+    if (compoundBrandHints.length > 0) {
+      compoundBrandHints.forEach(hint => suggestions.unshift(hint));
+    }
 
-    const finalSuggestions = this.pickSeeded(suggestions, 6, rand);
+    const pickedSuggestions = this.pickSeeded(suggestions, 6, rand);
+    const finalSuggestions = [...compoundBrandHints, ...pickedSuggestions].slice(0, 6);
 
     const processingTime = Date.now() - startTime + Math.floor(rand() * 400 + 150);
 
