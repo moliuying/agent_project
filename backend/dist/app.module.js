@@ -11,6 +11,12 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const menu_module_1 = require("./menu/menu.module");
 const menu_entity_1 = require("./menu/menu.entity");
+const holiday_module_1 = require("./holiday/holiday.module");
+const holiday_entity_1 = require("./holiday/holiday.entity");
+const ip_lookup_module_1 = require("./ip-lookup/ip-lookup.module");
+const ai_text_expander_module_1 = require("./ai-text-expander/ai-text-expander.module");
+const thesis_writer_module_1 = require("./thesis-writer/thesis-writer.module");
+const excel_formula_module_1 = require("./excel-formula/excel-formula.module");
 const path = require("path");
 let AppModule = class AppModule {
 };
@@ -20,11 +26,16 @@ AppModule = __decorate([
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'sqlite',
                 database: path.join(__dirname, '../data/database.sqlite'),
-                entities: [menu_entity_1.Menu],
+                entities: [menu_entity_1.Menu, holiday_entity_1.Holiday],
                 synchronize: true,
                 logging: false,
             }),
             menu_module_1.MenuModule,
+            holiday_module_1.HolidayModule,
+            ip_lookup_module_1.IpLookupModule,
+            ai_text_expander_module_1.AiTextExpanderModule,
+            thesis_writer_module_1.ThesisWriterModule,
+            excel_formula_module_1.ExcelFormulaModule,
         ],
     })
 ], AppModule);

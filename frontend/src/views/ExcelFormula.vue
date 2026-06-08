@@ -164,12 +164,43 @@
                 <el-tag :type="getCategoryTagType(formula.category)" size="small" effect="light">
                   {{ categories.find(c => c.id === formula.category)?.label }}
                 </el-tag>
+                <el-tooltip
+                  :content="getVersionInfo(formula.version)?.tip || ''"
+                  placement="top"
+                  :disabled="!isNewFunction(formula.version)"
+                >
+                  <el-tag
+                    :type="getVersionTagType(formula.version)"
+                    :effect="getVersionTagEffect(formula.version)"
+                    size="small"
+                    class="version-tag"
+                    :class="{ 'version-tag-new': isNewFunction(formula.version) }"
+                  >
+                    <el-icon v-if="isNewFunction(formula.version)" :size="12">
+                      <WarningFilled />
+                    </el-icon>
+                    {{ getVersionInfo(formula.version)?.label || formula.version }}
+                  </el-tag>
+                </el-tooltip>
                 <span class="formula-name">{{ formula.name }}</span>
                 <span class="formula-desc">{{ formula.description }}</span>
               </div>
             </template>
 
             <div class="formula-detail">
+              <el-alert
+                v-if="isNewFunction(formula.version)"
+                :title="formula.compatibility || '该函数需要较新版本的 Excel'"
+                type="warning"
+                show-icon
+                :closable="false"
+                class="version-alert"
+              >
+                <template #icon>
+                  <el-icon><WarningFilled /></el-icon>
+                </template>
+              </el-alert>
+
               <div class="detail-section">
                 <h5>
                   <el-icon color="#165DFF"><Operation /></el-icon>
@@ -275,6 +306,7 @@ import {
   Document,
   CopyDocument,
   Warning,
+  WarningFilled,
   Star,
   Tickets,
   Operation,
@@ -284,11 +316,12 @@ import {
   EditPen
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { excelFormulaApi, type ExcelFormula, type FormulaCategory, type RecommendationResult } from '@/api/excelFormula'
+import { excelFormulaApi, type ExcelFormula, type FormulaCategory, type RecommendationResult, type VersionInfo, type ExcelVersion } from '@/api/excelFormula'
 
 const searchQuery = ref('')
 const searching = ref(false)
 const categories = ref<FormulaCategory[]>([])
+const versions = ref<VersionInfo[]>([])
 const allFormulas = ref<ExcelFormula[]>([])
 const displayFormulas = ref<ExcelFormula[]>([])
 const activeCategory = ref<string>('')
@@ -342,6 +375,38 @@ const getCategoryTagType = (catId: string): any => {
     financial: ''
   }
   return types[catId] || ''
+}
+
+const getVersionInfo = (version: ExcelVersion): VersionInfo | undefined => {
+  return versions.value.find(v => v.id === version)
+}
+
+const getVersionTagType = (version: ExcelVersion): any => {
+  const types: Record<ExcelVersion, any> = {
+    'all': 'success',
+    '2010+': '',
+    '2016+': '',
+    '2019+': 'warning',
+    '365+': 'danger',
+    '2021+': 'danger'
+  }
+  return types[version] || 'info'
+}
+
+const getVersionTagEffect = (version: ExcelVersion): 'dark' | 'light' | 'plain' => {
+  const effects: Record<ExcelVersion, 'dark' | 'light' | 'plain'> = {
+    'all': 'plain',
+    '2010+': 'plain',
+    '2016+': 'plain',
+    '2019+': 'light',
+    '365+': 'dark',
+    '2021+': 'dark'
+  }
+  return effects[version] || 'plain'
+}
+
+const isNewFunction = (version: ExcelVersion): boolean => {
+  return version === '2019+' || version === '365+' || version === '2021+'
 }
 
 const applyScenario = (scene: string) => {
@@ -428,11 +493,13 @@ const jumpToFormula = (formulaName: string) => {
 
 const loadInitialData = async () => {
   try {
-    const [catRes, allRes] = await Promise.all([
+    const [catRes, verRes, allRes] = await Promise.all([
       excelFormulaApi.getCategories(),
+      excelFormulaApi.getVersions(),
       excelFormulaApi.getAll()
     ])
     categories.value = catRes.data
+    versions.value = verRes.data
     allFormulas.value = allRes.data
     displayFormulas.value = allRes.data
   } catch (error) {
@@ -781,5 +848,34 @@ onMounted(() => {
 
 :deep(.el-collapse-item__wrap) {
   border-bottom: 1px solid #ebeef5;
+}
+
+.version-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 500;
+}
+
+.version-tag-new {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 108, 108, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(245, 108, 108, 0);
+  }
+}
+
+.version-alert {
+  margin-bottom: 16px;
+}
+
+.version-alert :deep(.el-alert__title) {
+  font-size: 13px;
+  font-weight: 500;
 }
 </style>

@@ -5,6 +5,15 @@ const api = axios.create({
   timeout: 20000
 })
 
+export type ExcelVersion = 'all' | '2010+' | '2016+' | '2019+' | '365+' | '2021+'
+
+export interface VersionInfo {
+  id: ExcelVersion
+  label: string
+  tip: string
+  level: 'common' | 'low' | 'high' | 'newest'
+}
+
 export interface FormulaExample {
   description: string
   formula: string
@@ -16,6 +25,7 @@ export interface ExcelFormula {
   id: string
   name: string
   category: string
+  version: ExcelVersion
   syntax: string
   description: string
   arguments: { name: string; description: string; required: boolean }[]
@@ -23,6 +33,7 @@ export interface ExcelFormula {
   keywords: string[]
   relatedFormulas: string[]
   tips: string[]
+  compatibility?: string
 }
 
 export interface FormulaCategory {
@@ -41,6 +52,7 @@ export interface RecommendationResult {
 
 export const excelFormulaApi = {
   getCategories: () => api.get<FormulaCategory[]>('/excel-formula/categories'),
+  getVersions: () => api.get<VersionInfo[]>('/excel-formula/versions'),
   getAll: () => api.get<ExcelFormula[]>('/excel-formula'),
   getByCategory: (category: string) => api.get<ExcelFormula[]>(`/excel-formula/category/${category}`),
   search: (query: string) => api.get<ExcelFormula[]>('/excel-formula/search', { params: { q: query } }),

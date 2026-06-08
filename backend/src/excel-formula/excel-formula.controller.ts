@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ExcelFormulaService, type ExcelFormula, type FormulaCategory } from './excel-formula.service';
+import { ExcelFormulaService, type ExcelFormula, type FormulaCategory, VERSION_INFO, type ExcelVersion } from './excel-formula.service';
 
 @Controller('excel-formula')
 export class ExcelFormulaController {
@@ -8,6 +8,14 @@ export class ExcelFormulaController {
   @Get('categories')
   getCategories() {
     return this.excelFormulaService.getAllCategories();
+  }
+
+  @Get('versions')
+  getVersions() {
+    return Object.entries(VERSION_INFO).map(([key, info]) => ({
+      id: key as ExcelVersion,
+      ...info,
+    }));
   }
 
   @Get()

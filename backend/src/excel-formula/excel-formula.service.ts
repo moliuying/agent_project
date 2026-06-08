@@ -1,5 +1,22 @@
 import { Injectable } from '@nestjs/common';
 
+export type ExcelVersion =
+  | 'all'
+  | '2010+'
+  | '2016+'
+  | '2019+'
+  | '365+'
+  | '2021+';
+
+export const VERSION_INFO: Record<ExcelVersion, { label: string; tip: string; level: 'common' | 'low' | 'high' | 'newest' }> = {
+  'all': { label: '所有版本', tip: 'Excel 2007 及以上版本均支持，兼容性最好', level: 'common' },
+  '2010+': { label: 'Excel 2010+', tip: '需要 Excel 2010 及以上版本', level: 'low' },
+  '2016+': { label: 'Excel 2016+', tip: '需要 Excel 2016 及以上版本', level: 'low' },
+  '2019+': { label: 'Excel 2019+', tip: '需要 Excel 2019 及以上版本，旧版本需用替代方案', level: 'high' },
+  '365+': { label: 'Excel 365/2021+', tip: '需要 Excel 365 订阅版或 Excel 2021 及以上，属于动态数组函数', level: 'newest' },
+  '2021+': { label: 'Excel 2021+', tip: '需要 Excel 2021 及以上版本', level: 'newest' },
+};
+
 export interface FormulaExample {
   description: string;
   formula: string;
@@ -11,6 +28,7 @@ export interface ExcelFormula {
   id: string;
   name: string;
   category: string;
+  version: ExcelVersion;
   syntax: string;
   description: string;
   arguments: { name: string; description: string; required: boolean }[];
@@ -18,6 +36,7 @@ export interface ExcelFormula {
   keywords: string[];
   relatedFormulas: string[];
   tips: string[];
+  compatibility?: string;
 }
 
 export type FormulaCategory =
@@ -44,6 +63,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'sum',
     name: 'SUM',
     category: 'math',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'SUM(number1, [number2], ...)',
     description: '返回所有参数的和',
     arguments: [
@@ -63,6 +84,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'sumif',
     name: 'SUMIF',
     category: 'math',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'SUMIF(range, criteria, [sum_range])',
     description: '对满足条件的单元格求和',
     arguments: [
@@ -83,6 +106,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'sumifs',
     name: 'SUMIFS',
     category: 'math',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'SUMIFS(sum_range, criteria_range1, criteria1, [criteria_range2, criteria2], ...)',
     description: '对同时满足多个条件的单元格求和',
     arguments: [
@@ -103,6 +128,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'average',
     name: 'AVERAGE',
     category: 'statistical',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'AVERAGE(number1, [number2], ...)',
     description: '返回参数的算术平均值',
     arguments: [
@@ -121,6 +148,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'count',
     name: 'COUNT',
     category: 'statistical',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'COUNT(value1, [value2], ...)',
     description: '计算区域中包含数字的单元格个数',
     arguments: [
@@ -139,6 +168,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'countif',
     name: 'COUNTIF',
     category: 'statistical',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'COUNTIF(range, criteria)',
     description: '计算区域中满足条件的单元格个数',
     arguments: [
@@ -159,6 +190,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'countifs',
     name: 'COUNTIFS',
     category: 'statistical',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'COUNTIFS(criteria_range1, criteria1, [criteria_range2, criteria2], ...)',
     description: '计算同时满足多个条件的单元格个数',
     arguments: [
@@ -178,6 +211,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'vlookup',
     name: 'VLOOKUP',
     category: 'lookup',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])',
     description: '在表格首列查找指定值，返回对应行指定列的值',
     arguments: [
@@ -199,6 +234,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'xlookup',
     name: 'XLOOKUP',
     category: 'lookup',
+    version: '365+',
+    compatibility: '需要 Excel 365 订阅版或 Excel 2021 及以上版本，旧版本不支持动态数组功能',
     syntax: 'XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])',
     description: '更强大的查找函数（Excel 365/2021+），支持任意列查找和反向查找',
     arguments: [
@@ -223,6 +260,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'index-match',
     name: 'INDEX+MATCH',
     category: 'lookup',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'INDEX(return_range, MATCH(lookup_value, lookup_range, match_type))',
     description: '经典组合，比VLOOKUP更灵活，支持任意列查找和反向查找',
     arguments: [
@@ -244,6 +283,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'if',
     name: 'IF',
     category: 'logical',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'IF(logical_test, [value_if_true], [value_if_false])',
     description: '判断条件是否成立，成立返回一个值，否则返回另一个值',
     arguments: [
@@ -264,6 +305,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'ifs',
     name: 'IFS',
     category: 'logical',
+    version: '2019+',
+    compatibility: '需要 Excel 2019 及以上版本，旧版本请用替代方案（参考 tips）',
     syntax: 'IFS(logical_test1, value_if_true1, [logical_test2, value_if_true2], ...)',
     description: '多条件判断，按顺序检查条件，返回第一个成立条件对应的值（Excel 2019+）',
     arguments: [
@@ -283,6 +326,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'iferror',
     name: 'IFERROR',
     category: 'logical',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'IFERROR(value, value_if_error)',
     description: '如果公式计算结果错误则返回指定值，否则返回公式结果',
     arguments: [
@@ -302,6 +347,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'and-or',
     name: 'AND/OR',
     category: 'logical',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'AND(logical1, [logical2], ...) 或 OR(logical1, [logical2], ...)',
     description: 'AND：所有条件都成立返回TRUE；OR：任一条件成立返回TRUE',
     arguments: [
@@ -321,6 +368,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'left-right-mid',
     name: 'LEFT/RIGHT/MID',
     category: 'text',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'LEFT(text, [num_chars]) / RIGHT(text, [num_chars]) / MID(text, start_num, num_chars)',
     description: '从文本左侧/右侧/中间提取指定长度的字符',
     arguments: [
@@ -342,6 +391,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'len',
     name: 'LEN',
     category: 'text',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'LEN(text)',
     description: '返回文本字符串中的字符个数',
     arguments: [
@@ -359,6 +410,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'find-search',
     name: 'FIND/SEARCH',
     category: 'text',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'FIND(find_text, within_text, [start_num]) / SEARCH(find_text, within_text, [start_num])',
     description: '查找文本在另一个文本中的起始位置。FIND区分大小写，SEARCH不区分且支持通配符',
     arguments: [
@@ -379,6 +432,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'substitute',
     name: 'SUBSTITUTE',
     category: 'text',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'SUBSTITUTE(text, old_text, new_text, [instance_num])',
     description: '将文本中的指定字符串替换为新字符串',
     arguments: [
@@ -401,6 +456,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'trim',
     name: 'TRIM',
     category: 'text',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'TRIM(text)',
     description: '去除文本首尾的空格，并将文本中间的多个连续空格合并为一个',
     arguments: [
@@ -418,6 +475,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'textjoin-concat',
     name: 'TEXTJOIN/CONCAT',
     category: 'text',
+    version: '2019+',
+    compatibility: '需要 Excel 2019 及以上版本，旧版本请用替代方案（参考 tips）',
     syntax: 'TEXTJOIN(delimiter, ignore_empty, text1, [text2], ...) / CONCAT(text1, [text2], ...)',
     description: '连接多个文本字符串。TEXTJOIN支持指定分隔符和忽略空值（Excel 2019+）',
     arguments: [
@@ -438,6 +497,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'today-now',
     name: 'TODAY/NOW',
     category: 'date',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'TODAY() 或 NOW()',
     description: 'TODAY返回当前日期，NOW返回当前日期和时间',
     arguments: [],
@@ -454,6 +515,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'datedif',
     name: 'DATEDIF',
     category: 'date',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'DATEDIF(start_date, end_date, unit)',
     description: '计算两个日期之间的间隔（年/月/日），隐藏函数但兼容性极好',
     arguments: [
@@ -475,6 +538,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'year-month-day',
     name: 'YEAR/MONTH/DAY',
     category: 'date',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'YEAR(date) / MONTH(date) / DAY(date)',
     description: '从日期中提取年、月、日',
     arguments: [
@@ -494,6 +559,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'eomonth',
     name: 'EOMONTH',
     category: 'date',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'EOMONTH(start_date, months)',
     description: '返回指定日期往前/往后N个月的月份最后一天日期',
     arguments: [
@@ -514,6 +581,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'workday-networkdays',
     name: 'WORKDAY/NETWORKDAYS',
     category: 'date',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'WORKDAY(start_date, days, [holidays]) / NETWORKDAYS(start_date, end_date, [holidays])',
     description: 'WORKDAY：计算N个工作日后的日期；NETWORKDAYS：计算两个日期间的工作日天数',
     arguments: [
@@ -536,6 +605,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'round',
     name: 'ROUND/ROUNDUP/ROUNDDOWN',
     category: 'math',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'ROUND(number, num_digits) / ROUNDUP(number, num_digits) / ROUNDDOWN(number, num_digits)',
     description: '按指定位数四舍五入/向上取整/向下取整',
     arguments: [
@@ -556,6 +627,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'max-min',
     name: 'MAX/MIN',
     category: 'statistical',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'MAX(number1, [number2], ...) / MIN(number1, [number2], ...)',
     description: '返回一组数值中的最大值/最小值',
     arguments: [
@@ -575,6 +648,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'rank',
     name: 'RANK',
     category: 'statistical',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'RANK(number, ref, [order])',
     description: '返回一个数字在数字列表中的排名',
     arguments: [
@@ -594,6 +669,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'sumproduct',
     name: 'SUMPRODUCT',
     category: 'math',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'SUMPRODUCT(array1, [array2], [array3], ...)',
     description: '将多个数组对应元素相乘后求和，强大的多条件计算工具',
     arguments: [
@@ -613,6 +690,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'filter',
     name: 'FILTER',
     category: 'lookup',
+    version: '365+',
+    compatibility: '需要 Excel 365 订阅版或 Excel 2021 及以上版本，旧版本不支持动态数组功能',
     syntax: 'FILTER(array, include, [if_empty])',
     description: '根据条件筛选区域，返回符合条件的所有行（Excel 365/2021+，动态数组）',
     arguments: [
@@ -633,6 +712,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'unique',
     name: 'UNIQUE',
     category: 'lookup',
+    version: '365+',
+    compatibility: '需要 Excel 365 订阅版或 Excel 2021 及以上版本，旧版本不支持动态数组功能',
     syntax: 'UNIQUE(array, [by_col], [exactly_once])',
     description: '返回区域中的唯一值列表（Excel 365/2021+，动态数组）',
     arguments: [
@@ -653,6 +734,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'pmt',
     name: 'PMT',
     category: 'financial',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'PMT(rate, nper, pv, [fv], [type])',
     description: '计算贷款的每期还款额（等额本息）',
     arguments: [
@@ -674,6 +757,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'offset',
     name: 'OFFSET',
     category: 'lookup',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'OFFSET(reference, rows, cols, [height], [width])',
     description: '以指定引用为基点，偏移指定行数和列数，返回新的引用区域',
     arguments: [
@@ -696,6 +781,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'indirect',
     name: 'INDIRECT',
     category: 'lookup',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'INDIRECT(ref_text, [a1])',
     description: '将文本字符串转换为实际的单元格引用，常用于跨表动态引用',
     arguments: [
@@ -715,6 +802,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'conditional-formatting',
     name: '条件格式常用公式',
     category: 'logical',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: '在条件格式→使用公式确定要设置格式的单元格中输入',
     description: '用于条件格式的常用公式模式，让单元格满足条件时自动变色',
     arguments: [],
@@ -732,6 +821,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     id: 'choose',
     name: 'CHOOSE',
     category: 'lookup',
+    version: 'all',
+    compatibility: '所有版本通用，兼容性最好',
     syntax: 'CHOOSE(index_num, value1, [value2], ...)',
     description: '根据索引号从参数列表中选择一个值返回',
     arguments: [
