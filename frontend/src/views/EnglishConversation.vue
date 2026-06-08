@@ -3,12 +3,48 @@
     <el-card v-if="!conversationState" class="scene-card">
       <template #header>
         <div class="card-header">
-          <el-icon :size="22" color="#722ed1">
-            <ChatDotRound />
+          <el-icon :size="26" color="#722ed1">
+            <Microphone />
           </el-icon>
           <span>英语口语对话练习</span>
+          <el-tag type="success" size="small" effect="dark" style="margin-left: 10px;">
+            <el-icon style="margin-right: 4px;"><Microphone /></el-icon>
+            支持语音对话
+          </el-tag>
         </div>
       </template>
+
+      <div class="voice-features-intro">
+        <el-row :gutter="16">
+          <el-col :xs="24" :sm="8">
+            <div class="feature-box">
+              <div class="feature-icon voice">
+                <el-icon :size="32"><Microphone /></el-icon>
+              </div>
+              <h4>语音输入</h4>
+              <p>直接说英语，自动识别为文字，练习真实口语表达</p>
+            </div>
+          </el-col>
+          <el-col :xs="24" :sm="8">
+            <div class="feature-box">
+              <div class="feature-icon speak">
+                <el-icon :size="32"><VideoPlay /></el-icon>
+              </div>
+              <h4>AI 朗读</h4>
+              <p>AI 回复自动朗读，地道发音，提升听力水平</p>
+            </div>
+          </el-col>
+          <el-col :xs="24" :sm="8">
+            <div class="feature-box">
+              <div class="feature-icon practice">
+                <el-icon :size="32"><Reading /></el-icon>
+              </div>
+              <h4>跟读练习</h4>
+              <p>AI 示范后跟读，逐句练习标准发音</p>
+            </div>
+          </el-col>
+        </el-row>
+      </div>
 
       <el-alert
         title="选择对话场景开始练习"
@@ -18,7 +54,7 @@
         class="intro-alert"
       >
         <template #default>
-          <p>选择一个感兴趣的场景，与 AI 进行英语对话练习。适合备考英语口试、出国留学准备、日常口语提升！</p>
+          <p>🎤 推荐使用 Chrome/Edge 浏览器获得最佳语音体验。允许麦克风权限后，直接开口说英语即可！</p>
         </template>
       </el-alert>
 
@@ -40,10 +76,12 @@
             <div class="scene-info">
               <div class="scene-name">{{ scene.name }}</div>
               <div class="scene-name-en">{{ scene.nameEn }}</div>
-              <el-tag
-                class="difficulty-tag" size="small" :type="getDifficultyType(scene.difficulty)">
-                {{ getDifficultyLabel(scene.difficulty) }}
-              </el-tag>
+              <div class="scene-tags">
+                <el-tag
+                  class="difficulty-tag" size="small" :type="getDifficultyType(scene.difficulty)">
+                  {{ getDifficultyLabel(scene.difficulty) }}
+                </el-tag>
+              </div>
               <p class="scene-desc">{{ scene.description }}</p>
             </div>
           </div>
@@ -66,17 +104,31 @@
               </el-tag>
             </div>
             <div class="chat-actions">
+              <el-switch
+                v-model="voiceSettings.autoSpeak"
+                active-text="自动朗读"
+                inactive-text=""
+                size="small"
+                style="margin-right: 12px;"
+              />
+              <el-switch
+                v-model="voiceSettings.continuousMode"
+                active-text="语音对话"
+                inactive-text=""
+                size="small"
+                style="margin-right: 12px;"
+              />
+              <el-button size="small" @click="showVoiceSettings = true">
+                <el-icon><Setting /></el-icon>
+                语音设置
+              </el-button>
               <el-button size="small" @click="showVocabularyDrawer = true">
                 <el-icon><Collection /></el-icon>
-                常用词汇
+                词汇
               </el-button>
               <el-button size="small" @click="changeScene">
                 <el-icon><Refresh /></el-icon>
-                切换场景
-              </el-button>
-              <el-button size="small" type="primary" @click="startNewConversation">
-                <el-icon><RefreshRight /></el-icon>
-                重新开始
+                切换
               </el-button>
             </div>
           </div>
@@ -84,16 +136,78 @@
 
         <div class="stats-bar" v-if="conversationState">
           <div class="stat-item">
-            <span class="stat-label">对话轮数</span>
+            <el-icon size="16" color="#165DFF"><ChatDotRound /></el-icon>
             <span class="stat-value primary">{{ conversationState.round }}</span>
+            <span class="stat-label">对话轮数</span>
           </div>
           <div class="stat-item">
-            <span class="stat-label">词汇积累</span>
+            <el-icon size="16" color="#67c23a"><Star /></el-icon>
             <span class="stat-value success">{{ conversationState.learnedPhrases?.length || 0 }}</span>
+            <span class="stat-label">词汇积累</span>
           </div>
           <div class="stat-item">
-            <span class="stat-label">单词数量</span>
+            <el-icon size="16" color="#e6a23c"><Edit /></el-icon>
             <span class="stat-value warning">{{ conversationState.totalWords || 0 }}</span>
+            <span class="stat-label">单词数量</span>
+          </div>
+          <div class="stat-item" v-if="speechSupported">
+            <el-icon size="16" :color="isListening ? '#f56c6c' : '#909399'">
+              <Microphone />
+            </el-icon>
+            <span class="stat-value" :class="isListening ? 'danger' : ''">{{ isListening ? '聆听中' : '待机' }}</span>
+            <span class="stat-label">语音状态</span>
+          </div>
+        </div>
+
+        <div v-if="isListening" class="voice-recording-bar">
+          <div class="recording-indicator">
+            <div class="pulse-ring"></div>
+            <div class="mic-icon">
+              <el-icon :size="20"><Microphone /></el-icon>
+            </div>
+          </div>
+          <div class="recording-content">
+            <div class="recording-label">正在聆听...请说英语</div>
+            <div v-if="interimTranscript" class="interim-text">{{ interimTranscript }}</div>
+            <div v-else class="hint-text">说出你的回答...</div>
+            <div class="wave-container">
+              <div
+                v-for="i in 20"
+                :key="i"
+                class="wave-bar"
+                :style="{ animationDelay: (i * 0.05) + 's' }"
+              ></div>
+            </div>
+          </div>
+          <el-button size="small" type="danger" @click="stopVoiceInput">
+            完成 ✓
+          </el-button>
+        </div>
+
+        <div v-if="followingMode" class="follow-practice-bar">
+          <div class="follow-header">
+            <el-icon :size="18" color="#67c23a"><Reading /></el-icon>
+            <span class="follow-title">跟读练习模式</span>
+            <el-tag size="small" type="success">跟我读</el-tag>
+          </div>
+          <div class="follow-text" @click="speakText(followSentence)" :class="{ speaking: currentlySpeakingId === 'follow' }">
+            <span>"{{ followSentence }}"</span>
+            <el-icon size="14" color="#165DFF"><VideoPlay /></el-icon>
+          </div>
+          <div class="follow-hint" v-if="!isListening">
+            点击上方句子听示范，然后点击麦克风跟读
+          </div>
+          <div class="follow-actions">
+            <el-button
+              :type="isListening ? 'danger' : 'success'"
+              size="large"
+              @click="toggleVoiceInput"
+              class="mic-btn-large"
+            >
+              <el-icon :size="20"><Microphone /></el-icon>
+              {{ isListening ? '录音中...点击完成' : '🎙 点击开始跟读' }}
+            </el-button>
+            <el-button size="small" @click="exitFollowMode">退出练习</el-button>
           </div>
         </div>
 
@@ -102,7 +216,7 @@
             v-for="msg in conversationState.messages"
             :key="msg.id"
             class="message-item"
-            :class="msg.role"
+            :class="[msg.role, { speaking: currentlySpeakingId === msg.id }]"
           >
             <div class="avatar">
               <el-avatar :size="40" :class="msg.role">
@@ -111,8 +225,22 @@
               </el-avatar>
             </div>
             <div class="message-wrapper">
-              <div class="bubble">
-                <div class="message-content">{{ msg.content }}</div>
+              <div class="bubble" @click="msg.role === 'ai' && speakMessage(msg)">
+                <div class="message-content">
+                  {{ msg.content }}
+                  <el-tooltip
+                    v-if="msg.role === 'ai'"
+                    content="点击朗读这句话"
+                    placement="top"
+                  >
+                    <el-icon
+                      class="speak-icon"
+                      :class="{ active: currentlySpeakingId === msg.id }"
+                    >
+                      <VideoPlay />
+                    </el-icon>
+                  </el-tooltip>
+                </div>
               </div>
 
               <div class="message-extra">
@@ -124,7 +252,10 @@
                   <el-icon :size="12" color="#e6a23c"><EditPen /></el-icon>
                   <div class="correction-content">
                     <span class="correction-label">更正：</span>
-                    <span class="correction-text">{{ msg.correction }}</span>
+                    <span class="correction-text" @click="speakText(msg.correction!)">
+                      {{ msg.correction }}
+                      <el-icon size="11"><VideoPlay /></el-icon>
+                    </span>
                   </div>
                 </div>
                 <div v-if="msg.usefulPhrases && msg.usefulPhrases.length > 0" class="useful-phrases">
@@ -134,18 +265,40 @@
                       v-for="(p, idx) in msg.usefulPhrases"
                       :key="idx"
                       class="phrase-item"
+                      @click="speakText(p.phrase)"
                     >
                       <span class="phrase-word">{{ p.phrase }}</span>
+                      <el-icon size="10"><VideoPlay /></el-icon>
                       <span class="phrase-meaning">{{ p.meaning }}</span>
                     </span>
                   </div>
+                </div>
+                <div class="message-actions" v-if="msg.role === 'ai'">
+                  <el-button
+                    size="small"
+                    type="success"
+                    plain
+                    @click.stop="startFollowMode(msg.content)"
+                  >
+                    <el-icon><Reading /></el-icon>
+                    跟读这句话
+                  </el-button>
+                  <el-button
+                    size="small"
+                    type="primary"
+                    plain
+                    @click.stop="speakMessage(msg)"
+                  >
+                    <el-icon><VideoPlay /></el-icon>
+                    再听一遍
+                  </el-button>
                 </div>
               </div>
             </div>
           </div>
           <div v-if="isTyping" class="message-item ai typing-indicator">
             <div class="avatar">
-              <el-avatar :size="40" class="ai"><el-icon><Cpu /></el-icon>
+              <el-avatar :size="40" class="ai"><el-icon><Cpu /></el-icon></el-avatar>
             </div>
             <div class="typing-bubble">
               <span></span>
@@ -155,78 +308,107 @@
           </div>
         </div>
 
-        <div class="input-section">
-          <div class="input-wrapper">
+        <div class="input-section" :class="{ 'voice-mode': voiceSettings.continuousMode }">
+          <div v-if="!voiceSettings.continuousMode" class="text-input-wrapper">
             <el-input
-            v-model="userInput"
-            type="textarea"
-            :rows="2"
-            placeholder="输入英文消息..."
-            @keydown.enter.exact.prevent="sendMessage"
-            resize="none"
-            :disabled="isTyping || submitting"
-            maxlength="500"
-            show-word-limit
-          />
+              v-model="userInput"
+              type="textarea"
+              :rows="2"
+              placeholder="输入英文消息，或点击右侧麦克风说英语..."
+              @keydown.enter.exact.prevent="sendMessage"
+              resize="none"
+              :disabled="isTyping || submitting"
+              maxlength="500"
+              show-word-limit
+            />
           </div>
+
+          <div v-else class="voice-input-wrapper">
+            <div v-if="isListening" class="voice-active-display">
+              <div class="voice-text-display">
+                <span class="voice-label">你说的是：</span>
+                <span class="voice-content">{{ interimTranscript || userInput || '正在聆听...' }}</span>
+              </div>
+            </div>
+            <div v-else class="voice-idle-display" @click="toggleVoiceInput">
+              <el-icon :size="20" color="#722ed1"><Microphone /></el-icon>
+              <span>点击麦克风开始说英语，或直接输入文字</span>
+            </div>
+          </div>
+
           <div class="input-actions">
-            <el-tooltip content="语音输入">
+            <el-tooltip :content="isListening ? '停止录音并发送' : '语音输入 - 说英语'">
               <el-button
-                :type="isListening ? 'danger' : 'default'"
-                circle
+                :type="isListening ? 'danger' : 'primary'"
+                :size="voiceSettings.continuousMode ? 'large' : 'default'"
+                class="voice-input-btn"
+                :class="{ listening: isListening }"
                 @click="toggleVoiceInput"
-                :disabled="!speechSupported"
+                :disabled="!speechSupported || isTyping || submitting"
               >
-                <el-icon>
-                  <Microphone v-if="isListening" />
-                  <Microphone v-else />
-                </el-icon>
+                <div class="btn-content">
+                  <div class="mic-pulse" v-if="isListening">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                  <el-icon :size="voiceSettings.continuousMode ? 22 : 16" v-else>
+                    <Microphone />
+                  </el-icon>
+                  <span v-if="voiceSettings.continuousMode">{{ isListening ? '录音中' : '按住说话' }}</span>
+                </div>
               </el-button>
             </el-tooltip>
-            <el-tooltip content="听听发音">
+
+            <template v-if="!voiceSettings.continuousMode">
               <el-button
-                circle
-                @click="speakLastAiMessage"
-                :disabled="!hasLastAiMessage"
+                type="primary"
+                size="large"
+                @click="sendMessage"
+                :disabled="!userInput.trim() || isTyping || submitting"
               >
-                <el-icon><VideoPlay /></el-icon>
+                <el-icon><Promotion /></el-icon>
+                发送
               </el-button>
-            </el-tooltip>
-            <el-button
-              type="primary"
-              @click="sendMessage"
-              :disabled="!userInput.trim() || isTyping || submitting"
-            >
-              <el-icon><Promotion /></el-icon>
-              发送
-            </el-button>
+            </template>
           </div>
         </div>
 
-        <div class="quick-suggestions" v-if="quickSuggestions.length > 0">
-          <span class="suggestions-label">快速回复：</span>
+        <div class="quick-suggestions" v-if="quickSuggestions.length > 0 && !isListening">
+          <span class="suggestions-label">
+            <el-icon :size="12"><Lightbulb /></el-icon>
+            试试这样说：
+          </span>
           <el-tag
             v-for="(s, idx) in quickSuggestions"
             :key="idx"
             class="quick-tag"
             effect="plain"
-            @click="applySuggestion(s)"
+            @click="useSuggestion(s)"
           >
-            {{ s }}
+            <span>{{ s }}</span>
+            <el-icon size="10"><VideoPlay /></el-icon>
           </el-tag>
         </div>
       </el-card>
 
       <el-drawer
         v-model="showVocabularyDrawer"
-        title="场景词汇"
+        title="📚 词汇与短语"
         direction="rtl"
-        size="400px"
+        size="420px"
       >
         <div v-if="currentScene" class="vocabulary-container">
-          <h3>{{ currentScene.name }} - 常用词汇</h3>
+          <div class="vocab-header">
+            <h3>{{ currentScene.name }}</h3>
+            <el-button size="small" type="primary" @click="speakAllVocab">
+              <el-icon><VideoPlay /></el-icon>
+              全部朗读
+            </el-button>
+          </div>
           <p class="scene-desc-full">{{ currentScene.description }}</p>
           <el-divider />
+          <h4 class="vocab-section-title">🎯 场景核心词汇</h4>
           <div class="vocab-list">
             <div
               v-for="(item, idx) in currentScene.vocabulary"
@@ -242,8 +424,9 @@
           </div>
 
           <el-divider v-if="conversationState.learnedPhrases && conversationState.learnedPhrases.length > 0" />
-          <h3 v-if="conversationState.learnedPhrases && conversationState.learnedPhrases.length > 0">
-            本次对话学到的表达</h3>
+          <h4 v-if="conversationState.learnedPhrases && conversationState.learnedPhrases.length > 0" class="vocab-section-title">
+            ✨ 本次对话学到的表达
+          </h4>
           <div class="vocab-list" v-if="conversationState.learnedPhrases && conversationState.learnedPhrases.length > 0">
             <div
               v-for="(item, idx) in conversationState.learnedPhrases"
@@ -258,12 +441,88 @@
           </div>
         </div>
       </el-drawer>
+
+      <el-dialog
+        v-model="showVoiceSettings"
+        title="🎙️ 语音设置"
+        width="400px"
+      >
+        <div class="voice-settings-content">
+          <div class="setting-item">
+            <div class="setting-label">
+              <span>AI 朗读语速</span>
+              <el-tag size="small">{{ voiceSettings.speakRate.toFixed(1) }}x</el-tag>
+            </div>
+            <el-slider
+              v-model="voiceSettings.speakRate"
+              :min="0.5"
+              :max="1.5"
+              :step="0.1"
+              show-stops
+            />
+            <div class="slider-labels">
+              <span>慢</span>
+              <span>正常</span>
+              <span>快</span>
+            </div>
+          </div>
+
+          <el-divider />
+
+          <div class="setting-item">
+            <div class="setting-label">
+              <span>语音识别灵敏度</span>
+            </div>
+            <el-radio-group v-model="voiceSettings.sensitivity">
+              <el-radio-button label="low">安静环境</el-radio-button>
+              <el-radio-button label="normal">一般</el-radio-button>
+              <el-radio-button label="high">嘈杂环境</el-radio-button>
+            </el-radio-group>
+          </div>
+
+          <el-divider />
+
+          <div class="setting-item">
+            <div class="setting-label">
+              <span>AI 回复语言</span>
+            </div>
+            <el-radio-group v-model="voiceSettings.responseLang">
+              <el-radio-button label="en">仅英文</el-radio-button>
+              <el-radio-button label="en_zh">英文+中文翻译</el-radio-button>
+            </el-radio-group>
+          </div>
+
+          <el-divider />
+
+          <div class="setting-item switches">
+            <div class="switch-item">
+              <span>AI 回复后自动朗读</span>
+              <el-switch v-model="voiceSettings.autoSpeak" />
+            </div>
+            <div class="switch-item">
+              <span>语音连续对话模式</span>
+              <el-switch v-model="voiceSettings.continuousMode" />
+            </div>
+            <div class="switch-item">
+              <span>自动发送识别结果</span>
+              <el-switch v-model="voiceSettings.autoSend" />
+            </div>
+          </div>
+        </div>
+        <template #footer>
+          <el-button @click="speakText('Hello, this is a test of the voice settings.')">
+            <el-icon><VideoPlay /></el-icon>
+            试听效果
+          </el-button>
+          <el-button type="primary" @click="showVoiceSettings = false">确定</el-button>
+        </template>
+      </el-dialog>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch, onUnmounted } from 'vue'
+import { ref, computed, onMounted, nextTick, watch, onUnmounted, reactive } from 'vue'
 import {
   ChatDotRound,
   Refresh,
@@ -282,6 +541,10 @@ import {
   Briefcase,
   ShoppingBag,
   Location,
+  Setting,
+  Reading,
+  Edit,
+  Lightbulb,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
@@ -302,18 +565,27 @@ const showVocabularyDrawer = ref(false)
 const isTyping = ref(false)
 const isListening = ref(false)
 const quickSuggestions = ref<string[]>([])
+const interimTranscript = ref('')
+const currentlySpeakingId = ref<number | string | null>(null)
+const showVoiceSettings = ref(false)
+const followingMode = ref(false)
+const followSentence = ref('')
 
 let speechRecognition: any = null
+let recognitionFinalTranscript = ''
+let silenceTimer: ReturnType<typeof setTimeout> | null = null
+
+const voiceSettings = reactive({
+  speakRate: 0.9,
+  sensitivity: 'normal',
+  responseLang: 'en_zh',
+  autoSpeak: true,
+  continuousMode: true,
+  autoSend: true,
+})
 
 const speechSupported = computed(() => {
   return 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window
-})
-
-const hasLastAiMessage = computed(() => {
-  if (!conversationState.value) return false
-  const msgs = conversationState.value.messages
-  const aiMsgs = msgs.filter(m => m.role === 'ai')
-  return aiMsgs.length > 0
 })
 
 const iconComponents: Record<string, any> = {
@@ -340,9 +612,9 @@ const getDifficultyType = (difficulty: string): '' | 'success' | 'warning' | 'in
 
 const getDifficultyLabel = (difficulty: string) => {
   switch (difficulty) {
-    case 'beginner': return '初级'
-    case 'intermediate': return '中级'
-    case 'advanced': return '高级'
+    case 'beginner': return '初级入门'
+    case 'intermediate': return '中级进阶'
+    case 'advanced': return '高级挑战'
     default: return '初级'
   }
 }
@@ -369,11 +641,20 @@ const loadScenes = async () => {
 const selectScene = async (scene: ConversationScene) => {
   currentScene.value = scene
   loading.value = true
+  followingMode.value = false
   try {
     const res = await englishConversationApi.newConversation(scene.id)
     conversationState.value = res.data
     quickSuggestions.value = []
     await scrollToBottom()
+
+    await nextTick()
+    if (voiceSettings.autoSpeak && conversationState.value) {
+      const firstAiMsg = conversationState.value.messages.find(m => m.role === 'ai')
+      if (firstAiMsg) {
+        setTimeout(() => speakMessage(firstAiMsg), 500)
+      }
+    }
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || '开始对话失败')
     currentScene.value = null
@@ -382,9 +663,20 @@ const selectScene = async (scene: ConversationScene) => {
   }
 }
 
-const startNewConversation = async () => {
-  if (!currentScene.value) return
-  selectScene(currentScene.value)
+const startFollowMode = (sentence: string) => {
+  followSentence.value = sentence
+  followingMode.value = true
+  setTimeout(() => {
+    speakText(sentence)
+  }, 300)
+}
+
+const exitFollowMode = () => {
+  followingMode.value = false
+  followSentence.value = ''
+  if (isListening.value) {
+    stopVoiceInput()
+  }
 }
 
 const changeScene = () => {
@@ -392,17 +684,23 @@ const changeScene = () => {
   currentScene.value = null
   userInput.value = ''
   quickSuggestions.value = []
+  followingMode.value = false
+  stopVoiceInput()
+  window.speechSynthesis?.cancel()
 }
 
-const applySuggestion = (text: string) => {
+const useSuggestion = (text: string) => {
   userInput.value = text
-  nextTick(() => sendMessage())
+  speakText(text)
+  nextTick(() => {
+    setTimeout(() => sendMessage(), 1500)
+  })
 }
 
-const sendMessage = async () => {
-  const message = userInput.value.trim()
+const sendMessage = async (overrideText?: string) => {
+  const message = (overrideText || userInput.value).trim()
   if (!message) {
-    ElMessage.warning('请输入消息')
+    if (!overrideText) ElMessage.warning('请输入或说点什么')
     return
   }
   if (!conversationState.value) {
@@ -413,6 +711,7 @@ const sendMessage = async () => {
   submitting.value = true
   isTyping.value = true
   quickSuggestions.value = []
+  window.speechSynthesis?.cancel()
 
   try {
     const lastUserMsg: ConversationMessage = {
@@ -428,9 +727,11 @@ const sendMessage = async () => {
     }
     conversationState.value = tempState
     userInput.value = ''
+    interimTranscript.value = ''
+    recognitionFinalTranscript = ''
     await scrollToBottom()
 
-    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700))
+    await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 600))
 
     const res = await englishConversationApi.chat({
       userMessage: message,
@@ -447,6 +748,11 @@ const sendMessage = async () => {
 
     conversationState.value = res.data
     await scrollToBottom()
+
+    const newAiMsg = res.data.messages[res.data.messages.length - 1]
+    if (newAiMsg && newAiMsg.role === 'ai' && voiceSettings.autoSpeak) {
+      setTimeout(() => speakMessage(newAiMsg), 500)
+    }
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || '发送消息失败')
   } finally {
@@ -460,58 +766,163 @@ const initSpeechRecognition = () => {
   if (SpeechRecognition) {
     speechRecognition = new SpeechRecognition()
     speechRecognition.lang = 'en-US'
-    speechRecognition.continuous = false
-    speechRecognition.interimResults = false
+    speechRecognition.continuous = true
+    speechRecognition.interimResults = true
+    speechRecognition.maxAlternatives = 1
 
-    speechRecognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript
-      userInput.value += (userInput.value ? ' ' : '') + transcript
+    speechRecognition.onstart = () => {
+      isListening.value = true
+      interimTranscript.value = ''
+      recognitionFinalTranscript = ''
     }
 
-    speechRecognition.onerror = () => {
+    speechRecognition.onresult = (event: any) => {
+      if (silenceTimer) {
+        clearTimeout(silenceTimer)
+        silenceTimer = null
+      }
+
+      let interim = ''
+      let finalText = ''
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript
+        if (event.results[i].isFinal) {
+          finalText += transcript + ' '
+        } else {
+          interim += transcript
+        }
+      }
+
+      recognitionFinalTranscript += finalText
+      interimTranscript.value = recognitionFinalTranscript + interim
+      userInput.value = recognitionFinalTranscript + interim
+
+      silenceTimer = setTimeout(() => {
+        if (voiceSettings.autoSend && userInput.value.trim()) {
+          stopVoiceInput()
+          setTimeout(() => sendMessage(), 300)
+        }
+      }, 1500)
+    }
+
+    speechRecognition.onerror = (event: any) => {
       isListening.value = false
-      ElMessage.warning('语音识别出错，请重试')
+      if (event.error === 'no-speech') {
+        ElMessage.info('没有检测到语音，请再试一次')
+      } else if (event.error === 'audio-capture') {
+        ElMessage.error('未检测到麦克风，请检查设备')
+      } else if (event.error === 'not-allowed') {
+        ElMessage.error('请允许麦克风权限以使用语音功能')
+      }
+      if (silenceTimer) {
+        clearTimeout(silenceTimer)
+        silenceTimer = null
+      }
     }
 
     speechRecognition.onend = () => {
       isListening.value = false
+      if (silenceTimer) {
+        clearTimeout(silenceTimer)
+        silenceTimer = null
+      }
     }
   }
 }
 
 const toggleVoiceInput = () => {
   if (!speechRecognition) {
-    ElMessage.warning('您的浏览器不支持语音识别')
+    ElMessage.warning('您的浏览器不支持语音识别，推荐使用 Chrome 或 Edge 浏览器')
     return
   }
 
   if (isListening.value) {
-    speechRecognition.stop()
-    isListening.value = false
+    stopVoiceInput()
   } else {
-    speechRecognition.start()
-    isListening.value = true
-    ElMessage.info('正在聆听，请说英语...')
+    try {
+      speechRecognition.start()
+      isListening.value = true
+    } catch (e) {
+      ElMessage.warning('启动语音识别失败，请重试')
+    }
   }
 }
 
-const speakText = (text: string) => {
-  if ('speechSynthesis' in window) {
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'en-US'
-    utterance.rate = 0.9
-    window.speechSynthesis.speak(utterance)
-  } else {
+const stopVoiceInput = () => {
+  if (speechRecognition) {
+    try {
+      speechRecognition.stop()
+    } catch (e) {
+      // ignore
+    }
+  }
+  isListening.value = false
+}
+
+const speakText = (text: string, msgId?: number | string) => {
+  if (!('speechSynthesis' in window)) {
     ElMessage.warning('您的浏览器不支持语音合成')
+    return
   }
+
+  window.speechSynthesis.cancel()
+
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = 'en-US'
+  utterance.rate = voiceSettings.speakRate
+  utterance.pitch = 1
+  utterance.volume = 1
+
+  const voices = window.speechSynthesis.getVoices()
+  const englishVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Female'))
+    || voices.find(v => v.lang.startsWith('en-US'))
+    || voices.find(v => v.lang.startsWith('en'))
+  if (englishVoice) {
+    utterance.voice = englishVoice
+  }
+
+  utterance.onstart = () => {
+    currentlySpeakingId.value = msgId || 'temp'
+  }
+
+  utterance.onend = () => {
+    currentlySpeakingId.value = null
+
+    if (voiceSettings.continuousMode && !followingMode.value && msgId && conversationState.value) {
+      const lastMsg = conversationState.value.messages[conversationState.value.messages.length - 1]
+      if (lastMsg && lastMsg.id === msgId && lastMsg.role === 'ai' && !isTyping.value) {
+        setTimeout(() => {
+          if (voiceSettings.continuousMode && !isListening.value && !submitting.value) {
+            toggleVoiceInput()
+          }
+        }, 400)
+      }
+    }
+  }
+
+  window.speechSynthesis.speak(utterance)
 }
 
-const speakLastAiMessage = () => {
-  if (!conversationState.value) return
-  const aiMsgs = conversationState.value.messages.filter(m => m.role === 'ai')
-  if (aiMsgs.length > 0) {
-    speakText(aiMsgs[aiMsgs.length - 1].content)
+const speakMessage = (msg: ConversationMessage) => {
+  speakText(msg.content, msg.id)
+}
+
+const speakAllVocab = () => {
+  if (!currentScene.value) return
+  window.speechSynthesis.cancel()
+
+  const words = currentScene.value.vocabulary.map(v => v.word)
+  let index = 0
+
+  const speakNext = () => {
+    if (index < words.length) {
+      speakText(words[index])
+      index++
+      setTimeout(speakNext, 2000)
+    }
   }
+  speakNext()
 }
 
 watch(() => conversationState, () => {
@@ -521,18 +932,25 @@ watch(() => conversationState, () => {
 onMounted(() => {
   loadScenes()
   initSpeechRecognition()
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices()
+    }
+  }
 })
 
 onUnmounted(() => {
   if (speechRecognition) {
     speechRecognition.abort()
   }
+  window.speechSynthesis?.cancel()
 })
 </script>
 
 <style scoped>
 .english-conversation {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
@@ -544,8 +962,56 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
+}
+
+.voice-features-intro {
+  margin-bottom: 20px;
+}
+
+.feature-box {
+  text-align: center;
+  padding: 24px 16px;
+  background: linear-gradient(135deg, #fafbff 0%, #f5f7fa 100%);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.feature-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  color: #fff;
+}
+
+.feature-icon.voice {
+  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%);
+}
+
+.feature-icon.speak {
+  background: linear-gradient(135deg, #165DFF 0%, #4080ff 100%);
+}
+
+.feature-icon.practice {
+  background: linear-gradient(135deg, #67c23a 0%, #85ce61 100%);
+}
+
+.feature-box h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #303133;
+}
+
+.feature-box p {
+  margin: 0;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
 }
 
 .intro-alert {
@@ -571,9 +1037,9 @@ onUnmounted(() => {
 }
 
 .scene-item:hover {
-  border-color: #165DFF;
+  border-color: #722ed1;
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(22, 93, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(114, 46, 209, 0.15);
 }
 
 .scene-icon-wrapper {
@@ -616,8 +1082,12 @@ onUnmounted(() => {
   margin-bottom: 8px;
 }
 
-.difficulty-tag {
+.scene-tags {
   margin-bottom: 8px;
+}
+
+.difficulty-tag {
+  margin-bottom: 0;
 }
 
 .scene-desc {
@@ -639,6 +1109,8 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .chat-title {
@@ -647,56 +1119,216 @@ onUnmounted(() => {
   gap: 8px;
   font-size: 18px;
   font-weight: bold;
+  flex-wrap: wrap;
 }
 
 .chat-title .el-tag {
-  margin-left: 8px;
+  margin-left: 4px;
   font-weight: normal;
 }
 
 .chat-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .stats-bar {
   display: flex;
   gap: 16px;
-  padding: 16px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #fafbfc 100%);
-  border-radius: 8px;
-  margin-bottom: 16px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #fafbff 0%, #f5f7fa 100%);
+  border-radius: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 
 .stat-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 6px;
   flex: 1;
+  min-width: 120px;
 }
 
 .stat-label {
   font-size: 12px;
   color: #909399;
-  margin-bottom: 4px;
 }
 
 .stat-value {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: bold;
 }
 
 .stat-value.primary { color: #165DFF; }
 .stat-value.success { color: #67c23a; }
 .stat-value.warning { color: #e6a23c; }
+.stat-value.danger { color: #f56c6c; }
+
+.voice-recording-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fff1f0 0%, #fff 100%);
+  border: 2px solid #ffa39e;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.recording-indicator {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #f56c6c;
+  opacity: 0.4;
+  animation: pulse 1.2s ease-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.mic-icon {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f56c6c 0%, #ff7875 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recording-content {
+  flex: 1;
+}
+
+.recording-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f56c6c;
+  margin-bottom: 4px;
+}
+
+.interim-text {
+  font-size: 15px;
+  color: #303133;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.hint-text {
+  font-size: 13px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.wave-container {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 24px;
+}
+
+.wave-bar {
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(180deg, #f56c6c 0%, #ffa39e 100%);
+  border-radius: 2px;
+  animation: wave 0.8s ease-in-out infinite;
+}
+
+@keyframes wave {
+  0%, 100% { height: 20%; }
+  50% { height: 100%; }
+}
+
+.follow-practice-bar {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #f0f9eb 0%, #fff 100%);
+  border: 2px solid #b7eb8f;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.follow-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.follow-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #52c41a;
+}
+
+.follow-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: #303133;
+  padding: 14px 18px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px dashed #b7eb8f;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+}
+
+.follow-text:hover {
+  background: #f6ffed;
+}
+
+.follow-text.speaking {
+  background: #f6ffed;
+  border-color: #52c41a;
+}
+
+.follow-hint {
+  font-size: 12px;
+  color: #909399;
+  margin-bottom: 12px;
+}
+
+.follow-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.mic-btn-large {
+  padding: 10px 24px !important;
+  font-weight: 600;
+}
 
 .messages-container {
-  max-height: 500px;
+  max-height: 450px;
   overflow-y: auto;
   padding: 16px;
-  background: #fafafa;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  background: linear-gradient(180deg, #fafbfc 0%, #f5f7fa 100%);
+  border-radius: 10px;
+  margin-bottom: 14px;
 }
 
 .message-item {
@@ -704,10 +1336,15 @@ onUnmounted(() => {
   margin-bottom: 24px;
   align-items: flex-start;
   gap: 12px;
+  transition: all 0.3s;
 }
 
 .message-item:last-child {
   margin-bottom: 0;
+}
+
+.message-item.speaking .bubble {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
 .message-item.ai {
@@ -738,18 +1375,27 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-width: 75%;
+  max-width: 78%;
 }
 
 .bubble {
-  padding: 12px 18px;
-  border-radius: 16px;
+  padding: 14px 20px;
+  border-radius: 18px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: default;
+  transition: all 0.2s;
+  position: relative;
 }
 
 .message-item.ai .bubble {
   background: linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%);
   border: 1px solid #ebeef5;
+  cursor: pointer;
+}
+
+.message-item.ai .bubble:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
 }
 
 .message-item.user .bubble {
@@ -761,19 +1407,49 @@ onUnmounted(() => {
 }
 
 .message-content {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.6;
+  position: relative;
+  padding-right: 24px;
 }
 
 .message-item.ai .message-content {
   color: #303133;
 }
 
+.speak-icon {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #c0c4cc;
+  opacity: 0;
+  transition: all 0.2s;
+}
+
+.message-item.ai .bubble:hover .speak-icon {
+  opacity: 1;
+  color: #667eea;
+}
+
+.speak-icon.active {
+  opacity: 1 !important;
+  color: #667eea !important;
+  animation: speakPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes speakPulse {
+  0%, 100% { transform: translateY(-50%) scale(1); }
+  50% { transform: translateY(-50%) scale(1.2); }
+}
+
 .message-extra {
   padding: 0 8px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  max-width: 100%;
 }
 
 .translation {
@@ -787,25 +1463,36 @@ onUnmounted(() => {
 .correction {
   display: flex;
   align-items: flex-start;
-  gap: 4px;
+  gap: 6px;
   font-size: 12px;
   background: #fdf6ec;
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
 }
 
 .correction-content {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .correction-label {
   color: #e6a23c;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 11px;
 }
 
 .correction-text {
-  color: #606266;
+  color: #303133;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.correction-text:hover {
+  color: #165DFF;
 }
 
 .useful-phrases {
@@ -814,38 +1501,51 @@ onUnmounted(() => {
   gap: 6px;
   font-size: 12px;
   background: #f0f9eb;
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
 }
 
 .phrases-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .phrase-item {
   display: flex;
   gap: 6px;
   align-items: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.phrase-item:hover {
+  color: #165DFF;
 }
 
 .phrase-word {
   color: #165DFF;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .phrase-meaning {
   color: #606266;
+  font-size: 11px;
+}
+
+.message-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
 }
 
 .typing-indicator .typing-bubble {
   display: flex;
-  gap: 4px;
-  padding: 16px 20px;
+  gap: 5px;
+  padding: 18px 24px;
   background: linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%);
   border: 1px solid #ebeef5;
-  border-radius: 16px;
+  border-radius: 18px;
 }
 
 .typing-bubble span {
@@ -865,12 +1565,8 @@ onUnmounted(() => {
 }
 
 @keyframes typing {
-  0%, 60%, 100% {
-    transform: translateY(0);
-  }
-  30% {
-    transform: translateY(-6px);
-  }
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
 }
 
 .input-section {
@@ -879,8 +1575,67 @@ onUnmounted(() => {
   align-items: flex-end;
 }
 
-.input-wrapper {
+.input-section.voice-mode .text-input-wrapper {
+  display: none;
+}
+
+.input-section.voice-mode .voice-input-wrapper {
+  display: block;
+}
+
+.text-input-wrapper {
   flex: 1;
+}
+
+.voice-input-wrapper {
+  flex: 1;
+  display: none;
+}
+
+.voice-idle-display {
+  padding: 14px 20px;
+  background: #fafafa;
+  border: 2px dashed #dcdfe6;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #909399;
+  font-size: 14px;
+}
+
+.voice-idle-display:hover {
+  border-color: #722ed1;
+  color: #722ed1;
+  background: #faf5ff;
+}
+
+.voice-active-display {
+  padding: 14px 20px;
+  background: #fff1f0;
+  border: 2px solid #ffa39e;
+  border-radius: 10px;
+}
+
+.voice-text-display {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.voice-label {
+  font-size: 12px;
+  color: #f56c6c;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.voice-content {
+  font-size: 15px;
+  color: #303133;
+  font-style: italic;
 }
 
 .input-actions {
@@ -889,55 +1644,134 @@ onUnmounted(() => {
   gap: 8px;
 }
 
+.voice-input-btn {
+  min-width: 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.voice-input-btn.listening {
+  animation: listeningPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes listeningPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 108, 108, 0.5); }
+  50% { box-shadow: 0 0 0 10px rgba(245, 108, 108, 0); }
+}
+
+.voice-input-btn .btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.mic-pulse {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.mic-pulse span {
+  width: 4px;
+  height: 16px;
+  background: #fff;
+  border-radius: 2px;
+  animation: micPulse 0.8s ease-in-out infinite;
+}
+
+.mic-pulse span:nth-child(2) { animation-delay: 0.15s; }
+.mic-pulse span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes micPulse {
+  0%, 100% { height: 8px; }
+  50% { height: 18px; }
+}
+
 .quick-suggestions {
-  margin-top: 12px;
+  margin-top: 14px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  padding: 12px 16px;
+  background: #fafbfc;
+  border-radius: 8px;
 }
 
 .suggestions-label {
   font-size: 12px;
   color: #909399;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .quick-tag {
   cursor: pointer;
   transition: all 0.2s ease;
+  padding: 6px 12px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .quick-tag:hover {
   transform: translateY(-1px);
+  background: #ecf5ff;
+  border-color: #165DFF;
+  color: #165DFF;
 }
 
 .vocabulary-container h3 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
+  margin: 0;
+  font-size: 17px;
+}
+
+.vocab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vocab-section-title {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #606266;
 }
 
 .scene-desc-full {
   color: #606266;
   font-size: 13px;
   line-height: 1.6;
-  margin: 0;
+  margin: 8px 0 0 0;
 }
 
 .vocab-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .vocab-item {
-  padding: 12px;
-  background: #f5f7fa;
-  border-radius: 8px;
-  border-left: 3px solid #165DFF;
+  padding: 14px;
+  background: #fafbfc;
+  border-radius: 10px;
+  border-left: 4px solid #165DFF;
+  transition: all 0.2s;
+}
+
+.vocab-item:hover {
+  background: #ecf5ff;
+  transform: translateX(4px);
 }
 
 .vocab-item.learned {
   border-left-color: #67c23a;
+}
+
+.vocab-item.learned:hover {
+  background: #f0f9eb;
 }
 
 .vocab-word {
@@ -959,5 +1793,76 @@ onUnmounted(() => {
   font-size: 13px;
   color: #606266;
   padding-left: 20px;
+  line-height: 1.5;
+}
+
+.voice-settings-content {
+  padding: 8px 0;
+}
+
+.setting-item {
+  margin-bottom: 8px;
+}
+
+.setting-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+.setting-item.switches {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.switch-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #606266;
+}
+
+@media (max-width: 768px) {
+  .chat-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chat-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .message-wrapper {
+    max-width: 85%;
+  }
+
+  .input-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .input-actions {
+    flex-direction: row;
+  }
+
+  .voice-input-btn {
+    width: 100%;
+  }
 }
 </style>
