@@ -19,6 +19,8 @@ const thesis_writer_module_1 = require("./thesis-writer/thesis-writer.module");
 const excel_formula_module_1 = require("./excel-formula/excel-formula.module");
 const image_to_prompt_module_1 = require("./image-to-prompt/image-to-prompt.module");
 const idiom_chain_module_1 = require("./idiom-chain/idiom-chain.module");
+const formula_recognition_module_1 = require("./formula-recognition/formula-recognition.module");
+const picture_writing_module_1 = require("./picture-writing/picture-writing.module");
 const path = require("path");
 let AppModule = class AppModule {
 };
@@ -40,6 +42,8 @@ AppModule = __decorate([
             excel_formula_module_1.ExcelFormulaModule,
             image_to_prompt_module_1.ImageToPromptModule,
             idiom_chain_module_1.IdiomChainModule,
+            formula_recognition_module_1.FormulaRecognitionModule,
+            picture_writing_module_1.PictureWritingModule,
         ],
     })
 ], AppModule);

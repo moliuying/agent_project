@@ -148,6 +148,15 @@
               </el-card>
             </el-col>
             <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/picture-writing')" class="feature-card">
+                <el-icon :size="40" color="#f56c6c">
+                  <Reading />
+                </el-icon>
+                <h3>看图写话</h3>
+                <p>AI 分析图片生成小学生作文</p>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
               <el-card shadow="hover" @click="navigateTo('/system/menu')" class="feature-card">
                 <el-icon :size="40" color="#909399">
                   <Setting />

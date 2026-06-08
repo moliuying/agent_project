@@ -105,6 +105,11 @@ const routes: RouteRecordRaw[] = [
         path: '/formula-ocr',
         name: 'FormulaOcr',
         component: () => import('@/views/FormulaOcr.vue')
+      },
+      {
+        path: '/picture-writing',
+        name: 'PictureWriting',
+        component: () => import('@/views/PictureWriting.vue')
       }
     ]
   }
