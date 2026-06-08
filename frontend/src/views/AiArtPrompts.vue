@@ -117,20 +117,49 @@
 
         <p class="prompt-desc">{{ prompt.description }}</p>
 
-        <div class="prompt-preview">
+        <div
+          class="prompt-preview"
+          :class="{ 'copying': copyingId === `${prompt.id}-positive` }"
+          @click="copyPromptWithFeedback(prompt.prompt, '正向提示词', `${prompt.id}-positive`)"
+        >
           <div class="prompt-label">
             <el-icon :size="14"><EditPen /></el-icon>
             <span>正向提示词</span>
+            <el-icon class="copy-hint" :size="14"><DocumentCopy /></el-icon>
+            <span class="copy-hint-text">点击复制</span>
           </div>
-          <div class="prompt-text">{{ prompt.prompt }}</div>
+          <div class="prompt-text">
+            <template v-if="copyingId === `${prompt.id}-positive`">
+              <el-icon :size="14" color="#67c23a"><CircleCheckFilled /></el-icon>
+              <span class="copied-text">已复制到剪贴板！</span>
+            </template>
+            <template v-else>
+              {{ prompt.prompt }}
+            </template>
+          </div>
         </div>
 
-        <div v-if="prompt.negativePrompt" class="prompt-preview negative">
+        <div
+          v-if="prompt.negativePrompt"
+          class="prompt-preview negative"
+          :class="{ 'copying': copyingId === `${prompt.id}-negative` }"
+          @click="copyPromptWithFeedback(prompt.negativePrompt, '反向提示词', `${prompt.id}-negative`)"
+        >
           <div class="prompt-label">
             <el-icon :size="14"><Close /></el-icon>
             <span>反向提示词</span>
+            <el-icon class="copy-hint" :size="14"><DocumentCopy /></el-icon>
+            <span class="copy-hint-text">点击复制</span>
           </div>
-          <div class="prompt-text">{{ prompt.negativePrompt }}</div>
+          <div class="prompt-text">
+            <template v-if="copyingId === `${prompt.id}-negative`">
+              <el-icon :size="14" color="#f56c6c"><CircleCheckFilled /></el-icon>
+              <span class="copied-text">已复制到剪贴板！</span>
+            </template>
+            <template v-else>
+              {{ prompt.negativePrompt }}
+            </template>
+          </div>
         </div>
 
         <div class="card-footer">
@@ -211,14 +240,28 @@
             <el-button
               size="small"
               type="success"
-              @click="copyPrompt(currentDetail.prompt, '正向提示词')"
+              @click.stop="copyPromptWithFeedback(currentDetail.prompt, '正向提示词', 'detail-positive')"
             >
               <el-icon><DocumentCopy /></el-icon>
               一键复制
             </el-button>
           </div>
-          <div class="prompt-block positive">
-            {{ currentDetail.prompt }}
+          <div
+            class="prompt-block positive clickable"
+            :class="{ 'copying': copyingId === 'detail-positive' }"
+            @click="copyPromptWithFeedback(currentDetail.prompt, '正向提示词', 'detail-positive')"
+          >
+            <template v-if="copyingId === 'detail-positive'">
+              <el-icon :size="18" color="#67c23a"><CircleCheckFilled /></el-icon>
+              <span class="copied-text-large">已复制到剪贴板！</span>
+            </template>
+            <template v-else>
+              {{ currentDetail.prompt }}
+            </template>
+            <div class="copy-overlay-hint">
+              <el-icon :size="16"><DocumentCopy /></el-icon>
+              <span>点击复制</span>
+            </div>
           </div>
         </div>
 
@@ -229,14 +272,28 @@
             <el-button
               size="small"
               type="danger"
-              @click="copyPrompt(currentDetail.negativePrompt, '反向提示词')"
+              @click.stop="copyPromptWithFeedback(currentDetail.negativePrompt, '反向提示词', 'detail-negative')"
             >
               <el-icon><DocumentCopy /></el-icon>
               一键复制
             </el-button>
           </div>
-          <div class="prompt-block negative">
-            {{ currentDetail.negativePrompt }}
+          <div
+            class="prompt-block negative clickable"
+            :class="{ 'copying': copyingId === 'detail-negative' }"
+            @click="copyPromptWithFeedback(currentDetail.negativePrompt, '反向提示词', 'detail-negative')"
+          >
+            <template v-if="copyingId === 'detail-negative'">
+              <el-icon :size="18" color="#f56c6c"><CircleCheckFilled /></el-icon>
+              <span class="copied-text-large">已复制到剪贴板！</span>
+            </template>
+            <template v-else>
+              {{ currentDetail.negativePrompt }}
+            </template>
+            <div class="copy-overlay-hint">
+              <el-icon :size="16"><DocumentCopy /></el-icon>
+              <span>点击复制</span>
+            </div>
           </div>
         </div>
 
@@ -293,7 +350,8 @@ import {
   Picture,
   Goods,
   OfficeBuilding,
-  Cherry
+  Cherry,
+  CircleCheckFilled
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
@@ -312,6 +370,7 @@ const currentPage = ref(1)
 const pageSize = 12
 const detailVisible = ref(false)
 const currentDetail = ref<AiArtPrompt | null>(null)
+const copyingId = ref<string | null>(null)
 
 const iconMap: Record<string, any> = {
   Collection,
@@ -412,6 +471,32 @@ const copyPrompt = async (text: string, label: string) => {
     document.execCommand('copy')
     document.body.removeChild(textarea)
     ElMessage.success(`${label}已复制到剪贴板`)
+  }
+}
+
+const copyPromptWithFeedback = async (text: string, label: string, id: string) => {
+  if (copyingId.value === id) return
+  try {
+    await navigator.clipboard.writeText(text)
+    copyingId.value = id
+    ElMessage.success(`${label}已复制到剪贴板`)
+    setTimeout(() => {
+      copyingId.value = null
+    }, 2000)
+  } catch {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textarea)
+    copyingId.value = id
+    ElMessage.success(`${label}已复制到剪贴板`)
+    setTimeout(() => {
+      copyingId.value = null
+    }, 2000)
   }
 }
 
@@ -557,10 +642,50 @@ const resetFilters = () => {
   padding: 10px 12px;
   margin-bottom: 8px;
   border-left: 3px solid #67c23a;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.prompt-preview:hover {
+  background: #e8f5e9;
+  border-left-color: #52c41a;
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(103, 194, 58, 0.15);
+}
+
+.prompt-preview:active {
+  transform: translateX(2px) scale(0.99);
+}
+
+.prompt-preview.copying {
+  background: linear-gradient(135deg, #f0f9eb 0%, #e1f3d8 100%);
+  border-left-color: #67c23a;
+  animation: copyPulse 0.4s ease;
 }
 
 .prompt-preview.negative {
   border-left-color: #f56c6c;
+}
+
+.prompt-preview.negative:hover {
+  background: #fef0f0;
+  border-left-color: #f5222d;
+  box-shadow: 0 2px 8px rgba(245, 108, 108, 0.15);
+}
+
+.prompt-preview.negative.copying {
+  background: linear-gradient(135deg, #fef0f0 0%, #fde2e2 100%);
+  border-left-color: #f56c6c;
+}
+
+@keyframes copyPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
 }
 
 .prompt-label {
@@ -573,14 +698,53 @@ const resetFilters = () => {
   margin-bottom: 6px;
 }
 
+.copy-hint {
+  margin-left: auto;
+  color: #c0c4cc;
+  transition: color 0.2s;
+}
+
+.copy-hint-text {
+  font-size: 11px;
+  color: #c0c4cc;
+  margin-left: 2px;
+  transition: color 0.2s;
+}
+
+.prompt-preview:hover .copy-hint,
+.prompt-preview:hover .copy-hint-text {
+  color: #67c23a;
+}
+
+.prompt-preview.negative:hover .copy-hint,
+.prompt-preview.negative:hover .copy-hint-text {
+  color: #f56c6c;
+}
+
 .prompt-text {
   font-size: 12px;
   color: #606266;
   line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.prompt-preview:not(.copying) .prompt-text {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.copied-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #67c23a;
+}
+
+.prompt-preview.negative .copied-text {
+  color: #f56c6c;
 }
 
 .card-footer {
@@ -696,6 +860,28 @@ const resetFilters = () => {
   font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
   word-break: break-all;
   white-space: pre-wrap;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.prompt-block.clickable {
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.prompt-block.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.prompt-block.clickable:active {
+  transform: translateY(0) scale(0.995);
+}
+
+.prompt-block.clickable.copying {
+  animation: copyPulse 0.4s ease;
 }
 
 .prompt-block.positive {
@@ -704,9 +890,99 @@ const resetFilters = () => {
   border: 1px solid #e1f3d8;
 }
 
+.prompt-block.positive.clickable:hover {
+  background: linear-gradient(135deg, #e1f3d8 0%, #d1edc4 100%);
+  border-color: #67c23a;
+}
+
 .prompt-block.negative {
   background: linear-gradient(135deg, #fef0f0 0%, #fde2e2 100%);
   color: #f56c6c;
   border: 1px solid #fde2e2;
+}
+
+.prompt-block.negative.clickable:hover {
+  background: linear-gradient(135deg, #fde2e2 0%, #fbc4c4 100%);
+  border-color: #f56c6c;
+}
+
+.copy-overlay-hint {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.prompt-block.clickable:hover .copy-overlay-hint {
+  opacity: 1;
+}
+
+.copied-text-large {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-actions {
+    width: 100%;
+  }
+
+  .search-actions .el-button {
+    width: 100%;
+  }
+
+  .prompts-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .category-btn {
+    flex: 1;
+    min-width: calc(33.33% - 10px);
+    justify-content: center;
+  }
+
+  .prompt-preview {
+    padding: 12px;
+  }
+
+  .copy-hint-text {
+    display: none;
+  }
+
+  .copy-hint {
+    font-size: 16px;
+  }
+
+  .copy-overlay-hint {
+    opacity: 0.5;
+    font-size: 10px;
+  }
+
+  .copy-actions .el-button {
+    flex: 1;
+  }
+
+  .detail-dialog :deep(.el-dialog) {
+    width: 92% !important;
+    margin: 3vh auto !important;
+  }
+
+  .prompt-block {
+    padding: 12px;
+    font-size: 12px;
+  }
 }
 </style>
