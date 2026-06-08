@@ -166,6 +166,17 @@
               </el-card>
             </el-col>
           </el-row>
+          <el-row :gutter="20" style="margin-top: 20px">
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/word-ocr')" class="feature-card">
+                <el-icon :size="40" color="#13c2c2">
+                  <Camera />
+                </el-icon>
+                <h3>拍照识别单词</h3>
+                <p>OCR识别单词·音标·例句</p>
+              </el-card>
+            </el-col>
+          </el-row>
         </div>
       </div>
     </el-card>

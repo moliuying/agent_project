@@ -12,6 +12,7 @@ import { ImageToPromptModule } from './image-to-prompt/image-to-prompt.module';
 import { IdiomChainModule } from './idiom-chain/idiom-chain.module';
 import { FormulaRecognitionModule } from './formula-recognition/formula-recognition.module';
 import { PictureWritingModule } from './picture-writing/picture-writing.module';
+import { WordOcrModule } from './word-ocr/word-ocr.module';
 import * as path from 'path';
 
 @Module({
@@ -33,6 +34,7 @@ import * as path from 'path';
     IdiomChainModule,
     FormulaRecognitionModule,
     PictureWritingModule,
+    WordOcrModule,
   ],
 })
 export class AppModule {}

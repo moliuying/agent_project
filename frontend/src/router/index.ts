@@ -110,6 +110,11 @@ const routes: RouteRecordRaw[] = [
         path: '/picture-writing',
         name: 'PictureWriting',
         component: () => import('@/views/PictureWriting.vue')
+      },
+      {
+        path: '/word-ocr',
+        name: 'WordOcr',
+        component: () => import('@/views/WordOcr.vue')
       }
     ]
   }
