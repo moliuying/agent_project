@@ -118,47 +118,65 @@
         <p class="prompt-desc">{{ prompt.description }}</p>
 
         <div
-          class="prompt-preview"
+          class="prompt-preview touch-friendly"
           :class="{ 'copying': copyingId === `${prompt.id}-positive` }"
           @click="copyPromptWithFeedback(prompt.prompt, '正向提示词', `${prompt.id}-positive`)"
+          @touchstart.prevent="handleTouchStart($event, prompt.prompt, '正向提示词', `${prompt.id}-positive`)"
+          @touchend.prevent="handleTouchEnd"
+          @touchmove.prevent="handleTouchMove"
         >
           <div class="prompt-label">
             <el-icon :size="14"><EditPen /></el-icon>
             <span>正向提示词</span>
-            <el-icon class="copy-hint" :size="14"><DocumentCopy /></el-icon>
-            <span class="copy-hint-text">点击复制</span>
+            <span class="copy-badge">
+              <el-icon :size="12"><DocumentCopy /></el-icon>
+              <span>点我复制</span>
+            </span>
           </div>
           <div class="prompt-text">
             <template v-if="copyingId === `${prompt.id}-positive`">
-              <el-icon :size="14" color="#67c23a"><CircleCheckFilled /></el-icon>
-              <span class="copied-text">已复制到剪贴板！</span>
+              <el-icon :size="16" color="#67c23a"><CircleCheckFilled /></el-icon>
+              <span class="copied-text">已复制 ✓</span>
             </template>
             <template v-else>
               {{ prompt.prompt }}
             </template>
           </div>
+          <div class="prompt-copy-cta">
+            <el-icon :size="14"><DocumentCopy /></el-icon>
+            <span>点击复制全部提示词</span>
+          </div>
         </div>
 
         <div
           v-if="prompt.negativePrompt"
-          class="prompt-preview negative"
+          class="prompt-preview negative touch-friendly"
           :class="{ 'copying': copyingId === `${prompt.id}-negative` }"
           @click="copyPromptWithFeedback(prompt.negativePrompt, '反向提示词', `${prompt.id}-negative`)"
+          @touchstart.prevent="handleTouchStart($event, prompt.negativePrompt, '反向提示词', `${prompt.id}-negative`)"
+          @touchend.prevent="handleTouchEnd"
+          @touchmove.prevent="handleTouchMove"
         >
           <div class="prompt-label">
             <el-icon :size="14"><Close /></el-icon>
             <span>反向提示词</span>
-            <el-icon class="copy-hint" :size="14"><DocumentCopy /></el-icon>
-            <span class="copy-hint-text">点击复制</span>
+            <span class="copy-badge negative">
+              <el-icon :size="12"><DocumentCopy /></el-icon>
+              <span>点我复制</span>
+            </span>
           </div>
           <div class="prompt-text">
             <template v-if="copyingId === `${prompt.id}-negative`">
-              <el-icon :size="14" color="#f56c6c"><CircleCheckFilled /></el-icon>
-              <span class="copied-text">已复制到剪贴板！</span>
+              <el-icon :size="16" color="#f56c6c"><CircleCheckFilled /></el-icon>
+              <span class="copied-text">已复制 ✓</span>
             </template>
             <template v-else>
               {{ prompt.negativePrompt }}
             </template>
+          </div>
+          <div class="prompt-copy-cta negative">
+            <el-icon :size="14"><DocumentCopy /></el-icon>
+            <span>点击复制全部提示词</span>
           </div>
         </div>
 
@@ -168,19 +186,27 @@
             <span>{{ prompt.model || '通用模型' }}</span>
           </div>
           <div class="copy-actions">
-            <el-button size="small" type="primary" plain @click="copyPrompt(prompt.prompt, '正向提示词')">
+            <el-button size="default" type="primary" @click.stop="copyPromptWithFeedback(prompt.prompt, '正向提示词', `${prompt.id}-positive`)">
               <el-icon><DocumentCopy /></el-icon>
               复制正向
             </el-button>
             <el-button
               v-if="prompt.negativePrompt"
-              size="small"
+              size="default"
               type="danger"
-              plain
-              @click="copyPrompt(prompt.negativePrompt, '反向提示词')"
+              @click.stop="copyPromptWithFeedback(prompt.negativePrompt, '反向提示词', `${prompt.id}-negative`)"
             >
               <el-icon><DocumentCopy /></el-icon>
               复制反向
+            </el-button>
+            <el-button
+              v-if="prompt.negativePrompt"
+              size="default"
+              type="success"
+              @click.stop="copyAllPrompts(prompt)"
+            >
+              <el-icon><DocumentCopy /></el-icon>
+              全部复制
             </el-button>
           </div>
         </div>
@@ -238,7 +264,7 @@
             <el-icon :size="16" color="#67c23a"><EditPen /></el-icon>
             <span>正向提示词 (Positive Prompt)</span>
             <el-button
-              size="small"
+              size="default"
               type="success"
               @click.stop="copyPromptWithFeedback(currentDetail.prompt, '正向提示词', 'detail-positive')"
             >
@@ -247,18 +273,21 @@
             </el-button>
           </div>
           <div
-            class="prompt-block positive clickable"
+            class="prompt-block positive clickable touch-friendly"
             :class="{ 'copying': copyingId === 'detail-positive' }"
             @click="copyPromptWithFeedback(currentDetail.prompt, '正向提示词', 'detail-positive')"
+            @touchstart.prevent="handleTouchStart($event, currentDetail.prompt, '正向提示词', 'detail-positive')"
+            @touchend.prevent="handleTouchEnd"
+            @touchmove.prevent="handleTouchMove"
           >
             <template v-if="copyingId === 'detail-positive'">
-              <el-icon :size="18" color="#67c23a"><CircleCheckFilled /></el-icon>
+              <el-icon :size="20" color="#67c23a"><CircleCheckFilled /></el-icon>
               <span class="copied-text-large">已复制到剪贴板！</span>
             </template>
             <template v-else>
               {{ currentDetail.prompt }}
             </template>
-            <div class="copy-overlay-hint">
+            <div class="copy-overlay-hint mobile-visible">
               <el-icon :size="16"><DocumentCopy /></el-icon>
               <span>点击复制</span>
             </div>
@@ -270,7 +299,7 @@
             <el-icon :size="16" color="#f56c6c"><Close /></el-icon>
             <span>反向提示词 (Negative Prompt)</span>
             <el-button
-              size="small"
+              size="default"
               type="danger"
               @click.stop="copyPromptWithFeedback(currentDetail.negativePrompt, '反向提示词', 'detail-negative')"
             >
@@ -279,18 +308,21 @@
             </el-button>
           </div>
           <div
-            class="prompt-block negative clickable"
+            class="prompt-block negative clickable touch-friendly"
             :class="{ 'copying': copyingId === 'detail-negative' }"
             @click="copyPromptWithFeedback(currentDetail.negativePrompt, '反向提示词', 'detail-negative')"
+            @touchstart.prevent="handleTouchStart($event, currentDetail.negativePrompt, '反向提示词', 'detail-negative')"
+            @touchend.prevent="handleTouchEnd"
+            @touchmove.prevent="handleTouchMove"
           >
             <template v-if="copyingId === 'detail-negative'">
-              <el-icon :size="18" color="#f56c6c"><CircleCheckFilled /></el-icon>
+              <el-icon :size="20" color="#f56c6c"><CircleCheckFilled /></el-icon>
               <span class="copied-text-large">已复制到剪贴板！</span>
             </template>
             <template v-else>
               {{ currentDetail.negativePrompt }}
             </template>
-            <div class="copy-overlay-hint">
+            <div class="copy-overlay-hint mobile-visible">
               <el-icon :size="16"><DocumentCopy /></el-icon>
               <span>点击复制</span>
             </div>
@@ -325,6 +357,15 @@
             <Star v-else />
           </el-icon>
           {{ isFavorite(currentDetail.id) ? '取消收藏' : '收藏提示词' }}
+        </el-button>
+        <el-button
+          v-if="currentDetail && currentDetail.negativePrompt"
+          type="success"
+          size="large"
+          @click="copyAllPrompts(currentDetail)"
+        >
+          <el-icon><DocumentCopy /></el-icon>
+          一键复制全部
         </el-button>
       </template>
     </el-dialog>
@@ -371,6 +412,9 @@ const pageSize = 12
 const detailVisible = ref(false)
 const currentDetail = ref<AiArtPrompt | null>(null)
 const copyingId = ref<string | null>(null)
+const longPressTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const isLongPress = ref(false)
+const touchStartData = ref<{ text: string; label: string; id: string } | null>(null)
 
 const iconMap: Record<string, any> = {
   Collection,
@@ -478,6 +522,7 @@ const copyPromptWithFeedback = async (text: string, label: string, id: string) =
   if (copyingId.value === id) return
   try {
     await navigator.clipboard.writeText(text)
+    triggerHapticFeedback()
     copyingId.value = id
     ElMessage.success(`${label}已复制到剪贴板`)
     setTimeout(() => {
@@ -492,12 +537,65 @@ const copyPromptWithFeedback = async (text: string, label: string, id: string) =
     textarea.select()
     document.execCommand('copy')
     document.body.removeChild(textarea)
+    triggerHapticFeedback()
     copyingId.value = id
     ElMessage.success(`${label}已复制到剪贴板`)
     setTimeout(() => {
       copyingId.value = null
     }, 2000)
   }
+}
+
+const triggerHapticFeedback = () => {
+  try {
+    if (navigator.vibrate) {
+      navigator.vibrate(50)
+    }
+  } catch (e) {
+    // 忽略振动 API 不支持的情况
+  }
+}
+
+const copyAllPrompts = (prompt: AiArtPrompt) => {
+  const positiveText = prompt.prompt
+  const negativeText = prompt.negativePrompt || ''
+  const allText = negativeText
+    ? `【正向提示词】\n${positiveText}\n\n【反向提示词】\n${negativeText}`
+    : positiveText
+  copyPromptWithFeedback(allText, '全部提示词', `${prompt.id}-all`)
+}
+
+const handleTouchStart = (event: TouchEvent, text: string, label: string, id: string) => {
+  isLongPress.value = false
+  touchStartData.value = { text, label, id }
+  longPressTimer.value = setTimeout(() => {
+    isLongPress.value = true
+    copyPromptWithFeedback(text, label, id)
+    triggerHapticFeedback()
+  }, 500)
+}
+
+const handleTouchEnd = () => {
+  if (longPressTimer.value) {
+    clearTimeout(longPressTimer.value)
+    longPressTimer.value = null
+  }
+  if (!isLongPress.value && touchStartData.value) {
+    copyPromptWithFeedback(
+      touchStartData.value.text,
+      touchStartData.value.label,
+      touchStartData.value.id
+    )
+  }
+  touchStartData.value = null
+}
+
+const handleTouchMove = () => {
+  if (longPressTimer.value) {
+    clearTimeout(longPressTimer.value)
+    longPressTimer.value = null
+  }
+  isLongPress.value = false
 }
 
 const resetFilters = () => {
@@ -638,27 +736,35 @@ const resetFilters = () => {
 
 .prompt-preview {
   background: #f5f7fa;
-  border-radius: 6px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  border-left: 3px solid #67c23a;
+  border-radius: 10px;
+  padding: 14px 14px 10px;
+  margin-bottom: 10px;
+  border-left: 4px solid #67c23a;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
   position: relative;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.prompt-preview.touch-friendly {
+  min-height: 60px;
 }
 
 .prompt-preview:hover {
   background: #e8f5e9;
   border-left-color: #52c41a;
   transform: translateX(2px);
-  box-shadow: 0 2px 8px rgba(103, 194, 58, 0.15);
+  box-shadow: 0 4px 12px rgba(103, 194, 58, 0.18);
 }
 
 .prompt-preview:active {
   transform: translateX(2px) scale(0.99);
+  background: #d9edc7;
 }
 
 .prompt-preview.copying {
@@ -674,7 +780,11 @@ const resetFilters = () => {
 .prompt-preview.negative:hover {
   background: #fef0f0;
   border-left-color: #f5222d;
-  box-shadow: 0 2px 8px rgba(245, 108, 108, 0.15);
+  box-shadow: 0 4px 12px rgba(245, 108, 108, 0.18);
+}
+
+.prompt-preview.negative:active {
+  background: #ffd6d6;
 }
 
 .prompt-preview.negative.copying {
@@ -683,19 +793,37 @@ const resetFilters = () => {
 }
 
 @keyframes copyPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.01); }
-  100% { transform: scale(1); }
+  0% { transform: translateX(2px) scale(1); }
+  50% { transform: translateX(2px) scale(1.015); }
+  100% { transform: translateX(2px) scale(1); }
 }
 
 .prompt-label {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
-  color: #909399;
+  font-size: 13px;
+  color: #606266;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.copy-badge {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  background: linear-gradient(135deg, #67c23a 0%, #52c41a 100%);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 11px;
   font-weight: 500;
-  margin-bottom: 6px;
+  white-space: nowrap;
+}
+
+.copy-badge.negative {
+  background: linear-gradient(135deg, #f56c6c 0%, #f5222d 100%);
 }
 
 .copy-hint {
@@ -722,12 +850,14 @@ const resetFilters = () => {
 }
 
 .prompt-text {
-  font-size: 12px;
+  font-size: 13px;
   color: #606266;
-  line-height: 1.5;
+  line-height: 1.6;
   display: flex;
   align-items: center;
   gap: 6px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .prompt-preview:not(.copying) .prompt-text {
@@ -737,8 +867,26 @@ const resetFilters = () => {
   overflow: hidden;
 }
 
+.prompt-copy-cta {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(103, 194, 58, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #67c23a;
+}
+
+.prompt-copy-cta.negative {
+  border-top-color: rgba(245, 108, 108, 0.3);
+  color: #f56c6c;
+}
+
 .copied-text {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #67c23a;
 }
@@ -767,6 +915,13 @@ const resetFilters = () => {
 .copy-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.copy-actions .el-button {
+  min-height: 36px;
+  font-weight: 500;
 }
 
 .empty-state {
@@ -853,17 +1008,21 @@ const resetFilters = () => {
 }
 
 .prompt-block {
-  padding: 16px;
-  border-radius: 8px;
+  padding: 20px;
+  border-radius: 12px;
   font-size: 13px;
-  line-height: 1.7;
+  line-height: 1.8;
   font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
   word-break: break-all;
   white-space: pre-wrap;
   position: relative;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  min-height: 80px;
 }
 
 .prompt-block.clickable {
@@ -873,7 +1032,7 @@ const resetFilters = () => {
 
 .prompt-block.clickable:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .prompt-block.clickable:active {
@@ -882,12 +1041,16 @@ const resetFilters = () => {
 
 .prompt-block.clickable.copying {
   animation: copyPulse 0.4s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .prompt-block.positive {
   background: linear-gradient(135deg, #f0f9eb 0%, #e1f3d8 100%);
   color: #67c23a;
-  border: 1px solid #e1f3d8;
+  border: 2px solid #e1f3d8;
 }
 
 .prompt-block.positive.clickable:hover {
@@ -898,7 +1061,7 @@ const resetFilters = () => {
 .prompt-block.negative {
   background: linear-gradient(135deg, #fef0f0 0%, #fde2e2 100%);
   color: #f56c6c;
-  border: 1px solid #fde2e2;
+  border: 2px solid #fde2e2;
 }
 
 .prompt-block.negative.clickable:hover {
@@ -908,16 +1071,24 @@ const resetFilters = () => {
 
 .copy-overlay-hint {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  right: 10px;
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.3);
   opacity: 0;
   transition: opacity 0.25s ease;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.copy-overlay-hint.mobile-visible {
+  opacity: 0.6;
 }
 
 .prompt-block.clickable:hover .copy-overlay-hint {
@@ -925,7 +1096,7 @@ const resetFilters = () => {
 }
 
 .copied-text-large {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -933,6 +1104,7 @@ const resetFilters = () => {
   .search-bar {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
   }
 
   .search-actions {
@@ -941,6 +1113,8 @@ const resetFilters = () => {
 
   .search-actions .el-button {
     width: 100%;
+    min-height: 44px;
+    font-size: 15px;
   }
 
   .prompts-grid {
@@ -948,41 +1122,113 @@ const resetFilters = () => {
     gap: 16px;
   }
 
+  .category-list {
+    gap: 8px;
+  }
+
   .category-btn {
     flex: 1;
-    min-width: calc(33.33% - 10px);
+    min-width: calc(33.33% - 8px);
     justify-content: center;
+    min-height: 40px;
+    font-size: 14px;
   }
 
   .prompt-preview {
-    padding: 12px;
+    padding: 16px;
+    border-radius: 12px;
+    min-height: 80px;
   }
 
-  .copy-hint-text {
-    display: none;
+  .prompt-preview.touch-friendly {
+    min-height: 80px;
   }
 
-  .copy-hint {
-    font-size: 16px;
+  .copy-badge {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  .prompt-copy-cta {
+    font-size: 13px;
+    padding-top: 10px;
+    margin-top: 12px;
   }
 
   .copy-overlay-hint {
-    opacity: 0.5;
-    font-size: 10px;
+    opacity: 0.6;
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .copy-actions {
+    width: 100%;
+    gap: 8px;
   }
 
   .copy-actions .el-button {
     flex: 1;
+    min-width: calc(50% - 4px);
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .copy-actions .el-button:last-child {
+    flex: 1 1 100%;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .prompt-model {
+    justify-content: center;
+    font-size: 13px;
   }
 
   .detail-dialog :deep(.el-dialog) {
-    width: 92% !important;
-    margin: 3vh auto !important;
+    width: 94% !important;
+    margin: 2vh auto !important;
+    border-radius: 16px;
+  }
+
+  .detail-dialog :deep(.el-dialog__footer) {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+    padding: 16px 20px 20px;
+  }
+
+  .detail-dialog :deep(.el-dialog__footer) .el-button {
+    width: 100%;
+    min-height: 48px;
+    font-size: 15px;
   }
 
   .prompt-block {
-    padding: 12px;
-    font-size: 12px;
+    padding: 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    min-height: 100px;
+  }
+
+  .section-title {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .section-title .el-button {
+    margin-left: 0;
+    margin-left: auto;
+    min-height: 36px;
+  }
+
+  .detail-description {
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 14px;
   }
 }
 </style>
