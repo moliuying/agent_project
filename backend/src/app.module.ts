@@ -5,6 +5,7 @@ import { Menu } from './menu/menu.entity';
 import { HolidayModule } from './holiday/holiday.module';
 import { Holiday } from './holiday/holiday.entity';
 import { IpLookupModule } from './ip-lookup/ip-lookup.module';
+import { AiTextExpanderModule } from './ai-text-expander/ai-text-expander.module';
 import * as path from 'path';
 
 @Module({
@@ -19,6 +20,7 @@ import * as path from 'path';
     MenuModule,
     HolidayModule,
     IpLookupModule,
+    AiTextExpanderModule,
   ],
 })
 export class AppModule {}

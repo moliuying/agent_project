@@ -18,6 +18,7 @@ async function ensureMenus(app: any) {
     { name: '音频剪辑', path: '/audio-clipper', icon: 'Headset', parentId: null, sort: 4, component: 'views/AudioClipper.vue' },
     { name: '字数统计', path: '/word-counter', icon: 'Document', parentId: null, sort: 4.5, component: 'views/WordCounter.vue' },
     { name: '随机抽取', path: '/random-picker', icon: 'Dice', parentId: null, sort: 4.6, component: 'views/RandomPicker.vue' },
+    { name: 'AI扩文', path: '/ai-text-expander', icon: 'MagicStick', parentId: null, sort: 4.7, component: 'views/AiTextExpander.vue' },
     { name: 'IP地址查询', path: '/ip-lookup', icon: 'Location', parentId: null, sort: 5, component: 'views/IpLookup.vue' },
   ];
 

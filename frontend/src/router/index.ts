@@ -70,6 +70,11 @@ const routes: RouteRecordRaw[] = [
         path: '/ai-art-prompts',
         name: 'AiArtPrompts',
         component: () => import('@/views/AiArtPrompts.vue')
+      },
+      {
+        path: '/ai-text-expander',
+        name: 'AiTextExpander',
+        component: () => import('@/views/AiTextExpander.vue')
       }
     ]
   }

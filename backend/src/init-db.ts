@@ -22,10 +22,11 @@ async function bootstrap() {
       { name: 'IP地址查询', path: '/ip-lookup', icon: 'Location', parentId: null, sort: 5, component: 'views/IpLookup.vue' },
       { name: '字数统计', path: '/word-counter', icon: 'Edit', parentId: null, sort: 6, component: 'views/WordCounter.vue' },
       { name: '随机选择', path: '/random-picker', icon: 'Cpu', parentId: null, sort: 7, component: 'views/RandomPicker.vue' },
-      { name: '代码反混淆', path: '/code-deobfuscator', icon: 'Monitor', parentId: null, sort: 8, component: 'views/CodeDeobfuscator.vue' },
-      { name: 'WebSocket 调试', path: '/websocket-debugger', icon: 'DataLine', parentId: null, sort: 9, component: 'views/WebSocketDebugger.vue' },
+      { name: 'AI扩文', path: '/ai-text-expander', icon: 'MagicStick', parentId: null, sort: 8, component: 'views/AiTextExpander.vue' },
+      { name: '代码反混淆', path: '/code-deobfuscator', icon: 'Monitor', parentId: null, sort: 9, component: 'views/CodeDeobfuscator.vue' },
+      { name: 'WebSocket 调试', path: '/websocket-debugger', icon: 'DataLine', parentId: null, sort: 10, component: 'views/WebSocketDebugger.vue' },
       { name: '系统管理', path: '/system', icon: 'Setting', parentId: null, sort: 99, component: null },
-      { name: '菜单管理', path: '/system/menu', icon: 'Menu', parentId: 9, sort: 1, component: 'views/Menu.vue' },
+      { name: '菜单管理', path: '/system/menu', icon: 'Menu', parentId: 10, sort: 1, component: 'views/Menu.vue' },
     ];
 
     for (const menu of menus) {
