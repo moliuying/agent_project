@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, HttpException, HttpStatus, Query } from '@nestjs/common';
-import { IdiomChainService, IdiomInfo, GameState } from './idiom-chain.service';
+import { IdiomChainService, IdiomInfo, GameState, IdiomSuggestion } from './idiom-chain.service';
 
 interface SubmitRequest {
   userWord: string;
@@ -27,12 +27,23 @@ export class IdiomChainController {
   }
 
   @Get('validate')
-  validateIdiom(@Query('word') word: string): { valid: boolean; info?: IdiomInfo } {
+  validateIdiom(
+    @Query('word') word: string,
+    @Query('tail') tail?: string,
+    @Query('used') used?: string,
+  ): { valid: boolean; info?: IdiomInfo; suggestions?: IdiomSuggestion[] } {
     if (!word) {
       return { valid: false };
     }
     const info = this.idiomChainService.validateIdiom(word);
-    return { valid: !!info, info: info || undefined };
+    if (info) {
+      return { valid: true, info };
+    }
+    const usedWords = used ? used.split(',') : [];
+    const suggestions = tail
+      ? this.idiomChainService.recommendIdioms(word, tail, usedWords)
+      : [];
+    return { valid: false, suggestions };
   }
 
   @Get('hint')

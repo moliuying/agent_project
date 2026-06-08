@@ -18,6 +18,13 @@ export interface ChainMessage {
 
 export type ErrorType = 'invalid_idiom' | 'already_used' | 'wrong_tail' | null;
 
+export interface IdiomSuggestion {
+  word: string;
+  pinyin: string;
+  meaning: string;
+  matchType: 'first_char' | 'same_length' | 'pinyin_similar';
+}
+
 export interface GameState {
   chain: ChainMessage[];
   currentTail: string;
@@ -28,6 +35,7 @@ export interface GameState {
   round: number;
   errorType?: ErrorType;
   errorDetail?: string;
+  suggestions?: IdiomSuggestion[];
 }
 
 const IDIOM_DATA: IdiomInfo[] = [
@@ -556,29 +564,35 @@ export class IdiomChainService {
 
     const idiomInfo = this.validateIdiom(trimmedWord);
     if (!idiomInfo) {
+      const suggestions = this.recommendIdioms(trimmedWord, currentState.currentTail, currentState.usedWords);
       return {
         ...currentState,
         message: `「${trimmedWord}」不是一个有效的成语，请重新输入！`,
         errorType: 'invalid_idiom',
-        errorDetail: '系统词库中未找到该成语，请检查拼写或换一个常用成语试试。',
+        errorDetail: `系统词库中未找到「${trimmedWord}」，可能是同音字错误或拼写有误。可以尝试下面推荐的成语：`,
+        suggestions,
       };
     }
 
     if (usedWords.has(trimmedWord)) {
+      const suggestions = this.recommendIdioms(trimmedWord, currentState.currentTail, currentState.usedWords);
       return {
         ...currentState,
         message: `「${trimmedWord}」已经用过了，请换一个！`,
         errorType: 'already_used',
-        errorDetail: '同一局对战中每个成语只能使用一次。',
+        errorDetail: '同一局对战中每个成语只能使用一次，试试这些：',
+        suggestions,
       };
     }
 
     if (!this.checkMatch(currentState.currentTail, trimmedWord)) {
+      const suggestions = this.recommendIdioms(trimmedWord, currentState.currentTail, currentState.usedWords);
       return {
         ...currentState,
         message: `接龙错误！需要以「${currentState.currentTail}」开头的成语。`,
         errorType: 'wrong_tail',
-        errorDetail: `当前需以「${currentState.currentTail}」字开头，你输入的「${trimmedWord}」是以「${trimmedWord.charAt(0)}」开头的。`,
+        errorDetail: `当前需以「${currentState.currentTail}」字开头，你输入的「${trimmedWord}」是以「${trimmedWord.charAt(0)}」开头的。试试这些：`,
+        suggestions,
       };
     }
 
@@ -637,5 +651,55 @@ export class IdiomChainService {
 
   getHint(currentTail: string, usedWords: string[]): IdiomInfo | null {
     return this.findIdiomByFirstChar(currentTail, new Set(usedWords));
+  }
+
+  recommendIdioms(inputWord: string, currentTail: string, usedWords: string[], limit: number = 4): IdiomSuggestion[] {
+    const trimmed = inputWord.trim();
+    if (!trimmed) return [];
+
+    const usedSet = new Set(usedWords);
+    const firstChar = trimmed.charAt(0);
+    const inputLength = trimmed.length;
+    const suggestions: IdiomSuggestion[] = [];
+    const seenWords = new Set<string>();
+
+    const addSuggestion = (idiom: IdiomInfo, matchType: IdiomSuggestion['matchType']) => {
+      if (seenWords.has(idiom.word) || usedSet.has(idiom.word)) return;
+      seenWords.add(idiom.word);
+      suggestions.push({
+        word: idiom.word,
+        pinyin: idiom.pinyin,
+        meaning: idiom.meaning,
+        matchType,
+      });
+    };
+
+    const tailCandidates = this.idiomMap.get(currentTail);
+    if (tailCandidates) {
+      for (const idiom of tailCandidates) {
+        if (idiom.word.charAt(0) === firstChar) {
+          addSuggestion(idiom, 'first_char');
+          if (suggestions.length >= limit) break;
+        }
+      }
+    }
+
+    if (suggestions.length < limit && tailCandidates) {
+      for (const idiom of tailCandidates) {
+        if (idiom.word.length === inputLength) {
+          addSuggestion(idiom, 'same_length');
+          if (suggestions.length >= limit) break;
+        }
+      }
+    }
+
+    if (suggestions.length < limit && tailCandidates) {
+      for (const idiom of tailCandidates) {
+        addSuggestion(idiom, 'pinyin_similar');
+        if (suggestions.length >= limit) break;
+      }
+    }
+
+    return suggestions;
   }
 }

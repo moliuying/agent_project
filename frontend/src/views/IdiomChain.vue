@@ -48,6 +48,19 @@
         >
           <template v-if="gameState.errorType && gameState.errorDetail" #default>
             <div class="error-detail">{{ gameState.errorDetail }}</div>
+            <div class="suggestion-buttons" v-if="gameState.suggestions && gameState.suggestions.length > 0">
+              <el-tag
+                v-for="s in gameState.suggestions"
+                :key="s.word"
+                :type="getSuggestionTagType(s.matchType)"
+                class="suggestion-tag"
+                @click="applySuggestion(s.word)"
+                effect="light"
+              >
+                <span class="s-word">{{ s.word }}</span>
+                <span class="s-pinyin">{{ s.pinyin }}</span>
+              </el-tag>
+            </div>
           </template>
         </el-alert>
         <div class="tail-hint" v-if="!gameState.gameOver">
@@ -116,6 +129,20 @@
               <CircleCheck v-else-if="liveValidation.status === 'valid'" />
             </el-icon>
             <span :class="liveValidation.status">{{ liveValidation.message }}</span>
+          </div>
+          <div class="suggestion-buttons" v-if="liveValidation.suggestions && liveValidation.suggestions.length > 0">
+            <span class="suggestion-label">试试这些：</span>
+            <el-tag
+              v-for="s in liveValidation.suggestions"
+              :key="s.word"
+              :type="getSuggestionTagType(s.matchType)"
+              class="suggestion-tag"
+              @click="applySuggestion(s.word)"
+              effect="light"
+            >
+              <span class="s-word">{{ s.word }}</span>
+              <span class="s-pinyin">{{ s.pinyin }}</span>
+            </el-tag>
           </div>
         </div>
         <el-button type="primary" size="large" @click="submitWord" :disabled="submitDisabled">
@@ -189,7 +216,7 @@ import {
   Loading
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { idiomChainApi, type GameState, type IdiomInfo } from '@/api/idiomChain'
+import { idiomChainApi, type GameState, type IdiomInfo, type IdiomSuggestion, type MatchType } from '@/api/idiomChain'
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -202,9 +229,11 @@ type ValidationStatus = 'idle' | 'checking' | 'valid' | 'invalid' | 'warning'
 const liveValidation = ref<{
   status: ValidationStatus
   message: string
+  suggestions?: IdiomSuggestion[]
 }>({
   status: 'idle',
-  message: ''
+  message: '',
+  suggestions: []
 })
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -237,7 +266,21 @@ const scrollToBottom = async () => {
 }
 
 const clearLiveValidation = () => {
-  liveValidation.value = { status: 'idle', message: '' }
+  liveValidation.value = { status: 'idle', message: '', suggestions: [] }
+}
+
+const getSuggestionTagType = (matchType: MatchType): '' | 'success' | 'warning' | 'info' | 'danger' | 'primary' => {
+  switch (matchType) {
+    case 'first_char': return 'success'
+    case 'same_length': return 'warning'
+    case 'pinyin_similar': return 'info'
+    default: return 'info'
+  }
+}
+
+const applySuggestion = (word: string) => {
+  userInput.value = word
+  nextTick(() => submitWord())
 }
 
 const validateInput = async (value: string) => {
@@ -251,19 +294,40 @@ const validateInput = async (value: string) => {
 
   const usedSet = new Set(gameState.value.usedWords)
   const tail = gameState.value.currentTail
+  const usedList = gameState.value.usedWords
 
   if (trimmed.charAt(0) !== tail) {
-    liveValidation.value = {
-      status: 'warning',
-      message: `开头字不对，需要以「${tail}」开头，你输入的是以「${trimmed.charAt(0)}」开头`
+    try {
+      const res = await idiomChainApi.validate(trimmed, tail, usedList)
+      liveValidation.value = {
+        status: 'warning',
+        message: `开头字不对，需要以「${tail}」开头，你输入的是以「${trimmed.charAt(0)}」开头`,
+        suggestions: res.data.suggestions
+      }
+    } catch {
+      liveValidation.value = {
+        status: 'warning',
+        message: `开头字不对，需要以「${tail}」开头，你输入的是以「${trimmed.charAt(0)}」开头`,
+        suggestions: []
+      }
     }
     return
   }
 
   if (usedSet.has(trimmed)) {
-    liveValidation.value = {
-      status: 'warning',
-      message: `「${trimmed}」已经在本局中用过了`
+    try {
+      const res = await idiomChainApi.validate(trimmed, tail, usedList)
+      liveValidation.value = {
+        status: 'warning',
+        message: `「${trimmed}」已经在本局中用过了`,
+        suggestions: res.data.suggestions
+      }
+    } catch {
+      liveValidation.value = {
+        status: 'warning',
+        message: `「${trimmed}」已经在本局中用过了`,
+        suggestions: []
+      }
     }
     return
   }
@@ -271,23 +335,26 @@ const validateInput = async (value: string) => {
   if (trimmed.length < 2) {
     liveValidation.value = {
       status: 'warning',
-      message: '成语至少有两个字'
+      message: '成语至少有两个字',
+      suggestions: []
     }
     return
   }
 
-  liveValidation.value = { status: 'checking', message: '验证中...' }
+  liveValidation.value = { status: 'checking', message: '验证中...', suggestions: [] }
   try {
-    const res = await idiomChainApi.validate(trimmed)
+    const res = await idiomChainApi.validate(trimmed, tail, usedList)
     if (res.data.valid && res.data.info) {
       liveValidation.value = {
         status: 'valid',
-        message: `「${trimmed}」${res.data.info.pinyin} — ${res.data.info.meaning}`
+        message: `「${trimmed}」${res.data.info.pinyin} — ${res.data.info.meaning}`,
+        suggestions: []
       }
     } else {
       liveValidation.value = {
         status: 'invalid',
-        message: `词库中未找到「${trimmed}」，请检查拼写或换一个常用成语`
+        message: `词库中未找到「${trimmed}」，可能是同音字错误或拼写有误。试试下面推荐的成语：`,
+        suggestions: res.data.suggestions || []
       }
     }
   } catch {
@@ -297,7 +364,7 @@ const validateInput = async (value: string) => {
 
 const onInputChange = (value: string) => {
   if (gameState.value?.errorType) {
-    gameState.value = { ...gameState.value, errorType: null, errorDetail: undefined }
+    gameState.value = { ...gameState.value, errorType: null, errorDetail: undefined, suggestions: [] }
   }
 
   if (debounceTimer) {
@@ -638,6 +705,55 @@ onMounted(() => {
 .live-feedback.warning {
   color: #e6a23c;
   background: #fdf6ec;
+}
+
+.suggestion-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.suggestion-label {
+  font-size: 12px;
+  color: #606266;
+  margin-right: 4px;
+}
+
+.suggestion-tag {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.suggestion-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.suggestion-tag .s-word {
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.suggestion-tag .s-pinyin {
+  font-size: 11px;
+  opacity: 0.75;
+  font-style: italic;
+}
+
+.status-alert :deep(.suggestion-buttons) {
+  margin-top: 8px;
+}
+
+.status-alert :deep(.suggestion-tag) {
+  font-size: 12px;
+  padding: 3px 8px;
 }
 
 .game-over-section {

@@ -23,6 +23,15 @@ export interface ChainMessage {
 
 export type ErrorType = 'invalid_idiom' | 'already_used' | 'wrong_tail' | null
 
+export type MatchType = 'first_char' | 'same_length' | 'pinyin_similar'
+
+export interface IdiomSuggestion {
+  word: string
+  pinyin: string
+  meaning: string
+  matchType: MatchType
+}
+
 export interface GameState {
   chain: ChainMessage[]
   currentTail: string
@@ -33,6 +42,7 @@ export interface GameState {
   round: number
   errorType?: ErrorType
   errorDetail?: string
+  suggestions?: IdiomSuggestion[]
 }
 
 export interface SubmitRequest {
@@ -43,7 +53,10 @@ export interface SubmitRequest {
 export const idiomChainApi = {
   newGame: () => api.get<GameState>('/idiom-chain/new-game'),
   submit: (data: SubmitRequest) => api.post<GameState>('/idiom-chain/submit', data),
-  validate: (word: string) => api.get<{ valid: boolean; info?: IdiomInfo }>('/idiom-chain/validate', { params: { word } }),
+  validate: (word: string, tail?: string, used?: string[]) =>
+    api.get<{ valid: boolean; info?: IdiomInfo; suggestions?: IdiomSuggestion[] }>('/idiom-chain/validate', {
+      params: { word, tail, used: used?.join(',') }
+    }),
   getHint: (tail: string, used: string[]) =>
     api.get<{ hint?: IdiomInfo; message?: string }>('/idiom-chain/hint', {
       params: { tail, used: used.join(',') }
