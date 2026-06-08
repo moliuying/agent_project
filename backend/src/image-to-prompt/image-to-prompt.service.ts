@@ -13,7 +13,123 @@ export interface ImageToPromptRequest {
   includeNegative?: boolean;
   variantSeed?: number;
   outputLanguage?: string;
+  styleBlendMode?: 'balanced' | 'dominant-first' | 'dominant-second' | 'deep-blend';
 }
+
+const STYLE_FUSION_TEMPLATES = [
+  'a fusion of {styleA} and {styleB}',
+  '{styleA} meets {styleB}',
+  'hybrid between {styleA} and {styleB}',
+  'combining elements of {styleA} and {styleB}',
+  'blending {styleA} and {styleB} aesthetics',
+  '{styleA} with {styleB} influences',
+  '{styleA} infused with {styleB}',
+  'where {styleA} meets {styleB}',
+  '{styleA}-inspired {styleB}',
+  '{styleA} rendered in {styleB}'
+];
+
+const STYLE_FUSION_TEMPLATES_DEEP = [
+  'seamless fusion of {styleA} and {styleB}',
+  'masterfully blended {styleA} and {styleB}',
+  'harmonious mix of {styleA} and {styleB}',
+  'perfect synthesis of {styleA} and {styleB}',
+  'artistic blend of {styleA} techniques with {styleB} visual language'
+];
+
+const KNOWN_STYLE_BLENDS: Record<string, string[]> = {
+  'photorealistic+anime style': [
+    'semi-realistic anime',
+    'realistic anime style',
+    'photorealistic anime illustration',
+    'anime style with realistic rendering'
+  ],
+  'photorealistic+digital art': [
+    'realistic digital painting',
+    'photorealistic digital illustration',
+    'hyperrealistic digital art'
+  ],
+  'photorealistic+oil painting': [
+    'painterly photorealistic',
+    'realistic oil painting style',
+    'photorealistic with painterly brushstrokes'
+  ],
+  'photorealistic+watercolor': [
+    'realistic watercolor',
+    'photorealistic watercolor illustration',
+    'watercolor rendered realistically'
+  ],
+  'photorealistic+3D render': [
+    '3D photorealistic render',
+    'hyperrealistic 3D rendering',
+    'photorealistic CGI'
+  ],
+  'photorealistic+cinematic': [
+    'cinematic photorealism',
+    'photorealistic cinematic film still',
+    'movie quality photorealistic shot'
+  ],
+  'photorealistic+fantasy art': [
+    'realistic fantasy art',
+    'photorealistic fantasy illustration',
+    'hyperrealistic fantasy scene'
+  ],
+  'photorealistic+cyberpunk': [
+    'photorealistic cyberpunk',
+    'realistic cyberpunk scene',
+    'hyperrealistic cyberpunk city'
+  ],
+  'anime style+digital art': [
+    'digital anime illustration',
+    'anime digital painting',
+    'high quality digital anime art'
+  ],
+  'anime style+watercolor': [
+    'watercolor anime illustration',
+    'soft watercolor anime style',
+    'anime rendered in watercolor'
+  ],
+  'anime style+oil painting': [
+    'oil painting anime style',
+    'painterly anime illustration',
+    'anime rendered in oil painting'
+  ],
+  'anime style+fantasy art': [
+    'anime fantasy art',
+    'fantasy anime illustration',
+    'epic anime fantasy style'
+  ],
+  '3D render+watercolor': [
+    '3D rendered watercolor',
+    'volumetric watercolor illustration',
+    'stylized 3D watercolor'
+  ],
+  'oil painting+digital art': [
+    'digital oil painting',
+    'painterly digital art',
+    'digital art with oil painting texture'
+  ],
+  'cinematic+fantasy art': [
+    'cinematic fantasy art',
+    'epic cinematic fantasy scene',
+    'movie quality fantasy illustration'
+  ],
+  'cyberpunk+cinematic': [
+    'cinematic cyberpunk',
+    'cyberpunk cinematic shot',
+    'movie quality cyberpunk scene'
+  ],
+  'digital art+watercolor': [
+    'digital watercolor',
+    'digital watercolor illustration',
+    'soft digital watercolor painting'
+  ],
+  'concept art+photorealistic': [
+    'realistic concept art',
+    'photorealistic concept design',
+    'production quality realistic concept art'
+  ]
+};
 
 export interface ImageAnalysis {
   mainSubject: string;
@@ -234,6 +350,73 @@ export class ImageToPromptService {
     return '';
   }
 
+  private buildStyleExpression(
+    styles: string[],
+    blendMode: 'balanced' | 'dominant-first' | 'dominant-second' | 'deep-blend' | undefined,
+    rand: () => number
+  ): string[] {
+    if (!styles || styles.length === 0) return [];
+    if (styles.length === 1) return styles;
+
+    const mode = blendMode || 'balanced';
+
+    if (styles.length === 2) {
+      const [styleA, styleB] = styles;
+
+      const keyA = `${styleA}+${styleB}`;
+      const keyB = `${styleB}+${styleA}`;
+      const knownBlend = KNOWN_STYLE_BLENDS[keyA] || KNOWN_STYLE_BLENDS[keyB];
+
+      let fusionExpression: string;
+
+      if (knownBlend && rand() > 0.3) {
+        fusionExpression = this.pickSeeded(knownBlend, 1, rand)[0];
+      } else {
+        const templates = mode === 'deep-blend' ? STYLE_FUSION_TEMPLATES_DEEP : STYLE_FUSION_TEMPLATES;
+        const template = this.pickSeeded(templates, 1, rand)[0];
+        fusionExpression = template
+          .replace('{styleA}', styleA)
+          .replace('{styleB}', styleB);
+      }
+
+      const result: string[] = [fusionExpression];
+
+      if (mode === 'dominant-first') {
+        result.push(`(${styleA}:1.25)`, `(${styleB}:0.7)`);
+      } else if (mode === 'dominant-second') {
+        result.push(`(${styleA}:0.7)`, `(${styleB}:1.25)`);
+      } else if (mode === 'balanced') {
+        result.push(`(${styleA}:1.1)`, `(${styleB}:1.1)`);
+      } else if (mode === 'deep-blend') {
+        result.push(`(${styleA}:1.15)`, `(${styleB}:1.15)`, 'hybrid style');
+      }
+
+      return result;
+    }
+
+    if (styles.length >= 3) {
+      const [s1, s2, ...rest] = styles;
+
+      const templates = mode === 'deep-blend' ? STYLE_FUSION_TEMPLATES_DEEP : STYLE_FUSION_TEMPLATES;
+      const template = this.pickSeeded(templates, 1, rand)[0];
+      const firstPair = template.replace('{styleA}', s1).replace('{styleB}', s2);
+
+      const result: string[] = [firstPair, ...rest];
+
+      if (mode === 'dominant-first') {
+        result.push(`(${s1}:1.25)`, `(${s2}:0.9)`);
+      } else if (mode === 'deep-blend') {
+        result.push('multi-style fusion', 'mixed media');
+      } else {
+        result.push(`(${s1}:1.1)`, `(${s2}:1.1)`);
+      }
+
+      return result;
+    }
+
+    return styles;
+  }
+
   async generate(request: ImageToPromptRequest): Promise<ImageToPromptResponse> {
     const {
       userDescription,
@@ -245,7 +428,8 @@ export class ImageToPromptService {
       colorProfile,
       detailLevel = 'medium',
       includeNegative = true,
-      variantSeed = 0
+      variantSeed = 0,
+      styleBlendMode
     } = request;
 
     const rand = this.seededRandom(variantSeed || Date.now() % 100000);
@@ -265,7 +449,8 @@ export class ImageToPromptService {
     if (targetStyle && !baseStyles.includes(targetStyle)) {
       baseStyles = [targetStyle, ...baseStyles.slice(0, -1)];
     }
-    const finalStyles = this.mergeForced(baseStyles, forcedStyles, counts.style + 2);
+    const finalStylesRaw = this.mergeForced(baseStyles, forcedStyles, counts.style + 2);
+    const finalStyleExpression = this.buildStyleExpression(finalStylesRaw, styleBlendMode, rand);
 
     const baseCompositions = this.pickWeightedSeeded(COMPOSITIONS, counts.composition, counts.composition + 1, rand);
     const finalCompositions = this.mergeForced(baseCompositions, forcedCompositions, counts.composition + 2);
@@ -288,7 +473,7 @@ export class ImageToPromptService {
 
     const analysis: ImageAnalysis = {
       mainSubject,
-      style: finalStyles,
+      style: finalStylesRaw,
       composition: finalCompositions,
       colorPalette: finalColors,
       lighting: finalLightings,
@@ -299,7 +484,7 @@ export class ImageToPromptService {
 
     const positiveTags = [
       analysis.mainSubject,
-      ...analysis.style,
+      ...finalStyleExpression,
       ...analysis.composition,
       ...analysis.colorPalette,
       ...analysis.lighting,

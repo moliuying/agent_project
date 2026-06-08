@@ -18,6 +18,7 @@ export interface ImageToPromptRequest {
   includeNegative?: boolean
   variantSeed?: number
   outputLanguage?: string
+  styleBlendMode?: 'balanced' | 'dominant-first' | 'dominant-second' | 'deep-blend'
 }
 
 export interface ImageAnalysis {

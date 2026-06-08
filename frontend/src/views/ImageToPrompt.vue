@@ -175,6 +175,91 @@
                 <el-checkbox value="vintage photography">复古</el-checkbox>
                 <el-checkbox value="pixel art">像素</el-checkbox>
               </el-checkbox-group>
+
+              <div class="style-presets">
+                <span class="preset-label">常见混合风格预设：</span>
+                <el-button
+                  size="small"
+                  type="primary"
+                  plain
+                  @click="applyStylePreset(['photorealistic', 'anime style'])"
+                >写实+动漫</el-button>
+                <el-button
+                  size="small"
+                  type="primary"
+                  plain
+                  @click="applyStylePreset(['photorealistic', 'watercolor'])"
+                >写实+水彩</el-button>
+                <el-button
+                  size="small"
+                  type="primary"
+                  plain
+                  @click="applyStylePreset(['photorealistic', 'oil painting'])"
+                >写实+油画</el-button>
+                <el-button
+                  size="small"
+                  type="primary"
+                  plain
+                  @click="applyStylePreset(['photorealistic', '3D render'])"
+                >写实+3D</el-button>
+                <el-button
+                  size="small"
+                  type="primary"
+                  plain
+                  @click="applyStylePreset(['anime style', 'watercolor'])"
+                >动漫+水彩</el-button>
+                <el-button
+                  size="small"
+                  type="primary"
+                  plain
+                  @click="applyStylePreset(['anime style', 'digital art'])"
+                >动漫+数字艺术</el-button>
+                <el-button
+                  size="small"
+                  type="primary"
+                  plain
+                  @click="applyStylePreset(['photorealistic', 'fantasy art'])"
+                >写实+奇幻</el-button>
+                <el-button
+                  size="small"
+                  type="primary"
+                  plain
+                  @click="applyStylePreset(['photorealistic', 'cyberpunk'])"
+                >写实+赛博朋克</el-button>
+                <el-button
+                  size="small"
+                  type="primary"
+                  plain
+                  @click="applyStylePreset(['cinematic', 'fantasy art'])"
+                >电影感+奇幻</el-button>
+                <el-button
+                  size="small"
+                  type="primary"
+                  plain
+                  @click="applyStylePreset(['oil painting', 'digital art'])"
+                >油画+数字艺术</el-button>
+                <el-button
+                  size="small"
+                  type="danger"
+                  plain
+                  @click="form.styles = []"
+                  :disabled="form.styles.length === 0"
+                >清空</el-button>
+              </div>
+
+              <div v-if="form.styles.length >= 2" class="style-blend-mode">
+                <el-divider direction="vertical" />
+                <span class="blend-label">风格融合强度：</span>
+                <el-radio-group v-model="form.styleBlendMode" size="small">
+                  <el-radio-button value="balanced">均衡融合</el-radio-button>
+                  <el-radio-button value="dominant-first">偏重首项</el-radio-button>
+                  <el-radio-button value="dominant-second">偏重次项</el-radio-button>
+                  <el-radio-button value="deep-blend">深度融合</el-radio-button>
+                </el-radio-group>
+                <el-tag size="small" type="success" class="blend-tip">
+                  已检测到 {{ form.styles.length }} 种风格，将自动生成风格融合提示词
+                </el-tag>
+              </div>
             </el-form-item>
 
             <el-form-item label="构图方式（可多选）">
@@ -698,7 +783,8 @@ const form = reactive({
   moods: [] as string[],
   detailLevel: 'medium',
   variantCount: 3,
-  includeNegative: true
+  includeNegative: true,
+  styleBlendMode: 'balanced' as 'balanced' | 'dominant-first' | 'dominant-second' | 'deep-blend'
 })
 
 const loadHistory = () => {
@@ -919,6 +1005,13 @@ const removeImage = () => {
   }
 }
 
+const applyStylePreset = (preset: string[]) => {
+  form.styles = [...preset]
+  if (preset.length >= 2 && form.styleBlendMode === 'balanced') {
+    ElMessage.info('已应用混合风格预设，可在下方调整融合强度')
+  }
+}
+
 const buildEnhancedDescription = (): string => {
   const parts: string[] = []
   if (form.userDescription.trim()) {
@@ -964,7 +1057,8 @@ const generatePrompt = async () => {
         detailLevel: form.detailLevel,
         includeNegative: form.includeNegative,
         variantSeed: i,
-        outputLanguage: 'en'
+        outputLanguage: 'en',
+        styleBlendMode: form.styles.length >= 2 ? form.styleBlendMode : undefined
       })
       variants.push(response.data)
     }
@@ -1007,7 +1101,8 @@ const regenerateVariant = async (idx: number) => {
       detailLevel: form.detailLevel,
       includeNegative: form.includeNegative,
       variantSeed: Date.now(),
-      outputLanguage: 'en'
+      outputLanguage: 'en',
+      styleBlendMode: form.styles.length >= 2 ? form.styleBlendMode : undefined
     })
     generatedVariants.value[idx] = response.data
     ElMessage.success('版本已重新生成')
@@ -1512,6 +1607,39 @@ const copyAllPrompts = () => {
   font-size: 12px;
   color: #909399;
   margin: 0;
+}
+
+.style-presets {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.preset-label {
+  font-size: 12px;
+  color: #606266;
+  margin-right: 2px;
+}
+
+.style-blend-mode {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #e4e7ed;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.blend-label {
+  font-size: 12px;
+  color: #606266;
+}
+
+.blend-tip {
+  margin-left: 4px;
 }
 
 @media (max-width: 768px) {
