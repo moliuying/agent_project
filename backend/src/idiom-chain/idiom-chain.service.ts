@@ -16,6 +16,8 @@ export interface ChainMessage {
   timestamp: number;
 }
 
+export type ErrorType = 'invalid_idiom' | 'already_used' | 'wrong_tail' | null;
+
 export interface GameState {
   chain: ChainMessage[];
   currentTail: string;
@@ -24,6 +26,8 @@ export interface GameState {
   message?: string;
   usedWords: string[];
   round: number;
+  errorType?: ErrorType;
+  errorDetail?: string;
 }
 
 const IDIOM_DATA: IdiomInfo[] = [
@@ -530,6 +534,8 @@ export class IdiomChainService {
       usedWords: [firstIdiom.word],
       round: 1,
       message: 'AI 先出成语，该你了！',
+      errorType: null,
+      errorDetail: undefined,
     };
   }
 
@@ -553,6 +559,8 @@ export class IdiomChainService {
       return {
         ...currentState,
         message: `「${trimmedWord}」不是一个有效的成语，请重新输入！`,
+        errorType: 'invalid_idiom',
+        errorDetail: '系统词库中未找到该成语，请检查拼写或换一个常用成语试试。',
       };
     }
 
@@ -560,6 +568,8 @@ export class IdiomChainService {
       return {
         ...currentState,
         message: `「${trimmedWord}」已经用过了，请换一个！`,
+        errorType: 'already_used',
+        errorDetail: '同一局对战中每个成语只能使用一次。',
       };
     }
 
@@ -567,6 +577,8 @@ export class IdiomChainService {
       return {
         ...currentState,
         message: `接龙错误！需要以「${currentState.currentTail}」开头的成语。`,
+        errorType: 'wrong_tail',
+        errorDetail: `当前需以「${currentState.currentTail}」字开头，你输入的「${trimmedWord}」是以「${trimmedWord.charAt(0)}」开头的。`,
       };
     }
 
@@ -592,6 +604,8 @@ export class IdiomChainService {
         usedWords: Array.from(usedWords),
         round: currentState.round + 1,
         message: `太棒了！AI 接不上「${tailChar}」开头的成语，你赢了！🎉`,
+        errorType: null,
+        errorDetail: undefined,
       };
     }
 
@@ -612,6 +626,8 @@ export class IdiomChainService {
       usedWords: Array.from(usedWords),
       round: currentState.round + 1,
       message: `AI 接了「${aiResponse.word}」，该你了！`,
+      errorType: null,
+      errorDetail: undefined,
     };
   }
 

@@ -21,6 +21,8 @@ export interface ChainMessage {
   timestamp: number
 }
 
+export type ErrorType = 'invalid_idiom' | 'already_used' | 'wrong_tail' | null
+
 export interface GameState {
   chain: ChainMessage[]
   currentTail: string
@@ -29,6 +31,8 @@ export interface GameState {
   message?: string
   usedWords: string[]
   round: number
+  errorType?: ErrorType
+  errorDetail?: string
 }
 
 export interface SubmitRequest {

@@ -41,11 +41,15 @@
       <div class="status-bar" v-if="gameState">
         <el-alert
           :title="gameState.message || '游戏开始！'"
-          :type="gameState.gameOver ? (gameState.winner === 'user' ? 'success' : 'error') : 'info'"
+          :type="statusAlertType"
           :closable="false"
           show-icon
           class="status-alert"
-        />
+        >
+          <template v-if="gameState.errorType && gameState.errorDetail" #default>
+            <div class="error-detail">{{ gameState.errorDetail }}</div>
+          </template>
+        </el-alert>
         <div class="tail-hint" v-if="!gameState.gameOver">
           <span class="tail-label">需要以「</span>
           <span class="tail-char">{{ gameState.currentTail }}</span>
@@ -79,20 +83,42 @@
       </div>
 
       <div class="input-section" v-if="gameState && !gameState.gameOver">
-        <el-input
-          v-model="userInput"
-          size="large"
-          placeholder="请输入成语..."
-          :maxlength="10"
-          clearable
-          @keyup.enter="submitWord"
-          class="idiom-input"
-        >
-          <template #prefix>
-            <el-icon><Edit /></el-icon>
-          </template>
-        </el-input>
-        <el-button type="primary" size="large" @click="submitWord" :disabled="submitting || !userInput.trim()">
+        <div class="input-wrapper">
+          <el-input
+            v-model="userInput"
+            size="large"
+            placeholder="请输入成语..."
+            :maxlength="10"
+            clearable
+            @input="onInputChange"
+            @keyup.enter="submitWord"
+            :class="inputClass"
+          >
+            <template #prefix>
+              <el-icon><Edit /></el-icon>
+            </template>
+            <template #suffix>
+              <el-icon v-if="liveValidation.status === 'valid'" class="valid-icon" color="#67c23a">
+                <CircleCheck />
+              </el-icon>
+              <el-icon v-else-if="liveValidation.status === 'invalid'" class="invalid-icon" color="#f56c6c">
+                <CircleClose />
+              </el-icon>
+              <el-icon v-else-if="liveValidation.status === 'checking'" class="checking-icon">
+                <Loading />
+              </el-icon>
+            </template>
+          </el-input>
+          <div class="live-feedback" v-if="liveValidation.message">
+            <el-icon>
+              <Warning v-if="liveValidation.status === 'warning'" />
+              <CircleClose v-else-if="liveValidation.status === 'invalid'" />
+              <CircleCheck v-else-if="liveValidation.status === 'valid'" />
+            </el-icon>
+            <span :class="liveValidation.status">{{ liveValidation.message }}</span>
+          </div>
+        </div>
+        <el-button type="primary" size="large" @click="submitWord" :disabled="submitDisabled">
           <el-icon><Promotion /></el-icon>
           接龙
         </el-button>
@@ -146,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import {
   InfoFilled,
   ChatDotRound,
@@ -156,7 +182,11 @@ import {
   User,
   Edit,
   Promotion,
-  DataLine
+  DataLine,
+  Warning,
+  CircleCheck,
+  CircleClose,
+  Loading
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { idiomChainApi, type GameState, type IdiomInfo } from '@/api/idiomChain'
@@ -167,6 +197,38 @@ const userInput = ref('')
 const gameState = ref<GameState | null>(null)
 const chainContainerRef = ref<HTMLElement | null>(null)
 
+type ValidationStatus = 'idle' | 'checking' | 'valid' | 'invalid' | 'warning'
+
+const liveValidation = ref<{
+  status: ValidationStatus
+  message: string
+}>({
+  status: 'idle',
+  message: ''
+})
+
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+const statusAlertType = computed(() => {
+  if (!gameState.value) return 'info'
+  if (gameState.value.gameOver) {
+    return gameState.value.winner === 'user' ? 'success' : 'info'
+  }
+  if (gameState.value.errorType === 'invalid_idiom') return 'error'
+  if (gameState.value.errorType === 'already_used') return 'warning'
+  if (gameState.value.errorType === 'wrong_tail') return 'warning'
+  return 'info'
+})
+
+const inputClass = computed(() => ({
+  'input-valid': liveValidation.value.status === 'valid',
+  'input-invalid': liveValidation.value.status === 'invalid' || liveValidation.value.status === 'warning'
+}))
+
+const submitDisabled = computed(() => {
+  return submitting.value || !userInput.value.trim()
+})
+
 const scrollToBottom = async () => {
   await nextTick()
   if (chainContainerRef.value) {
@@ -174,8 +236,90 @@ const scrollToBottom = async () => {
   }
 }
 
+const clearLiveValidation = () => {
+  liveValidation.value = { status: 'idle', message: '' }
+}
+
+const validateInput = async (value: string) => {
+  const trimmed = value.trim()
+  if (!trimmed) {
+    clearLiveValidation()
+    return
+  }
+
+  if (!gameState.value) return
+
+  const usedSet = new Set(gameState.value.usedWords)
+  const tail = gameState.value.currentTail
+
+  if (trimmed.charAt(0) !== tail) {
+    liveValidation.value = {
+      status: 'warning',
+      message: `开头字不对，需要以「${tail}」开头，你输入的是以「${trimmed.charAt(0)}」开头`
+    }
+    return
+  }
+
+  if (usedSet.has(trimmed)) {
+    liveValidation.value = {
+      status: 'warning',
+      message: `「${trimmed}」已经在本局中用过了`
+    }
+    return
+  }
+
+  if (trimmed.length < 2) {
+    liveValidation.value = {
+      status: 'warning',
+      message: '成语至少有两个字'
+    }
+    return
+  }
+
+  liveValidation.value = { status: 'checking', message: '验证中...' }
+  try {
+    const res = await idiomChainApi.validate(trimmed)
+    if (res.data.valid && res.data.info) {
+      liveValidation.value = {
+        status: 'valid',
+        message: `「${trimmed}」${res.data.info.pinyin} — ${res.data.info.meaning}`
+      }
+    } else {
+      liveValidation.value = {
+        status: 'invalid',
+        message: `词库中未找到「${trimmed}」，请检查拼写或换一个常用成语`
+      }
+    }
+  } catch {
+    clearLiveValidation()
+  }
+}
+
+const onInputChange = (value: string) => {
+  if (gameState.value?.errorType) {
+    gameState.value = { ...gameState.value, errorType: null, errorDetail: undefined }
+  }
+
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+  }
+
+  const trimmed = value.trim()
+  if (!trimmed) {
+    clearLiveValidation()
+    return
+  }
+
+  if (trimmed.length >= 2) {
+    debounceTimer = setTimeout(() => validateInput(trimmed), 300)
+  } else {
+    clearLiveValidation()
+  }
+}
+
 const startNewGame = async () => {
   loading.value = true
+  clearLiveValidation()
   try {
     const res = await idiomChainApi.newGame()
     gameState.value = res.data
@@ -206,6 +350,7 @@ const submitWord = async () => {
     })
     gameState.value = res.data
     userInput.value = ''
+    clearLiveValidation()
     await scrollToBottom()
     if (res.data.gameOver) {
       if (res.data.winner === 'user') {
@@ -307,6 +452,13 @@ onMounted(() => {
 
 .status-alert {
   margin-bottom: 12px;
+}
+
+.error-detail {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.85;
+  line-height: 1.5;
 }
 
 .tail-hint {
@@ -425,10 +577,67 @@ onMounted(() => {
 .input-section {
   display: flex;
   gap: 12px;
+  align-items: flex-start;
 }
 
-.idiom-input {
+.input-wrapper {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.idiom-input :deep(.el-input__wrapper) {
+  transition: all 0.3s ease;
+}
+
+.idiom-input.input-valid :deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px #67c23a inset;
+}
+
+.idiom-input.input-invalid :deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px #f56c6c inset;
+}
+
+.valid-icon,
+.invalid-icon,
+.checking-icon {
+  font-size: 18px;
+}
+
+.checking-icon {
+  animation: rotate 1s linear infinite;
+  color: #909399;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.live-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+
+.live-feedback.valid {
+  color: #67c23a;
+  background: #f0f9eb;
+}
+
+.live-feedback.invalid {
+  color: #f56c6c;
+  background: #fef0f0;
+}
+
+.live-feedback.warning {
+  color: #e6a23c;
+  background: #fdf6ec;
 }
 
 .game-over-section {
