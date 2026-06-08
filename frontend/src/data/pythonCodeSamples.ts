@@ -8,6 +8,11 @@ export interface PythonCodeSample {
   useCase: string
   difficulty: 'beginner' | 'intermediate' | 'advanced'
   previewEmoji?: string
+  pythonVersion: string
+  dependencies: string[]
+  installCommand?: string
+  runCommand: string
+  notes?: string
 }
 
 export const pythonCategories = [
@@ -43,7 +48,11 @@ print(coords)  # [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)]`,
     description: 'Python 列表推导式是一种简洁优雅的语法，用一行代码替代多行 for 循环创建列表。',
     useCase: '日常开发中快速生成数据列表、数据过滤、格式转换，代码更简洁高效，面试中也常考察对 Pythonic 写法的掌握。',
     difficulty: 'beginner',
-    previewEmoji: '📋'
+    previewEmoji: '📋',
+    pythonVersion: 'Python 2.7+ / Python 3.x',
+    dependencies: [],
+    runCommand: 'python list_comprehension.py',
+    notes: '无需安装任何第三方库，Python 内置语法。Python 2 中 print 语句需要加括号才能兼容 3.x。'
   },
   {
     id: 2,
@@ -78,7 +87,11 @@ print(Counter(words))  # Counter({'apple': 3, 'banana': 2, 'cherry': 1})`,
     description: '字典是 Python 中最常用的数据结构之一，掌握这些常用操作可以大幅提升编码效率。',
     useCase: '配置读取、JSON 数据处理、统计计数、缓存映射等场景，几乎每个 Python 项目都会用到。',
     difficulty: 'beginner',
-    previewEmoji: '📖'
+    previewEmoji: '📖',
+    pythonVersion: 'Python 3.x',
+    dependencies: [],
+    runCommand: 'python dict_ops.py',
+    notes: 'collections.Counter 是 Python 3.1+ 内置模块。字典推导式 Python 2.7+ 支持。字典合并用 {**a, **b} 需要 Python 3.5+，Python 3.9+ 可用 a | b。'
   },
   {
     id: 3,
@@ -114,7 +127,11 @@ print(f"今天是 {today:%Y年%m月%d日}")`,
     description: 'Python 提供多种字符串格式化方式，f-string 是现代 Python 最推荐的写法，简洁且功能强大。',
     useCase: '日志输出、报表生成、数据展示、用户提示信息等，任何需要字符串拼接的场景。',
     difficulty: 'beginner',
-    previewEmoji: '✏️'
+    previewEmoji: '✏️',
+    pythonVersion: 'Python 3.6+ (f-string)',
+    dependencies: [],
+    runCommand: 'python string_formatting.py',
+    notes: 'f-string 语法仅 Python 3.6+ 支持。如果使用 Python 2 或 3.5 及以下，请改用 str.format() 或 % 格式化。datetime 是标准库，无需安装。'
   },
   {
     id: 4,
@@ -161,7 +178,11 @@ print(loaded)`,
     description: '使用 with 上下文管理器可以自动处理文件关闭，避免资源泄漏。掌握文本和 JSON 文件读写是基础技能。',
     useCase: '配置文件读写、数据导入导出、日志分析、文本处理脚本等日常开发必备。',
     difficulty: 'beginner',
-    previewEmoji: '📁'
+    previewEmoji: '📁',
+    pythonVersion: 'Python 3.x',
+    dependencies: [],
+    runCommand: 'python file_ops.py',
+    notes: 'with 语句需 Python 2.6+ 支持。encoding="utf-8" 参数建议始终加上，Windows 系统默认编码是 GBK，容易乱码。json 是标准库模块。运行前请确保脚本对目录有写权限。'
   },
   {
     id: 5,
@@ -200,7 +221,11 @@ print(two_sum(nums2, target2))  # [1, 2]`,
     description: '经典面试题，使用哈希表将 O(n²) 的暴力解法优化到 O(n)，考察数据结构选型能力。',
     useCase: '面试准备、算法练习，理解哈希表空间换时间的核心思想。',
     difficulty: 'beginner',
-    previewEmoji: '🧮'
+    previewEmoji: '🧮',
+    pythonVersion: 'Python 3.5+',
+    dependencies: [],
+    runCommand: 'python two_sum.py',
+    notes: 'typing.List 类型提示需要 Python 3.5+。如果使用 Python 3.9+，可以直接用 list[int] 替代 List[int]。算法逻辑本身不依赖任何第三方库。'
   },
   {
     id: 6,
@@ -255,7 +280,11 @@ print(unstable_function())`,
     description: '装饰器是 Python 中 AOP（面向切面编程）的实现方式，可以在不修改函数代码的前提下增强功能。',
     useCase: '日志记录、性能监控、重试机制、权限校验、缓存等横切关注点，Python Web 框架（如 Flask、FastAPI）大量使用。',
     difficulty: 'intermediate',
-    previewEmoji: '🎭'
+    previewEmoji: '🎭',
+    pythonVersion: 'Python 3.x',
+    dependencies: [],
+    runCommand: 'python decorators.py',
+    notes: 'functools.wraps 是标准库。装饰器语法 @ 需 Python 2.4+ 支持。如报错 NameError: name \'time\' is not defined，请确认是否导入了 time 模块。'
   },
   {
     id: 7,
@@ -311,7 +340,11 @@ def read_large_file(file_path, chunk_size=8192):
     description: '生成器通过 yield 实现惰性求值，只在需要时才计算值，对于大数据处理可以极大节省内存。',
     useCase: '大数据处理、流式读取、无限序列生成，是 Python 内存优化的重要手段，面试高频考点。',
     difficulty: 'intermediate',
-    previewEmoji: '⚡'
+    previewEmoji: '⚡',
+    pythonVersion: 'Python 2.3+ (yield)',
+    dependencies: [],
+    runCommand: 'python generators.py',
+    notes: 'yield 关键字 Python 2.2+ 引入，2.3+ 完善。生成器表达式需 Python 2.4+。注意生成器只能遍历一次，如需重复遍历需重新创建。'
   },
   {
     id: 8,
@@ -377,7 +410,12 @@ if __name__ == "__main__":
     description: '使用 requests 库发送 HTTP 请求，BeautifulSoup 解析 HTML，是 Python 爬虫最基础也是最实用的组合。',
     useCase: '数据采集、价格监控、内容聚合、学术研究等，是 Python 最受欢迎的应用场景之一。',
     difficulty: 'intermediate',
-    previewEmoji: '🕷️'
+    previewEmoji: '🕷️',
+    pythonVersion: 'Python 3.7+',
+    dependencies: ['requests', 'beautifulsoup4'],
+    installCommand: 'pip install requests beautifulsoup4',
+    runCommand: 'python scraper.py',
+    notes: '如报错 ModuleNotFoundError: No module named \'requests\' 或 \'bs4\'，请先运行 installCommand 安装依赖。如遇 SSL 错误，可添加 verify=False 参数临时跳过（不推荐生产环境）。请遵守目标网站 robots.txt，控制爬取频率。'
   },
   {
     id: 9,
@@ -454,7 +492,11 @@ class Puppy(Dog):
     description: '面向对象三大特性：封装、继承、多态。抽象基类定义接口规范，子类实现具体行为，多态让代码更灵活可扩展。',
     useCase: '项目架构设计、插件系统、框架开发，理解 OOP 思想是进阶开发的必经之路。',
     difficulty: 'intermediate',
-    previewEmoji: '🧬'
+    previewEmoji: '🧬',
+    pythonVersion: 'Python 3.4+ (abc)',
+    dependencies: [],
+    runCommand: 'python oop_example.py',
+    notes: 'abc.ABC 抽象基类模块需 Python 3.4+ 支持。Python 2 中需使用 class Animal(object): __metaclass__ = ABCMeta。注意：抽象类不能直接实例化，必须被继承并实现所有抽象方法。'
   },
   {
     id: 10,
@@ -514,12 +556,17 @@ df_read = pd.read_csv("employees.csv")
     description: 'Pandas 是 Python 数据分析的事实标准，提供高效的 DataFrame 结构，支持数据清洗、转换、统计、聚合等操作。',
     useCase: '数据清洗、报表生成、特征工程、商业分析，是数据分析师、算法工程师的必备技能。',
     difficulty: 'intermediate',
-    previewEmoji: '📊'
+    previewEmoji: '📊',
+    pythonVersion: 'Python 3.8+ (推荐)',
+    dependencies: ['pandas', 'numpy', 'openpyxl (仅Excel读写)'],
+    installCommand: 'pip install pandas numpy openpyxl',
+    runCommand: 'python pandas_demo.py',
+    notes: '如报错 ModuleNotFoundError，请先执行 pip install pandas numpy。读写 Excel 需要额外安装 openpyxl。读写中文 CSV 建议使用 utf-8-sig 编码，否则 Excel 打开可能乱码。建议 Python 3.8 及以上版本，旧版本可能存在兼容问题。'
   },
   {
     id: 11,
     title: '并发编程 (线程/进程/协程)',
-    category: 'advanced',
+    category: 'basics',
     tags: ['并发', '多线程', 'asyncio', '性能优化'],
     code: `import time
 import asyncio
@@ -584,7 +631,12 @@ async def async_main():
     description: 'Python 提供三种并发方案：多线程（I/O密集）、多进程（CPU密集）、asyncio协程（高并发I/O），根据场景选择合适方案。',
     useCase: '爬虫提速、批量文件处理、Web服务优化、高并发系统，是 Python 高级开发者必须掌握的内容。',
     difficulty: 'advanced',
-    previewEmoji: '🚀'
+    previewEmoji: '🚀',
+    pythonVersion: 'Python 3.6+ (asyncio.run 需要 3.7+)',
+    dependencies: ['requests', 'aiohttp (仅异步示例)'],
+    installCommand: 'pip install requests aiohttp',
+    runCommand: 'python concurrency.py',
+    notes: '多进程示例必须放在 if __name__ == "__main__": 中，否则 Windows 会报错。asyncio.run() 需 Python 3.7+。GIL 的存在使多线程无法并行 CPU 计算，所以 CPU 密集任务用多进程。如报错 RuntimeError: This event loop is already running，说明在 Jupyter 等环境中，需改用 asyncio.create_task()。'
   },
   {
     id: 12,
@@ -657,7 +709,11 @@ with closing(urlopen("https://example.com")) as page:
     description: '上下文管理器通过 __enter__ 和 __exit__ 方法确保资源被正确获取和释放，是 Python 优雅处理资源管理的核心机制。',
     useCase: '数据库连接、文件操作、锁管理、事务管理、临时目录等任何需要清理的资源场景。',
     difficulty: 'advanced',
-    previewEmoji: '🔒'
+    previewEmoji: '🔒',
+    pythonVersion: 'Python 2.6+',
+    dependencies: [],
+    runCommand: 'python context_manager.py',
+    notes: 'contextlib.contextmanager 装饰器需 Python 2.5+ 支持。with 语句需 Python 2.6+。注意 __exit__ 方法有三个异常参数，返回 True 可以阻止异常继续传播。'
   },
   {
     id: 13,
@@ -706,7 +762,11 @@ print(is_valid(""))         # True`,
     description: '经典栈应用题，利用栈的后进先出特性处理嵌套结构，是考察数据结构的基础题型。',
     useCase: '面试算法练习，代码编辑器语法高亮、HTML标签匹配、表达式求值等实际场景都运用了类似思想。',
     difficulty: 'beginner',
-    previewEmoji: '🖇️'
+    previewEmoji: '🖇️',
+    pythonVersion: 'Python 3.x',
+    dependencies: [],
+    runCommand: 'python valid_parentheses.py',
+    notes: '纯内置语法，无需安装任何库。Python 中 list 即可作为栈使用，append() 入栈，pop() 出栈。如果字符串包含空格或其他字符，代码会认为是无效输入，可根据需要预处理。'
   },
   {
     id: 14,
@@ -764,7 +824,11 @@ print(is_valid_email("invalid"))   # False`,
     description: '正则表达式是文本处理的瑞士军刀，掌握常用模式可以快速完成匹配、提取、替换等复杂文本操作。',
     useCase: '数据清洗、格式校验、日志分析、爬虫提取、文本搜索，是程序员的通用技能。',
     difficulty: 'intermediate',
-    previewEmoji: '🔍'
+    previewEmoji: '🔍',
+    pythonVersion: 'Python 3.x',
+    dependencies: [],
+    runCommand: 'python regex_demo.py',
+    notes: 're 是 Python 标准库模块，无需安装。注意：在 Python 字符串中写正则，反斜杠需要转义（\\\\ 表示 \\），推荐使用原始字符串 r"..." 避免转义。正则表达式复杂时建议分段注释。'
   },
   {
     id: 15,
@@ -856,7 +920,11 @@ if __name__ == "__main__":
     description: '面试常考的 5 种基础排序算法，理解各自的时间/空间复杂度、稳定性和适用场景。',
     useCase: '面试准备、算法基础，实际开发中直接用 sorted() 即可（Python 内置 TimSort 算法极其高效）。',
     difficulty: 'intermediate',
-    previewEmoji: '📶'
+    previewEmoji: '📶',
+    pythonVersion: 'Python 3.5+',
+    dependencies: [],
+    runCommand: 'python sorting_algorithms.py',
+    notes: 'typing.List 需 Python 3.5+。递归排序（快排、归并）注意 Python 默认递归深度约 1000，对超大数据集会 RecursionError，此时可用迭代版或直接 sorted()。'
   },
   {
     id: 16,
@@ -937,7 +1005,12 @@ def delete_book(book_id: int):
     description: 'FastAPI 是现代 Python Web 框架，基于类型提示自动生成文档和校验，性能媲美 Go/Node，开发效率极高。',
     useCase: '快速构建 RESTful API、微服务、机器学习模型部署，是 Python 后端开发的首选框架之一。',
     difficulty: 'intermediate',
-    previewEmoji: '🌐'
+    previewEmoji: '🌐',
+    pythonVersion: 'Python 3.8+',
+    dependencies: ['fastapi', 'uvicorn', 'pydantic'],
+    installCommand: 'pip install fastapi uvicorn',
+    runCommand: 'uvicorn main:app --reload',
+    notes: '如报错 ModuleNotFoundError，请先 pip install fastapi uvicorn。启动后访问 http://localhost:8000/docs 即可看到交互式 API 文档。dict[int, Book] 类型提示需 Python 3.9+，旧版本可改用 Dict[int, Book]（从 typing 导入）。'
   },
   {
     id: 17,
@@ -1027,7 +1100,12 @@ users: UserDict = {1: "Alice", 2: "Bob"}
     description: 'Python 3.5+ 引入类型提示，配合 mypy 可以在不运行代码的情况下发现类型错误，提升大型项目的可维护性。',
     useCase: '大型项目开发、团队协作、开源库编写，现代 Python 开发的标准实践，FastAPI/Pydantic 等框架都重度依赖。',
     difficulty: 'intermediate',
-    previewEmoji: '📝'
+    previewEmoji: '📝',
+    pythonVersion: 'Python 3.5+ (typing 模块)',
+    dependencies: ['mypy (仅静态检查)'],
+    installCommand: 'pip install mypy',
+    runCommand: 'python typing_demo.py  # 运行\nmypy typing_demo.py  # 静态检查',
+    notes: '类型提示在运行时不强制，Python 依然是动态语言。Python 3.9+ 支持 list[int]、dict[str, int] 等原生泛型，无需从 typing 导入。如 mypy 报错 No library stub file，可忽略或安装对应库的 types-* 包。'
   },
   {
     id: 18,
@@ -1097,7 +1175,11 @@ print(search_right_bound(nums2, 2))  # 3`,
     description: '二分查找是有序数组查找的最优解，O(log n) 时间复杂度秒杀 O(n) 线性查找，面试高频考点。',
     useCase: '查找搜索、数据库索引、旋转数组、峰值查找等，必须掌握基础模板和左右边界变体。',
     difficulty: 'intermediate',
-    previewEmoji: '🔎'
+    previewEmoji: '🔎',
+    pythonVersion: 'Python 3.x',
+    dependencies: [],
+    runCommand: 'python binary_search.py',
+    notes: '纯内置语法无依赖。注意二分查找前提是数组有序。常见坑：1) while 条件 left<=right vs left<right；2) mid 计算防溢出写法；3) 边界条件判断。写代码时建议在纸上走一遍测试用例。'
   },
   {
     id: 19,
@@ -1186,7 +1268,11 @@ except ConnectionError as e:
     description: '良好的异常处理让程序更健壮，区分可预期错误和真正的 Bug，同时自定义异常让错误语义更清晰。',
     useCase: '任何生产级代码都需要完善的错误处理，防止程序崩溃、方便调试、给出友好的错误提示。',
     difficulty: 'intermediate',
-    previewEmoji: '⚠️'
+    previewEmoji: '⚠️',
+    pythonVersion: 'Python 3.x',
+    dependencies: [],
+    runCommand: 'python exception_handling.py',
+    notes: '自定义异常类的 __init__ 中记得调用 super().__init__()。except 后面不指定异常类型会捕获所有异常包括 KeyboardInterrupt，非常危险，永远不要这么写。BaseException 是所有异常的根类，捕获它也同样危险。'
   },
   {
     id: 20,
@@ -1267,6 +1353,11 @@ except ConnectionError as e:
     description: '虚拟环境让每个项目的依赖相互隔离，避免版本冲突，是 Python 工程化的第一步，也是最容易被新手忽视的重要知识。',
     useCase: '任何 Python 项目都应该使用虚拟环境，团队协作时保证每个人的依赖版本一致，避免"在我机器上能跑"问题。',
     difficulty: 'beginner',
-    previewEmoji: '🐍'
+    previewEmoji: '🐍',
+    pythonVersion: 'Python 3.3+ (venv 内置)',
+    dependencies: [],
+    installCommand: 'pip install poetry  # 仅使用 Poetry 时需要',
+    runCommand: '命令行脚本，逐项执行',
+    notes: 'venv 是 Python 3.3+ 内置模块，Python 2 请使用 virtualenv。Windows PowerShell 执行策略可能阻止激活脚本，需先运行 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser。pip 安装慢强烈建议配置国内镜像。'
   }
 ]

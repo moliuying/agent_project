@@ -179,6 +179,37 @@
           <p class="usecase-text">{{ sample.useCase }}</p>
         </div>
 
+        <div class="env-box">
+          <div class="env-item">
+            <el-icon :size="14" color="#16a34a"><Cpu /></el-icon>
+            <span class="env-label">Python 版本：</span>
+            <span class="env-value">{{ sample.pythonVersion }}</span>
+          </div>
+          <div class="env-item" v-if="sample.dependencies && sample.dependencies.length > 0">
+            <el-icon :size="14" color="#f59e0b"><Box /></el-icon>
+            <span class="env-label">依赖：</span>
+            <span class="env-value">
+              <el-tag
+                v-for="dep in sample.dependencies.slice(0, 3)"
+                :key="dep"
+                size="small"
+                type="warning"
+                effect="light"
+              >
+                {{ dep }}
+              </el-tag>
+              <el-tag v-if="sample.dependencies.length > 3" size="small" effect="plain">
+                +{{ sample.dependencies.length - 3 }}
+              </el-tag>
+            </span>
+          </div>
+          <div class="env-item" v-if="sample.installCommand">
+            <el-icon :size="14" color="#3772FF"><Download /></el-icon>
+            <span class="env-label">安装：</span>
+            <span class="env-value mono-text">{{ sample.installCommand }}</span>
+          </div>
+        </div>
+
         <div class="card-footer">
           <div class="sample-category">
             <el-tag size="small" type="primary" effect="light">
@@ -269,6 +300,100 @@
 
         <div class="detail-section">
           <div class="section-title">
+            <el-icon :size="16" color="#165DFF"><SetUp /></el-icon>
+            <span>运行环境说明</span>
+          </div>
+          <el-descriptions :column="1" border size="default" class="env-descriptions">
+            <el-descriptions-item>
+              <template #label>
+                <span class="desc-label">
+                  <el-icon :size="14" color="#16a34a"><Cpu /></el-icon>
+                  Python 版本
+                </span>
+              </template>
+              <span>{{ currentDetail.pythonVersion }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item v-if="currentDetail.dependencies && currentDetail.dependencies.length > 0">
+              <template #label>
+                <span class="desc-label">
+                  <el-icon :size="14" color="#f59e0b"><Box /></el-icon>
+                  依赖库
+                </span>
+              </template>
+              <div class="deps-list">
+                <el-tag
+                  v-for="dep in currentDetail.dependencies"
+                  :key="dep"
+                  size="default"
+                  type="warning"
+                  effect="light"
+                  class="dep-tag"
+                >
+                  {{ dep }}
+                </el-tag>
+              </div>
+            </el-descriptions-item>
+            <el-descriptions-item v-if="currentDetail.installCommand">
+              <template #label>
+                <span class="desc-label">
+                  <el-icon :size="14" color="#3772FF"><Download /></el-icon>
+                  安装命令
+                </span>
+              </template>
+              <div
+                class="install-cmd touch-friendly"
+                @click="copyCodeWithFeedback(currentDetail.installCommand, '安装命令', `${currentDetail.id}-install`)"
+                @touchstart.prevent="handleTouchStart($event, currentDetail.installCommand, '安装命令', `${currentDetail.id}-install`)"
+                @touchend.prevent="handleTouchEnd"
+                @touchmove.prevent="handleTouchMove"
+              >
+                <code class="cmd-code">{{ currentDetail.installCommand }}</code>
+                <el-button link type="primary" size="small">
+                  <el-icon><DocumentCopy /></el-icon>
+                  复制
+                </el-button>
+              </div>
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <span class="desc-label">
+                  <el-icon :size="14" color="#7c3aed"><VideoPlay /></el-icon>
+                  运行方式
+                </span>
+              </template>
+              <div
+                class="install-cmd touch-friendly"
+                @click="copyCodeWithFeedback(currentDetail.runCommand, '运行命令', `${currentDetail.id}-run`)"
+                @touchstart.prevent="handleTouchStart($event, currentDetail.runCommand, '运行命令', `${currentDetail.id}-run`)"
+                @touchend.prevent="handleTouchEnd"
+                @touchmove.prevent="handleTouchMove"
+              >
+                <code class="cmd-code">{{ currentDetail.runCommand }}</code>
+                <el-button link type="primary" size="small">
+                  <el-icon><DocumentCopy /></el-icon>
+                  复制
+                </el-button>
+              </div>
+            </el-descriptions-item>
+            <el-descriptions-item v-if="currentDetail.notes">
+              <template #label>
+                <span class="desc-label">
+                  <el-icon :size="14" color="#ef4444"><Warning /></el-icon>
+                  注意事项
+                </span>
+              </template>
+              <div class="notes-box">
+                <el-icon color="#f56c6c" :size="14"><InfoFilled /></el-icon>
+                <span>{{ currentDetail.notes }}</span>
+              </div>
+            </el-descriptions-item>
+          </el-descriptions>
+        </div>
+
+        <el-divider />
+
+        <div class="detail-section">
+          <div class="section-title">
             <el-icon :size="16" color="#3772FF"><Document /></el-icon>
             <span>Python 代码</span>
             <el-button
@@ -350,7 +475,13 @@ import {
   Globe,
   DataLine,
   Promotion,
-  CircleCheckFilled
+  CircleCheckFilled,
+  Box,
+  Download,
+  VideoPlay,
+  Warning,
+  SetUp,
+  InfoFilled
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
@@ -475,7 +606,11 @@ const filteredSamples = computed(() => {
       s.description.toLowerCase().includes(keyword) ||
       s.code.toLowerCase().includes(keyword) ||
       s.useCase.toLowerCase().includes(keyword) ||
-      s.tags.some(t => t.toLowerCase().includes(keyword))
+      s.tags.some(t => t.toLowerCase().includes(keyword)) ||
+      s.pythonVersion.toLowerCase().includes(keyword) ||
+      s.dependencies.some(d => d.toLowerCase().includes(keyword)) ||
+      (s.installCommand && s.installCommand.toLowerCase().includes(keyword)) ||
+      (s.notes && s.notes.toLowerCase().includes(keyword))
     )
   }
 
@@ -883,6 +1018,129 @@ const resetFilters = () => {
   margin: 0;
 }
 
+.env-box {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-left: 3px solid #10b981;
+}
+
+.env-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+
+.env-item:last-child {
+  margin-bottom: 0;
+}
+
+.env-label {
+  color: #374151;
+  font-weight: 600;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.env-value {
+  color: #1f2937;
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.mono-text {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  background: rgba(55, 114, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #3772FF;
+  font-size: 11px;
+  word-break: break-all;
+}
+
+.env-descriptions {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.desc-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.deps-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dep-tag {
+  margin: 0 !important;
+}
+
+.install-cmd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #1e293b;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 36px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.install-cmd:hover {
+  background: #0f172a;
+  transform: translateX(2px);
+}
+
+.install-cmd.touch-friendly {
+  min-height: 44px;
+  padding: 10px 14px;
+}
+
+.cmd-code {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  color: #4ade80;
+  font-size: 13px;
+  flex: 1;
+  word-break: break-all;
+  background: transparent;
+  padding: 0;
+}
+
+.notes-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  color: #dc2626;
+  line-height: 1.6;
+  background: linear-gradient(135deg, #fef2f2 0%, #fffbeb 100%);
+  padding: 10px 12px;
+  border-radius: 6px;
+  border-left: 3px solid #ef4444;
+}
+
+.notes-box span {
+  flex: 1;
+  color: #991b1b;
+}
+
 .card-footer {
   display: flex;
   justify-content: space-between;
@@ -1216,6 +1474,28 @@ const resetFilters = () => {
     font-size: 14px;
     line-height: 1.7;
     padding: 14px;
+  }
+
+  .env-box {
+    padding: 14px;
+  }
+
+  .env-item {
+    font-size: 13px;
+  }
+
+  .install-cmd {
+    flex-wrap: wrap;
+    min-height: 44px;
+  }
+
+  .cmd-code {
+    font-size: 12px;
+    word-break: break-all;
+  }
+
+  .notes-box {
+    font-size: 13px;
   }
 }
 </style>
