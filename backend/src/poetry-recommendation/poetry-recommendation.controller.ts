@@ -29,23 +29,36 @@ export class PoetryRecommendationController {
   @Get('recommend')
   recommend(
     @Query('query') query: string,
-    @Query('limit') limit?: string
+    @Query('limit') limit?: string,
+    @Query('minFame') minFame?: string,
+    @Query('maxFame') maxFame?: string
   ): ScoredPoem[] {
     if (!query || !query.trim()) {
       throw new HttpException('请输入查询内容', HttpStatus.BAD_REQUEST);
     }
     const limitNum = limit ? parseInt(limit, 10) : 5;
-    return this.poetryService.recommend(query.trim(), Math.min(limitNum, 20));
+    let fameRange: [number, number] | undefined;
+    if (minFame || maxFame) {
+      fameRange = [
+        minFame ? parseInt(minFame, 10) : 1,
+        maxFame ? parseInt(maxFame, 10) : 5
+      ];
+    }
+    return this.poetryService.recommend(query.trim(), Math.min(limitNum, 20), fameRange);
   }
 
   @Post('recommend')
   recommendPost(
-    @Body() body: { query: string; limit?: number }
+    @Body() body: { query: string; limit?: number; minFame?: number; maxFame?: number }
   ): ScoredPoem[] {
     if (!body.query || !body.query.trim()) {
       throw new HttpException('请输入查询内容', HttpStatus.BAD_REQUEST);
     }
-    return this.poetryService.recommend(body.query.trim(), Math.min(body.limit || 5, 20));
+    let fameRange: [number, number] | undefined;
+    if (body.minFame !== undefined || body.maxFame !== undefined) {
+      fameRange = [body.minFame ?? 1, body.maxFame ?? 5];
+    }
+    return this.poetryService.recommend(body.query.trim(), Math.min(body.limit || 5, 20), fameRange);
   }
 
   @Get('poem/:id')
@@ -60,13 +73,22 @@ export class PoetryRecommendationController {
   @Get('search')
   search(
     @Query('keyword') keyword: string,
-    @Query('limit') limit?: string
+    @Query('limit') limit?: string,
+    @Query('minFame') minFame?: string,
+    @Query('maxFame') maxFame?: string
   ): Poem[] {
     if (!keyword || !keyword.trim()) {
       throw new HttpException('请输入搜索关键词', HttpStatus.BAD_REQUEST);
     }
     const limitNum = limit ? parseInt(limit, 10) : 20;
-    return this.poetryService.search(keyword.trim(), limitNum);
+    let fameRange: [number, number] | undefined;
+    if (minFame || maxFame) {
+      fameRange = [
+        minFame ? parseInt(minFame, 10) : 1,
+        maxFame ? parseInt(maxFame, 10) : 5
+      ];
+    }
+    return this.poetryService.search(keyword.trim(), limitNum, fameRange);
   }
 
   @Get()
@@ -74,8 +96,17 @@ export class PoetryRecommendationController {
     @Query('tag') tag?: string,
     @Query('dynasty') dynasty?: string,
     @Query('author') author?: string,
-    @Query('category') category?: string
+    @Query('category') category?: string,
+    @Query('minFame') minFame?: string,
+    @Query('maxFame') maxFame?: string
   ): Poem[] {
-    return this.poetryService.getAll({ tag, dynasty, author, category });
+    return this.poetryService.getAll({
+      tag,
+      dynasty,
+      author,
+      category,
+      minFame: minFame ? parseInt(minFame, 10) : undefined,
+      maxFame: maxFame ? parseInt(maxFame, 10) : undefined
+    });
   }
 }

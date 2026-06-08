@@ -57,6 +57,21 @@
             </el-button>
           </template>
         </el-input>
+        <div class="fame-filter">
+          <span class="fame-filter-label">作品范围：</span>
+          <el-radio-group v-model="fameMode" size="default" @change="handleFameChange">
+            <el-radio-button value="all">全部作品</el-radio-button>
+            <el-radio-button value="classic">经典名篇</el-radio-button>
+            <el-radio-button value="hidden">冷门佳作</el-radio-button>
+            <el-radio-button value="niche">小众深度</el-radio-button>
+          </el-radio-group>
+          <el-tooltip
+            content="经典名篇：家喻户晓的作品（适合入门）；冷门佳作：有一定文学价值但流传不广；小众深度：小众作者或深度作品（适合进阶用户）"
+            placement="top"
+          >
+            <el-icon class="fame-help"><QuestionFilled /></el-icon>
+          </el-tooltip>
+        </div>
       </div>
     </el-card>
 
@@ -93,6 +108,13 @@
                   <el-tag size="small" type="warning">{{ poem.dynasty }}</el-tag>
                   <span class="poem-author">{{ poem.author }}</span>
                   <el-tag size="small" type="info">{{ categoryNames[poem.category] }}</el-tag>
+                  <el-tag
+                    size="small"
+                    :type="fameTagType(poem.fameLevel)"
+                    effect="dark"
+                  >
+                    {{ fameLabel(poem.fameLevel) }}
+                  </el-tag>
                 </div>
               </div>
               <div class="poem-tags" v-if="poem.matchReasons && poem.matchReasons.length > 0">
@@ -241,6 +263,13 @@
           <div class="browse-poem-meta">
             <el-tag size="small" type="warning" effect="light">{{ poem.dynasty }}</el-tag>
             <span>{{ poem.author }}</span>
+            <el-tag
+              size="small"
+              effect="plain"
+              :type="fameTagType(poem.fameLevel)"
+            >
+              {{ fameLabel(poem.fameLevel) }}
+            </el-tag>
           </div>
           <p class="browse-poem-preview">
             {{ poem.content.split('\n')[0].slice(0, 15) }}{{ poem.content.length > 15 ? '...' : '' }}
@@ -285,7 +314,8 @@ import {
   Document,
   Star,
   CopyDocument,
-  Grid
+  Grid,
+  QuestionFilled
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { poetryApi, type ScoredPoem, type Poem, type QuickTag } from '@/api/poetryRecommendation'
@@ -305,6 +335,36 @@ const pageSize = ref(8)
 const allPoems = ref<Poem[]>([])
 
 const selectedQuickTag = ref('')
+const fameMode = ref<'all' | 'classic' | 'hidden' | 'niche'>('all')
+
+const fameRange = computed<[number, number]>(() => {
+  switch (fameMode.value) {
+    case 'classic':
+      return [4, 5]
+    case 'hidden':
+      return [2, 3]
+    case 'niche':
+      return [1, 2]
+    default:
+      return [1, 5]
+  }
+})
+
+const fameLabel = (level: number): string => {
+  if (level >= 5) return '经典'
+  if (level >= 4) return '名篇'
+  if (level >= 3) return '佳作'
+  if (level >= 2) return '冷门'
+  return '小众'
+}
+
+const fameTagType = (level: number): '' | 'success' | 'warning' | 'info' | 'primary' | 'danger' => {
+  if (level >= 5) return 'danger'
+  if (level >= 4) return 'warning'
+  if (level >= 3) return 'success'
+  if (level >= 2) return 'info'
+  return 'primary'
+}
 
 const tagTypeMap: Record<string, '' | 'success' | 'warning' | 'info' | 'primary' | 'danger'> = {
   '送别朋友': 'primary',
@@ -345,6 +405,8 @@ const browseList = computed(() => {
       p.content.toLowerCase().includes(k)
     )
   }
+  const [minFame, maxFame] = fameRange.value
+  list = list.filter(p => p.fameLevel >= minFame && p.fameLevel <= maxFame)
 
   browseTotal.value = list.length
   const start = (currentPage.value - 1) * pageSize.value
@@ -366,15 +428,22 @@ const handleSearch = async () => {
   }
   loading.value = true
   try {
-    const res = await poetryApi.recommend(query.value.trim(), 6)
+    const [minFame, maxFame] = fameRange.value
+    const res = await poetryApi.recommend(query.value.trim(), 8, minFame, maxFame)
     results.value = res.data
     if (results.value.length === 0) {
-      ElMessage.info('未找到匹配的诗词，试试其他描述')
+      ElMessage.info('未找到匹配的诗词，试试其他描述或扩大作品范围')
     }
   } catch (e) {
     ElMessage.error('推荐失败，请稍后重试')
   } finally {
     loading.value = false
+  }
+}
+
+const handleFameChange = () => {
+  if (query.value.trim()) {
+    handleSearch()
   }
 }
 
@@ -466,6 +535,26 @@ onMounted(async () => {
 
 .search-input {
   max-width: 100%;
+}
+
+.fame-filter {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.fame-filter-label {
+  font-size: 14px;
+  color: #606266;
+  font-weight: 500;
+}
+
+.fame-help {
+  color: #909399;
+  cursor: help;
+  font-size: 16px;
 }
 
 .result-title {

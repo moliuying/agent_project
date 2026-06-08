@@ -8,6 +8,7 @@ export interface Poem {
   appreciation?: string;
   tags: string[];
   category: 'song' | 'poem' | 'ci' | 'fu';
+  fameLevel: 1 | 2 | 3 | 4 | 5;
 }
 
 export const POETRY_DATA: Poem[] = [
@@ -20,7 +21,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '明亮的月光洒在窗户纸上，好像地上泛起了一层白霜。我禁不住抬起头来，看那天窗外空中的一轮明月，不由得低头沉思，想起远方的家乡。',
     appreciation: '这首诗写的是在寂静的月夜思念家乡的感受。诗的前两句写诗人在作客他乡的特定环境中一刹那间所产生的错觉。后两句通过动作神态的刻画，深化思乡之情。',
     tags: ['思乡', '月亮', '夜晚', '秋天', '思念'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 2,
@@ -31,7 +33,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '春日里贪睡不知不觉天就亮了，到处可以听见小鸟的鸣叫声。回想昨夜的阵阵风雨声，吹落了多少芳香的春花。',
     appreciation: '这首诗是诗人隐居在鹿门山时所做，意境十分优美。诗人抓住春天的早晨刚刚醒来时的一瞬间展开描写和联想，生动地表达了诗人对春天的热爱和怜惜之情。',
     tags: ['春天', '写景', '惜春', '自然'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 3,
@@ -42,7 +45,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '夕阳依傍着山峦慢慢沉落，滔滔黄河朝着大海汹涌奔流。想要看到千里之外的风光，那就要再登上更高的一层城楼。',
     appreciation: '这首诗写诗人在登高望远中表现出来的不凡的胸襟抱负，反映了盛唐时期人们积极向上的进取精神。',
     tags: ['登高', '励志', '写景', '哲理', '黄河'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 4,
@@ -53,7 +57,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '红豆生长在阳光明媚的南方，每逢春天不知长多少新枝。希望你多采摘一些红豆，它最能够引起人们的思念之情。',
     appreciation: '这首诗是青年王维所作的一首相思诗。此诗写相思之情，却全篇不离红豆，正是用了红豆作为象征物来表达相思之情。',
     tags: ['相思', '爱情', '思念', '红豆'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 5,
@@ -64,7 +69,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '渭城早晨一场春雨沾湿了轻尘，客舍周围柳树的枝叶翠嫩一新。老朋友请你再干一杯美酒，向西出了阳关就难以遇到故旧亲人。',
     appreciation: '这首诗是王维送朋友去西北边疆时作的诗，后有乐人谱曲，名为"阳关三叠"，又名"渭城曲"。',
     tags: ['送别', '友情', '离别', '朋友'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 6,
@@ -75,7 +81,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '李白乘舟将要远行离去，忽听岸上传来踏歌之声。即使桃花潭水有一千尺那么深，也不及汪伦送别我的一片情深。',
     appreciation: '此诗是李白于泾县游历桃花潭时写给当地好友汪伦的一首留别诗，诗中"不及汪伦送我情"两句妙在将自然之水与朋友之情作比，新颖别致。',
     tags: ['送别', '友情', '离别'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 7,
@@ -86,7 +93,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '友人在黄鹤楼与我辞别，在柳絮如烟、繁花似锦的阳春三月去扬州远游。孤船帆影渐渐消失在碧空尽头，只看见滚滚长江向天际奔流。',
     appreciation: '这首送别诗有它特殊的感情色调。它不同于王勃《送杜少府之任蜀川》那种少年刚肠的离别，也不同于王维《渭城曲》那种深情体贴的离别。',
     tags: ['送别', '友情', '写景', '离别'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 8,
@@ -97,7 +105,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '香炉峰在阳光的照射下生起紫色烟霞，从远处看去瀑布好似白色绢绸悬挂山前。高崖上飞腾直落的瀑布好像有几千尺，好像是银河从九天垂落山崖间。',
     appreciation: '这是诗人李白五十岁左右隐居庐山时写的一首风景诗。这首诗形象地描绘了庐山瀑布雄奇壮丽的景色。',
     tags: ['写景', '山水', '庐山', '瀑布', '自然'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 9,
@@ -107,8 +116,9 @@ export const POETRY_DATA: Poem[] = [
     content: '朝辞白帝彩云间，千里江陵一日还。\n两岸猿声啼不住，轻舟已过万重山。',
     translation: '清晨告别五彩云霞映照中的白帝城，千里之遥的江陵，一天之间就已经到达。两岸猿声，还在耳边不停地啼叫；不知不觉，轻快的小船已驶过连绵不绝的万重山峦。',
     appreciation: '此诗是李白诗作中流传最广的名篇之一。诗意在描摹自白帝至江陵一段长江，水急流速，舟行若飞的情况。',
-    tags: ['写景', '山水', '长江', '写景', '喜悦', '自由'],
-    category: 'poem'
+    tags: ['写景', '山水', '长江', '喜悦', '自由'],
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 10,
@@ -119,7 +129,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '所有的山上飞鸟的身影已经绝迹，所有道路都不见人的踪迹。江面孤舟上一位披戴着蓑笠的老翁，独自在大雪覆盖的寒冷江面上垂钓。',
     appreciation: '柳宗元笔下的山水诗有个显著的特点，那就是把客观境界写得比较幽僻，而诗人的主观的心情则显得比较寂寞，甚至有时不免过于孤独，过于冷清。',
     tags: ['冬天', '写景', '孤独', '雪景'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 11,
@@ -130,7 +141,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '盛夏中午，烈日炎炎，农民还在劳作，汗珠滴入泥土。有谁想到，我们碗中的米饭，粒粒饱含着农民的血汗？',
     appreciation: '这首诗描绘了在烈日当空的正午农民田里劳作的景象，概括地表现了农民终年辛勤劳动的生活。',
     tags: ['农民', '劳动', '珍惜', '哲理'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 12,
@@ -141,7 +153,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '慈祥的母亲手里把着针线，为即将远游的孩子赶制新衣。临行前一针针密密地缝缀，怕儿子回来得晚衣服破损。谁说像小草那样微弱的孝心，能报答得了像春晖普泽的慈母恩情？',
     appreciation: '这首诗艺术地再现了人所共感的平凡而又伟大的人性美，所以千百年来赢得了无数读者强烈的共鸣。',
     tags: ['母爱', '亲情', '感恩', '父母'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 13,
@@ -152,7 +165,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '月亮已落下乌鸦啼叫寒气满天，江边枫树与船上渔火，难抵我独自傍愁而眠。姑苏城外那寂寞清静寒山古寺，半夜里敲钟的声音传到了客船。',
     appreciation: '这首七绝以一愁字统起。前二句意象密集：落月、啼乌、满天霜、江枫、渔火、不眠人，造成一种意韵浓郁的审美情境。',
     tags: ['思乡', '秋天', '夜晚', '旅途', '忧愁'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 14,
@@ -163,7 +177,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '五岳之首的泰山的怎么样？在齐鲁大地上，那苍翠的美好山色没有尽头。大自然把神奇秀丽的景象全都汇聚其中，山南山北阴阳分界，晨昏迥然不同。望着那升腾的层层云气，心胸摇荡；睁大眼睛远望归鸟回旋入山，眼角好像要裂开一样。定要登上那最高峰，俯瞰在泰山面前显得渺小的群山。',
     appreciation: '这首诗是杜甫青年时代的作品，充满了诗人青年时代的浪漫与激情。',
     tags: ['登高', '泰山', '励志', '写景', '哲理'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 15,
@@ -174,7 +189,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '好雨是知道该下雨的时节，正好在春天植物萌发生长的时候它随着春风在夜里悄悄地下，悄然无声地滋润着大地万物。',
     appreciation: '这首诗描写细腻、动人。诗的情节从概括的叙述到形象的描绘，由耳闻到目睹，自当晚到次晨，结构谨严。',
     tags: ['春天', '写景', '喜悦', '雨'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 16,
@@ -185,7 +201,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '风急天高猿猴啼叫显得十分悲哀，水清沙白的河洲上有鸟儿在盘旋。无边无际的树木萧萧地飘下落叶，望不到头的长江水滚滚奔腾而来。',
     appreciation: '这首诗是大历二年（767年）年杜甫在夔州时所作。萧瑟的秋天，在诗人的笔下被写得有声有色，而引发的感慨更是动人心弦。',
     tags: ['秋天', '登高', '忧愁', '孤独', '悲秋'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 17,
@@ -196,7 +213,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '明月从什么时候开始有的呢？我拿着酒杯遥问苍天。不知道在天上的宫殿，何年何月。',
     appreciation: '这首词是中秋望月怀人之作，表达了对胞弟苏辙的无限怀念。',
     tags: ['中秋', '月亮', '思念', '哲理', '中秋节', '团圆'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 5
   },
   {
     id: 18,
@@ -207,7 +225,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '大江浩浩荡荡向东流去，滔滔巨浪淘尽千古英雄人物。那旧营垒的西边，人们说那就是三国周瑜鏖战的赤壁。',
     appreciation: '此词怀古抒情，写自己消磨壮心殆尽，转而以旷达之心关注历史和人生。',
     tags: ['怀古', '豪放', '历史', '赤壁', '人生'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 5
   },
   {
     id: 19,
@@ -218,7 +237,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '在灿烂的阳光照耀下，西湖水微波粼粼，波光艳丽，看起来很美；雨天时，在雨幕的笼罩下，西湖周围的群山迷迷茫茫，若有若无，也显得非常奇妙。',
     appreciation: '诗的前两句既写了西湖的水光山色，也写了西湖的晴姿雨态。',
     tags: ['西湖', '写景', '杭州', '山水'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 20,
@@ -229,7 +249,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '从正面、侧面看庐山山岭连绵起伏、山峰耸立，从远处、近处、高处、低处看都呈现不同的样子。',
     appreciation: '这是一首诗中有画的写景诗，又是一首哲理诗，哲理蕴含在对庐山景色的描绘之中。',
     tags: ['庐山', '哲理', '写景', '感悟'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 21,
@@ -240,7 +261,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '苦苦地寻寻觅觅，却只见冷冷清清，怎不让人凄惨悲戚。秋天总是忽然变暖又转寒，最难保养休息。',
     appreciation: '这首词大气包举，别无枝蔓，相关情事逐一说来，却始终紧扣悲秋之意。',
     tags: ['婉约', '忧愁', '孤独', '秋天', '思念'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 5
   },
   {
     id: 22,
@@ -251,7 +273,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '经常记起在溪边的亭子游玩直到太阳落山的时候，被美景陶醉而流连忘返。',
     appreciation: '这首小令用词简练，只选取了几个片断，把移动着的风景和作者怡然的心情融合在一起。',
     tags: ['写景', '回忆', '游玩', '喜悦'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 4
   },
   {
     id: 23,
@@ -262,7 +285,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '粉红色的荷花已经凋谢，幽香也已消散，光滑如玉的竹席带着秋的凉意。',
     appreciation: '这首词作于词人与丈夫赵明诚离别之后，寄寓着词人不忍离别的一腔深情。',
     tags: ['相思', '爱情', '思念', '闺怨'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 4
   },
   {
     id: 24,
@@ -273,7 +297,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '慈祥的母亲手里把着针线，为即将远游的孩子赶制新衣。',
     appreciation: '这首诗艺术地再现了人所共感的平凡而又伟大的人性美。',
     tags: ['母爱', '亲情', '感恩', '父母'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 25,
@@ -284,7 +309,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '一个人独自在他乡作客，每逢节日加倍思念远方的亲人。遥想兄弟们今日登高望远时，头上插满茱萸只少我一人。',
     appreciation: '此诗写出了游子的思乡怀亲之情。诗一开头便紧切题目，写异乡异土生活的孤独凄然。',
     tags: ['重阳节', '思乡', '亲情', '思念', '登高'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 26,
@@ -295,7 +321,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '江南清明时节细雨纷纷飘洒，路上羁旅行人个个落魄断魂。询问当地之人何处买酒浇愁？牧童笑而不答遥指杏花山村。',
     appreciation: '这首小诗，一个难字也没有，一个典故也不用，整篇是十分通俗的语言，写得自如之极。',
     tags: ['清明节', '雨', '思乡', '写景'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 27,
@@ -306,7 +333,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '迷离月色和轻烟笼罩着寒水白沙，夜晚船只停泊在秦淮河边靠近岸上的酒家。',
     appreciation: '这诗在语言运用方面，也颇见工夫。',
     tags: ['怀古', '忧国', '夜景', '感慨'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 28,
@@ -317,7 +345,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '一支折断了的铁戟沉没在水底沙中还没有销蚀掉，经过自己又磨又洗发现这是当年赤壁之战的遗物。',
     appreciation: '这首诗是诗人经过赤壁（今湖北省武昌县西南赤矶山）这个著名的古战场，有感于三国时代的英雄成败而写下的。',
     tags: ['怀古', '历史', '赤壁'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 29,
@@ -328,7 +357,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '沿着弯弯曲曲的小路上山，在那生出白云的地方居然还有几户人家。停下马车是因为喜爱深秋枫林的晚景，枫叶秋霜染过，艳比二月春花。',
     appreciation: '这首诗描绘的是秋之色，展现出一幅动人的山林秋色图。',
     tags: ['秋天', '写景', '枫叶', '山水'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 30,
@@ -338,8 +368,9 @@ export const POETRY_DATA: Poem[] = [
     content: '千里莺啼绿映红，水村山郭酒旗风。\n南朝四百八十寺，多少楼台烟雨中。',
     translation: '辽阔的江南到处莺歌燕舞绿树红花相映，水边村寨山麓城郭处处酒旗飘动。',
     appreciation: '这首《江南春》，千百年来素负盛誉。四句诗，既写出了江南春景的丰富多彩，也写出了它的广阔、深邃和迷离。',
-    tags: ['春天', '写景', '江南', '写景'],
-    category: 'poem'
+    tags: ['春天', '写景', '江南'],
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 31,
@@ -350,7 +381,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '你难道没有看见吗？那黄河之水犹如从天上倾泻而来，波涛翻滚直奔东海从来不会再往回流。',
     appreciation: '这首诗非常形象地表现了李白桀骜不驯的性格：一方面对自己充满自信，孤高自傲；一方面在政治前途出现波折后，又流露出纵情享乐之情。',
     tags: ['豪放', '人生', '饮酒', '励志'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 32,
@@ -361,7 +393,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '唉呀呀！多么高峻伟岸！蜀道难以攀越，简直难于上青天。',
     appreciation: '这首诗是袭用乐府旧题，意在送友人入蜀。',
     tags: ['写景', '蜀道', '山川'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 33,
@@ -372,7 +405,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '金杯中的美酒一斗价十千，玉盘里的菜肴珍贵值万钱。心中郁闷，我放下杯筷不愿进餐；拔出宝剑环顾四周，心里一片茫然。',
     appreciation: '这首诗一共十四句，八十二个字，在七言歌行中只能算是短篇，但它跳荡纵横，具有长篇的气势格局。',
     tags: ['励志', '人生', '哲理', '抱负'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 34,
@@ -383,7 +417,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '长江犹如巨斧，劈开天门雄峰，碧绿江水滚滚东流到这里，又回旋向北流去。',
     appreciation: '这首诗写了碧水青山，白帆红日，交映成一幅色彩绚丽的画面。',
     tags: ['写景', '山水', '长江'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 35,
@@ -394,7 +429,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '酒筵上甘醇的葡萄美酒盛满在夜光杯之中，正要畅饮时，马上琵琶也声声响起，仿佛催人出征。',
     appreciation: '诗是咏边寒情景之名曲。全诗写艰苦荒凉的边塞的一次盛宴，描摹了征人们开怀痛饮、尽情酣醉的场面。',
     tags: ['边塞', '战争', '饮酒', '豪情'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 36,
@@ -405,7 +441,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '依旧是秦汉时期的明月和边关，守边御敌鏖战万里征夫未回还。',
     appreciation: '这是一首著名的边塞诗，表达了诗人希望起任良将，早日平息边塞战事，使人民过上安定的生活的愿望。',
     tags: ['边塞', '战争', '爱国'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 37,
@@ -416,7 +453,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '青海湖上乌云密布，遮得连绵雪山一片黯淡。边塞古城，玉门雄关，远隔千里，遥遥相望。',
     appreciation: '唐代边塞诗的读者，往往因为诗中所涉及的战争性质的非正义性，多为统治者扩张领土的非正义性，常常否定这类诗歌的欣赏价值。',
     tags: ['边塞', '战争', '爱国', '豪情'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 38,
@@ -427,7 +465,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '冷雨连夜洒遍吴地江天，清晨送走你后，独自面对着楚山离愁无限！',
     appreciation: '此诗为一首送别诗。',
     tags: ['送别', '友情', '高洁'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 39,
@@ -438,7 +477,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '鹅鹅鹅，面向蓝天，一群鹅儿伸着弯曲的脖子在歌唱。洁白的羽毛，漂浮在碧绿水面。红红的脚掌，拨动着清清水波。',
     appreciation: '这首诗以一个七岁小孩的眼光看鹅游水嬉戏的神态，写得极为生动活泼。',
     tags: ['咏物', '动物', '儿童'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 40,
@@ -449,7 +489,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '年少时离乡老年才归家，我的乡音虽未改变，但鬓角的毛发却已经疏落。',
     appreciation: '这是一首久客异乡、缅怀故里的感怀诗。',
     tags: ['思乡', '回乡', '感慨'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 41,
@@ -460,7 +501,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '高高的柳树长满了翠绿的新叶，轻垂的柳条像千万条轻轻飘动的绿色丝带。',
     appreciation: '这是一首咏物诗，写的是早春二月的杨柳。',
     tags: ['春天', '柳树', '写景'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 42,
@@ -471,7 +513,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '往前不见古代招贤的圣君，向后不见后世求才的明君。',
     appreciation: '这首诗写于公元696年（武则天万岁通天元年），诗人登上幽州台，放眼远望，苍茫广阔。',
     tags: ['怀古', '孤独', '感慨', '人生'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 43,
@@ -482,7 +525,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '黄河好像从白云间奔流而来，玉门关孤独地耸峙在高山中。',
     appreciation: '诗人初到凉州，面对黄河、边城的荒凉，写出此诗。',
     tags: ['边塞', '写景', '思乡'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 44,
@@ -493,7 +537,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '老朋友准备丰盛的饭菜，邀请我到他田舍做客。翠绿的树林围绕着村落，一脉青山在城郭外隐隐横斜。',
     appreciation: '这是一首田园，描写农家恬静闲适的生活情景，也写老朋友的情谊。',
     tags: ['田园', '友情', '写景'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 45,
@@ -504,7 +549,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '把船停泊在烟雾弥漫的沙洲旁，日落时新愁又涌上了心头。原野无边无际，远处的天空比近处的树林还要低；江水清清，明月仿似更与人相亲。',
     appreciation: '这首诗不以行人出发为背景，作者把小船停靠在烟雾迷蒙的江边想起了以往的事情，因而以舟泊暮宿作为自己的抒发感情的归宿。',
     tags: ['思乡', '羁旅', '写景', '忧愁'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 46,
@@ -515,7 +561,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '秋水胜涨，几乎与岸平，水天含混迷茫与天空浑然一体。',
     appreciation: '此诗是一首投赠之作，通过描述面临烟波浩淼的洞庭湖欲渡无舟的感叹以及临渊而羡鱼的情怀而曲折地表达了诗人希望张九龄予以援引之意。',
     tags: ['写景', '山水', '述志'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 47,
@@ -526,7 +573,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '新雨过后山谷里空旷清新，初秋傍晚的天气特别凉爽。',
     appreciation: '这首诗为山水名篇。描绘了秋雨初晴后傍晚时分山村的旖旎风光和山居村民的淳朴风尚。',
     tags: ['秋天', '山水', '田园', '写景'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 48,
@@ -537,7 +585,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '幽静的山谷里看不见人，只听到人说话的声音。',
     appreciation: '这首诗写一座人迹罕至的空山，一片古木参天的树林，意在创造一个空寂幽深的境界。',
     tags: ['写景', '山水', '田园'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 49,
@@ -548,7 +597,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '独自闲坐在幽静竹林，一边弹琴一边高歌长啸。',
     appreciation: '此诗写隐者的闲适生活以及情趣，描绘了诗人月下独坐、弹琴长啸的悠闲生活。',
     tags: ['田园', '写景', '孤独', '闲适'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 50,
@@ -559,7 +609,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '轻车简从将要去慰问边关，路经的属国已过居延。',
     appreciation: '这首诗是诗人奉命赴边疆慰问将士途中所作的一首边塞诗。',
     tags: ['边塞', '写景', '黄河'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 51,
@@ -570,7 +621,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '三秦之地护卫着巍巍长安，透过那风云烟雾遥望着蜀川。',
     appreciation: '这首诗是送别诗的名作，诗意慰勉勿在离别之时悲哀。',
     tags: ['送别', '友情', '离别'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 52,
@@ -580,7 +632,8 @@ export const POETRY_DATA: Poem[] = [
     content: '落霞与孤鹜齐飞，秋水共长天一色。',
     appreciation: '《滕王阁序》全称《秋日登洪府滕王阁饯别序》，简称《滕王阁序》。',
     tags: ['写景', '滕王阁', '秋天'],
-    category: 'fu'
+    category: 'fu',
+    fameLevel: 4
   },
   {
     id: 53,
@@ -590,7 +643,8 @@ export const POETRY_DATA: Poem[] = [
     content: '春江潮水连海平，海上明月共潮生。\n滟滟随波千万里，何处春江无月明！',
     appreciation: '此诗沿用陈隋乐府旧题，运用富有生活气息的清丽之笔。',
     tags: ['月亮', '写景', '春江', '思念'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 54,
@@ -601,7 +655,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '月亮已落下乌鸦啼叫寒气满天，江边枫树与船上渔火，难抵我独自傍愁而眠。',
     appreciation: '这首七绝以一愁字统起。',
     tags: ['思乡', '秋天', '羁旅'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 55,
@@ -612,7 +667,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '暮春长安城处处柳絮飞舞、落红无数，寒食节东风吹拂着皇城中的柳树。',
     appreciation: '寒食是中国古代一个传统节日，在清明前两天。',
     tags: ['春天', '写景', '寒食节'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 56,
@@ -623,7 +679,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '唯独喜欢涧边幽谷里生长的野草，还有那树丛深处婉转啼鸣的黄鹂。',
     appreciation: '这首诗描写了春游滁州西涧赏景和晚潮带雨的野渡所见。',
     tags: ['写景', '山水', '春天'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 57,
@@ -634,7 +691,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '萱草长满台阶前，游子远行在天涯。慈母靠在堂屋门上，盼望儿子归来。',
     appreciation: '这首诗和《游子吟》异曲同工，都是歌颂母爱的诗。',
     tags: ['母爱', '亲情', '思乡'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 3
   },
   {
     id: 58,
@@ -645,7 +703,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '朱雀桥边冷落荒凉野草开出了花，乌衣巷口只有夕阳斜挂。',
     appreciation: '这是一首怀古诗。凭吊东晋时南京秦淮河上朱雀桥和南岸的乌衣巷的繁华鼎盛。',
     tags: ['怀古', '写景', '历史'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 59,
@@ -656,7 +715,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '被贬谪到巴山楚水这些荒凉的地区，度过了二十三年沦落的光阴。',
     appreciation: '这首诗是唐代诗人刘禹锡于敬宗宝历二年（826）冬，罢和州刺史后，回归洛阳，途经扬州，与罢苏州刺史白居易相会时所作。',
     tags: ['励志', '人生', '哲理'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 60,
@@ -667,7 +727,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '洞庭湖水色与月光互相辉映，湖面风平浪静，犹如未磨的铜镜。',
     appreciation: '诗中描写了秋夜月光下洞庭湖的优美景色。',
     tags: ['写景', '山水', '洞庭湖', '秋天'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 61,
@@ -678,7 +739,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '原野上长满茂盛的青草，每年秋冬枯黄春来草色浓。',
     appreciation: '这是一首应考习作，相传白居易十六岁时作。',
     tags: ['送别', '草', '励志', '春天'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 62,
@@ -689,7 +751,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '从孤山寺的北面到贾亭的西面，湖面春水刚与堤平，白云低垂，同湖面上连成一片。',
     appreciation: '这首诗就像一篇短小精悍的游记。',
     tags: ['西湖', '春天', '写景'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 63,
@@ -700,7 +763,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '江南的风景多么美好，如画的风景久已熟悉。',
     appreciation: '这首词总写对江南的回忆。',
     tags: ['江南', '写景', '思念'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 4
   },
   {
     id: 64,
@@ -710,7 +774,8 @@ export const POETRY_DATA: Poem[] = [
     content: '在天愿作比翼鸟，在地愿为连理枝。\n天长地久有时尽，此恨绵绵无绝期。',
     appreciation: '《长恨歌》是白居易诗作中脍炙人口的名篇。',
     tags: ['爱情', '长恨'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 65,
@@ -720,7 +785,8 @@ export const POETRY_DATA: Poem[] = [
     content: '同是天涯沦落人，相逢何必曾相识！',
     appreciation: '通过写琵琶女生活的不幸，结合诗人自己在宦途所受到的打击。',
     tags: ['感慨', '人生'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 66,
@@ -731,7 +797,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '两只黄鹂在翠绿的柳树间鸣叫，一行白鹭直冲向蔚蓝的天空。',
     appreciation: '这首绝句一句一景，但又融而为一，其中起联结作用的正是诗人内心的心绪。',
     tags: ['春天', '写景', '自然'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 67,
@@ -742,7 +809,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '国都遭侵但山河依旧，长安的春天草木茂密。',
     appreciation: '这首诗的前四句写春日长安凄惨破败的景象。',
     tags: ['忧国', '思乡', '战争'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 68,
@@ -753,7 +821,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '江山沐浴着春光，多么秀丽，春风送来花草的芳香。',
     appreciation: '这一首写成都草堂周围明媚秀丽的春天景色。',
     tags: ['春天', '写景', '自然'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 69,
@@ -764,7 +833,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '黄四娘家周围小路开满鲜花，万千花朵压弯枝条离地低又低。',
     appreciation: '这是一首别具情趣的写景小诗。',
     tags: ['春天', '写景', '花'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 70,
@@ -775,7 +845,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '剑外忽然传来收蓟北的消息，刚刚听到时涕泪满衣裳。',
     appreciation: '这首诗作于唐代宗广德元年（763年）春天。',
     tags: ['喜悦', '还乡'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 71,
@@ -786,7 +857,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '你问我回家的日期，归期难定，今晚巴山下着大雨，雨水已涨满秋池。',
     appreciation: '这首诗是李商隐滞留巴蜀时寄怀长安亲友之作。',
     tags: ['思念', '爱情', '秋天', '雨夜'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 72,
@@ -797,7 +869,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '相见很难，离别更难，何况在这东风无力、百花凋谢的暮春时节。',
     appreciation: '这是一首感情深挚、缠绵委婉、咏叹忠贞爱情的诗篇。',
     tags: ['爱情', '思念'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 73,
@@ -807,7 +880,8 @@ export const POETRY_DATA: Poem[] = [
     content: '锦瑟无端五十弦，一弦一柱思华年。\n庄生晓梦迷蝴蝶，望帝春心托杜鹃。\n沧海月明珠有泪，蓝田日暖玉生烟。\n此情可待成追忆？只是当时已惘然。',
     appreciation: '《锦瑟》是李商隐最难索解的作品之一。',
     tags: ['爱情', '感慨'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 74,
@@ -818,7 +892,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '傍晚时心情不快，驾着车登上古原。夕阳啊无限美好，只不过接近黄昏。',
     appreciation: '这首诗反映了作者的伤感情绪。',
     tags: ['感慨', '写景', '夕阳'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 75,
@@ -828,7 +903,8 @@ export const POETRY_DATA: Poem[] = [
     content: '我有所念人，隔在远远乡。\n我有所感事，结在深深肠。',
     appreciation: '这首诗是白居易夜雨思念湘灵。',
     tags: ['思念', '雨夜'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 3
   },
   {
     id: 76,
@@ -839,7 +915,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '黎明起床，车马的铃铎已震动；踏上遥遥征途，游子悲思故乡。',
     appreciation: '这首诗之所以为人们所传诵，是因为它通过鲜明的艺术形象，真切地反映了封建社会里一般旅人的某些共同感受。',
     tags: ['思乡', '羁旅', '秋天'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 77,
@@ -849,7 +926,8 @@ export const POETRY_DATA: Poem[] = [
     content: '小山重叠金明灭，鬓云欲度香腮雪。\n懒起画蛾眉，弄妆梳洗迟。\n照花前后镜，花面交相映。\n新帖绣罗襦，双双金鹧鸪。',
     appreciation: '此词写女子起床梳洗时的娇慵姿态。',
     tags: ['闺怨', '婉约'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 3
   },
   {
     id: 78,
@@ -860,7 +938,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '春花秋月的美好时光什么时候结束的，以前的事情还记得多少！',
     appreciation: '这首词是李煜的代表作，也是唐宋词中的名篇。',
     tags: ['亡国', '忧愁', '思念'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 5
   },
   {
     id: 79,
@@ -870,7 +949,8 @@ export const POETRY_DATA: Poem[] = [
     content: '无言独上西楼，月如钩。\n寂寞梧桐深院锁清秋。\n剪不断，理还乱，是离愁。\n别是一般滋味在心头。',
     appreciation: '这首词是作者被囚于宋国时所作。',
     tags: ['忧愁', '孤独', '思念'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 4
   },
   {
     id: 80,
@@ -881,7 +961,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '门帘外传来雨声潺潺，浓郁的春意又要凋残。',
     appreciation: '这首词作于李煜被囚汴京期间。',
     tags: ['亡国', '忧愁', '思念'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 4
   },
   {
     id: 81,
@@ -891,7 +972,8 @@ export const POETRY_DATA: Poem[] = [
     content: '寒蝉凄切，对长亭晚，骤雨初歇。\n都门帐饮无绪，留恋处，兰舟催发。\n执手相看泪眼，竟无语凝噎。\n念去去，千里烟波，暮霭沉沉楚天阔。\n多情自古伤离别，更那堪，冷落清秋节！\n今宵酒醒何处？杨柳岸，晓风残月。\n此去经年，应是良辰好景虚设。\n便纵有千种风情，更与何人说？',
     appreciation: '此词为抒写离情别绪的千古名篇。',
     tags: ['离别', '爱情', '婉约'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 4
   },
   {
     id: 82,
@@ -901,7 +983,8 @@ export const POETRY_DATA: Poem[] = [
     content: '伫倚危楼风细细，望极春愁，黯黯生天际。\n草色烟光残照里，无言谁会凭阑意。\n拟把疏狂图一醉，对酒当歌，强乐还无味。\n衣带渐宽终不悔，为伊消得人憔悴。',
     appreciation: '这首词采用"曲径通幽"的表现方式。',
     tags: ['爱情', '相思', '婉约'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 3
   },
   {
     id: 83,
@@ -912,7 +995,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '填一曲新词喝一杯美酒。',
     appreciation: '这是晏殊词中最为脍炙人口的篇章。',
     tags: ['感慨', '婉约', '惜春'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 4
   },
   {
     id: 84,
@@ -922,7 +1006,8 @@ export const POETRY_DATA: Poem[] = [
     content: '槛菊愁烟兰泣露，罗幕轻寒，燕子双飞去。\n明月不谙离恨苦，斜光到晓穿朱户。\n昨夜西风凋碧树，独上高楼，望尽天涯路。\n欲寄彩笺兼尺素，山长水阔知何处？',
     appreciation: '此词为晏殊的代表作之一。',
     tags: ['思念', '婉约', '秋天'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 3
   },
   {
     id: 85,
@@ -932,7 +1017,8 @@ export const POETRY_DATA: Poem[] = [
     content: '四十年来家国，三千里地山河。\n凤阁龙楼连霄汉，玉树琼枝作烟萝，几曾识干戈？\n一旦归为臣虏，沈腰潘鬓消磨。\n最是仓皇辞庙日，教坊犹奏别离歌，垂泪对宫娥。',
     appreciation: '这首词是李煜降宋后被掳到汴京软禁时所作的一首哀歌。',
     tags: ['亡国', '感慨'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 3
   },
   {
     id: 86,
@@ -943,7 +1029,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '不用注意那穿林打叶的雨声。',
     appreciation: '这首词是苏轼黄州之贬后的第三个春天。',
     tags: ['豪放', '人生', '哲理'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 4
   },
   {
     id: 87,
@@ -953,7 +1040,8 @@ export const POETRY_DATA: Poem[] = [
     content: '老夫聊发少年狂，左牵黄，右擎苍，\n锦帽貂裘，千骑卷平冈。\n为报倾城随太守，亲射虎，看孙郎。\n酒酣胸胆尚开张，鬓微霜，又何妨！\n持节云中，何日遣冯唐？\n会挽雕弓如满月，西北望，射天狼。',
     appreciation: '这首词是苏轼豪放词的代表作。',
     tags: ['豪放', '爱国', '豪迈'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 4
   },
   {
     id: 88,
@@ -963,7 +1051,8 @@ export const POETRY_DATA: Poem[] = [
     content: '十年生死两茫茫，不思量，自难忘。\n千里孤坟，无处话凄凉。\n纵使相逢应不识，尘满面，鬓如霜。\n夜来幽梦忽还乡，小轩窗，正梳妆。\n相顾无言，惟有泪千行。\n料得年年肠断处，明月夜，短松冈。',
     appreciation: '这首词是苏轼为悼念原配妻子王弗而写的一首悼亡词。',
     tags: ['爱情', '悼亡', '思念'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 4
   },
   {
     id: 89,
@@ -973,7 +1062,8 @@ export const POETRY_DATA: Poem[] = [
     content: '簌簌衣巾落枣花，村南村北响缫车。\n牛衣古柳卖黄瓜。\n酒困路长惟欲睡，日高人渴漫思茶。\n敲门试问野人家。',
     appreciation: '这首词是苏轼在徐州作的。',
     tags: ['田园', '乡村', '写景'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 3
   },
   {
     id: 90,
@@ -983,7 +1073,8 @@ export const POETRY_DATA: Poem[] = [
     content: '花褪残红青杏小。\n燕子飞时，绿水人家绕。\n枝上柳绵吹又少，天涯何处无芳草！\n墙里秋千墙外道。\n墙外行人，墙里佳人笑。\n笑渐不闻声渐悄，多情却被无情恼。',
     appreciation: '这首词是苏轼的一首婉约词。',
     tags: ['婉约', '春天', '爱情'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 3
   },
   {
     id: 91,
@@ -993,7 +1084,8 @@ export const POETRY_DATA: Poem[] = [
     content: '似花还似非花，也无人惜从教坠。\n抛家傍路，思量却是，无情有思。\n萦损柔肠，困酣娇眼，欲开还闭。\n梦随风万里，寻郎去处，又还被、莺呼起。\n不恨此花飞尽，恨西园、落红难缀。\n晓来雨过，遗踪何在？一池萍碎。\n春色三分，二分尘土，一分流水。\n细看来，不是杨花，点点是离人泪。',
     appreciation: '这首咏物词约作于宋神宗元丰四年。',
     tags: ['婉约', '咏物', '思念'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 3
   },
   {
     id: 92,
@@ -1003,7 +1095,8 @@ export const POETRY_DATA: Poem[] = [
     content: '凭高眺远，见长空万里，云无留迹。\n桂魄飞来，光射处，冷浸一天秋碧。\n玉宇琼楼，乘鸾来去，人在清凉国。\n江山如画，望中烟树历历。\n我醉拍手狂歌，举杯邀月，对影成三客。\n起舞徘徊风露下，今夕不知何夕？\n便欲乘风，翻然归去，何用骑鹏翼。\n水晶宫里，一声吹断横笛。',
     appreciation: '这首词是宋神宗元丰五年。',
     tags: ['中秋', '月亮', '豪放'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 3
   },
   {
     id: 93,
@@ -1013,7 +1106,8 @@ export const POETRY_DATA: Poem[] = [
     content: '燎沉香，消溽暑。\n鸟雀呼晴，侵晓窥檐语。\n叶上初阳干宿雨、水面清圆，一一风荷举。\n故乡遥，何日去？\n家住吴门，久作长安旅。\n五月渔郎相忆否？\n小楫轻舟，梦入芙蓉浦。',
     appreciation: '这首词是周邦彦的一首词作。',
     tags: ['思乡', '写景', '荷花'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 3
   },
   {
     id: 94,
@@ -1023,7 +1117,8 @@ export const POETRY_DATA: Poem[] = [
     content: '薄雾浓云愁永昼，瑞脑销金兽。\n佳节又重阳，玉枕纱厨，半夜凉初透。\n东篱把酒黄昏后，有暗香盈袖。\n莫道不销魂，帘卷西风，人比黄花瘦。',
     appreciation: '这首词是作者婚后所作。',
     tags: ['重阳节', '相思', '婉约'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 4
   },
   {
     id: 95,
@@ -1033,17 +1128,19 @@ export const POETRY_DATA: Poem[] = [
     content: '醉翁之意不在酒，在乎山水之间也。',
     appreciation: '《醉翁亭记》是一篇优美的散文。',
     tags: ['山水', '醉翁'],
-    category: 'fu'
+    category: 'fu',
+    fameLevel: 4
   },
   {
     id: 96,
     title: '爱莲说',
-    author: '欧阳修',
+    author: '周敦颐',
     dynasty: '宋',
     content: '出淤泥而不染，濯清涟而不妖。',
     appreciation: '《爱莲说》是北宋理学家周敦颐创作的一篇散文。',
     tags: ['荷花', '高洁'],
-    category: 'fu'
+    category: 'fu',
+    fameLevel: 4
   },
   {
     id: 97,
@@ -1054,7 +1151,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '竹林外两三枝桃花初放，鸭子在水中游戏，它们最先察觉了初春江水的回暖。',
     appreciation: '这首诗成功地写出了早春时节的春江景色。',
     tags: ['春天', '写景', '春江'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 98,
@@ -1063,7 +1161,8 @@ export const POETRY_DATA: Poem[] = [
     dynasty: '宋',
     content: '竹外桃花三两枝，春江水暖鸭先知。',
     tags: ['春天', '写景'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 99,
@@ -1074,7 +1173,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '西湖四周青山绵延楼阁望不见头。',
     appreciation: '这是一首写在临安城一家旅店墙壁上的诗。',
     tags: ['忧国', '写景'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 100,
@@ -1085,7 +1185,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '原本知道死去之后就什么也没有了，唯一使我痛心的，就是我没能亲眼看到祖国的统一。',
     appreciation: '这首诗是陆游爱国诗中的又一首名篇。',
     tags: ['爱国', '忧国'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 101,
@@ -1096,7 +1197,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '不要笑农家腊月里酿的酒浑浊不醇厚。',
     appreciation: '这首诗是蛰居山阴老家农村时所作。',
     tags: ['田园', '写景', '哲理'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 102,
@@ -1107,7 +1209,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '穷居孤村，躺卧不起，我不为自己处境而感到哀伤。',
     appreciation: '这首诗情感激昂，精神饱满。',
     tags: ['爱国', '忧国'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 103,
@@ -1118,7 +1221,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '半亩大的方形池塘像一面镜子一样打开。',
     appreciation: '这是一首借景喻理的名诗。',
     tags: ['哲理', '读书', '感悟'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 104,
@@ -1129,7 +1233,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '风和日丽之时泗水的河边踏青。',
     appreciation: '这首诗表面描绘了春日美好的景致。',
     tags: ['春天', '写景', '哲理'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 105,
@@ -1140,7 +1245,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '回想我早年由科举入仕历尽千辛万苦。',
     appreciation: '这首诗饱含沉痛悲凉，既叹国运又叹自身。',
     tags: ['爱国', '忧国', '豪情'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 106,
@@ -1151,7 +1257,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '天色黄昏，一群乌鸦落在枯藤缠绕的老树上。',
     appreciation: '这首小令很短，一共只有五句二十八个字。',
     tags: ['思乡', '秋天', '羁旅'],
-    category: 'song'
+    category: 'song',
+    fameLevel: 5
   },
   {
     id: 107,
@@ -1161,7 +1268,8 @@ export const POETRY_DATA: Poem[] = [
     content: '峰峦如聚，波涛如怒，山河表里潼关路。\n望西都，意踌躇。\n伤心秦汉经行处，宫阙万间都做了土。\n兴，百姓苦；亡，百姓苦。',
     appreciation: '此曲是张养浩晚年的代表作。',
     tags: ['怀古', '忧国', '感慨'],
-    category: 'song'
+    category: 'song',
+    fameLevel: 4
   },
   {
     id: 108,
@@ -1172,7 +1280,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '石灰石经过千锤万凿才得以从深山里开采出来。',
     appreciation: '此诗借吟石灰的锻炼过程，表现了作者不避千难万险、勇于自我牺牲、以保持忠诚清白品格的可贵精神。',
     tags: ['高洁', '励志', '咏物'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 109,
@@ -1183,7 +1292,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '竹子抓住青山一点也不放松。',
     appreciation: '这首诗是一首咏竹诗。',
     tags: ['咏物', '励志', '高洁'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 110,
@@ -1194,7 +1304,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '只有依靠风雷激荡般的巨大力量才能使中国大地焕发勃勃生机。',
     appreciation: '这首诗以祈祷天神的口吻，呼唤着风雷般的变革。',
     tags: ['忧国', '爱国'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 4
   },
   {
     id: 111,
@@ -1205,7 +1316,8 @@ export const POETRY_DATA: Poem[] = [
     translation: '离别京都的愁思浩如水波向着日落西斜的远处延伸。',
     appreciation: '这首诗是清代诗人龚自珍写的组诗《己亥杂诗》中的第五首。',
     tags: ['离别', '奉献', '感慨'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
   },
   {
     id: 112,
@@ -1215,7 +1327,8 @@ export const POETRY_DATA: Poem[] = [
     content: '北国风光，千里冰封，万里雪飘。\n望长城内外，惟余莽莽；\n大河上下，顿失滔滔。\n山舞银蛇，原驰蜡象，欲与天公试比高。\n须晴日，看红装素裹，分外妖娆。\n江山如此多娇，引无数英雄竞折腰。\n惜秦皇汉武，略输文采；\n唐宗宋祖，稍逊风骚。\n一代天骄，成吉思汗，只识弯弓射大雕。\n俱往矣，数风流人物，还看今朝。',
     appreciation: '这首词是毛泽东诗词的代表作。',
     tags: ['写景', '雪景', '豪放', '爱国'],
-    category: 'ci'
+    category: 'ci',
+    fameLevel: 5
   },
   {
     id: 113,
@@ -1225,6 +1338,1734 @@ export const POETRY_DATA: Poem[] = [
     content: '红军不怕远征难，万水千山只等闲。\n五岭逶迤腾细浪，乌蒙磅礴走泥丸。\n金沙水拍云崖暖，大渡桥横铁索寒。\n更喜岷山千里雪，三军过后尽开颜。',
     appreciation: '这是一首记叙二万五千里长征这一震惊全球的历史事件的革命史诗。',
     tags: ['爱国', '励志', '豪情'],
-    category: 'poem'
+    category: 'poem',
+    fameLevel: 5
+  },
+  {
+    id: 114,
+    title: '短歌行',
+    author: '曹操',
+    dynasty: '魏晋',
+    content: '对酒当歌，人生几何！\n譬如朝露，去日苦多。\n慨当以慷，忧思难忘。\n何以解忧？唯有杜康。\n青青子衿，悠悠我心。\n但为君故，沉吟至今。',
+    appreciation: '《短歌行》是曹操的代表作之一，表达了诗人求贤若渴的心情和统一天下的雄心壮志。',
+    tags: ['咏志', '求贤', '人生', '感慨'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 115,
+    title: '观沧海',
+    author: '曹操',
+    dynasty: '魏晋',
+    content: '东临碣石，以观沧海。\n水何澹澹，山岛竦峙。\n树木丛生，百草丰茂。\n秋风萧瑟，洪波涌起。\n日月之行，若出其中；\n星汉灿烂，若出其里。',
+    appreciation: '这首诗是曹操在碣石山登山望海时所作，描绘了大海吞吐日月、包蕴万千的壮丽景象。',
+    tags: ['写景', '山水', '咏志', '豪迈'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 116,
+    title: '龟虽寿',
+    author: '曹操',
+    dynasty: '魏晋',
+    content: '神龟虽寿，犹有竟时。\n腾蛇乘雾，终为土灰。\n老骥伏枥，志在千里。\n烈士暮年，壮心不已。',
+    appreciation: '这首诗抒发了诗人不甘衰老、不信天命、奋斗不息的壮志豪情。',
+    tags: ['励志', '人生', '咏志', '哲理'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 117,
+    title: '白马篇',
+    author: '曹植',
+    dynasty: '魏晋',
+    content: '白马饰金羁，连翩西北驰。\n借问谁家子，幽并游侠儿。\n少小去乡邑，扬声沙漠垂。\n宿昔秉良弓，楛矢何参差。',
+    appreciation: '这首诗描写和歌颂了边疆地区一位武艺高强又富有爱国精神的青年英雄。',
+    tags: ['游侠', '爱国', '英雄', '边塞'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 118,
+    title: '七步诗',
+    author: '曹植',
+    dynasty: '魏晋',
+    content: '煮豆燃豆萁，豆在釜中泣。\n本是同根生，相煎何太急？',
+    appreciation: '这首诗用同根而生的萁和豆来比喻同父共母的兄弟，表达了对兄弟相残的悲愤。',
+    tags: ['亲情', '感慨', '讽喻'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 119,
+    title: '饮酒·其一',
+    author: '陶渊明',
+    dynasty: '魏晋',
+    content: '衰荣无定在，彼此更共之。\n邵生瓜田中，宁似东陵时！\n寒暑有代谢，人道每如兹。\n达人解其会，逝将不复疑。',
+    appreciation: '这首诗是《饮酒》组诗的第一首，表达了诗人对人生盛衰无常的感慨和对归隐生活的向往。',
+    tags: ['田园', '人生', '感慨', '归隐'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 120,
+    title: '饮酒·其七',
+    author: '陶渊明',
+    dynasty: '魏晋',
+    content: '秋菊有佳色，裛露掇其英。\n泛此忘忧物，远我遗世情。\n一觞虽独尽，杯尽壶自倾。\n日入群动息，归鸟趋林鸣。',
+    appreciation: '这首诗写诗人采摘菊花、饮酒自娱的情景，表现了诗人远离世俗的高洁情怀。',
+    tags: ['田园', '菊花', '饮酒', '归隐'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 121,
+    title: '归园田居·其二',
+    author: '陶渊明',
+    dynasty: '魏晋',
+    content: '野外罕人事，穷巷寡轮鞅。\n白日掩荆扉，虚室绝尘想。\n时复墟曲中，披草共来往。\n相见无杂言，但道桑麻长。',
+    appreciation: '这首诗描写了诗人归隐后的田园生活，表现了诗人对淳朴乡村生活的热爱。',
+    tags: ['田园', '归隐', '写景', '闲适'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 122,
+    title: '读山海经·其一',
+    author: '陶渊明',
+    dynasty: '魏晋',
+    content: '孟夏草木长，绕屋树扶疏。\n众鸟欣有托，吾亦爱吾庐。\n既耕亦已种，时还读我书。\n穷巷隔深辙，颇回故人车。',
+    appreciation: '这首诗描写了诗人耕读自乐的隐居生活，表现了诗人安贫乐道的高尚情操。',
+    tags: ['田园', '读书', '归隐', '闲适'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 123,
+    title: '登池上楼',
+    author: '谢灵运',
+    dynasty: '魏晋',
+    content: '潜虬媚幽姿，飞鸿响远音。\n薄霄愧云浮，栖川怍渊沉。\n进德智所拙，退耕力不任。\n徇禄反穷海，卧疴对空林。',
+    appreciation: '这首诗是谢灵运的代表作之一，描写了诗人久病初起登楼所见的春色，抒发了仕途失意的牢骚。',
+    tags: ['写景', '山水', '感慨', '归隐'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 124,
+    title: '拟行路难·其四',
+    author: '鲍照',
+    dynasty: '魏晋',
+    content: '泻水置平地，各自东西南北流。\n人生亦有命，安能行叹复坐愁？\n酌酒以自宽，举杯断绝歌路难。\n心非木石岂无感？吞声踯躅不敢言。',
+    appreciation: '这首诗抒发了诗人在门阀制度压抑下怀才不遇的悲愤和不平。',
+    tags: ['感慨', '人生', '悲愤', '咏怀'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 125,
+    title: '拟行路难·其六',
+    author: '鲍照',
+    dynasty: '魏晋',
+    content: '对案不能食，拔剑击柱长叹息。\n丈夫生世会几时？安能蹀躞垂羽翼！\n弃置罢官去，还家自休息。\n朝出与亲辞，暮还在亲侧。',
+    appreciation: '这首诗表达了诗人对仕途失意的愤慨和弃官归家的决心，感情强烈，笔力雄健。',
+    tags: ['咏怀', '悲愤', '人生', '归隐'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 126,
+    title: '寄王琳',
+    author: '庾信',
+    dynasty: '魏晋',
+    content: '玉关道路远，金陵信使疏。\n独下千行泪，开君万里书。',
+    appreciation: '这首诗是庾信收到故人王琳书信时所作，表达了诗人对故乡和故人的深切思念。',
+    tags: ['思乡', '友情', '思念', '感慨'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 127,
+    title: '重别周尚书',
+    author: '庾信',
+    dynasty: '魏晋',
+    content: '阳关万里道，不见一人归。\n唯有河边雁，秋来南向飞。',
+    appreciation: '这首诗借秋雁南飞的意象，表达了诗人羁留北方、思念江南的深沉乡思。',
+    tags: ['思乡', '送别', '秋天', '羁旅'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 128,
+    title: '咏怀·其一',
+    author: '阮籍',
+    dynasty: '魏晋',
+    content: '夜中不能寐，起坐弹鸣琴。\n薄帷鉴明月，清风吹我襟。\n孤鸿号外野，翔鸟鸣北林。\n徘徊将何见？忧思独伤心。',
+    appreciation: '这首诗是阮籍《咏怀》八十二首的第一首，表达了诗人在魏晋易代之际的孤独苦闷和忧思。',
+    tags: ['咏怀', '孤独', '忧愁', '感慨'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 129,
+    title: '赠秀才入军·其十四',
+    author: '嵇康',
+    dynasty: '魏晋',
+    content: '息徒兰圃，秣马华山。\n流磻平皋，垂纶长川。\n目送归鸿，手挥五弦。\n俯仰自得，游心太玄。',
+    appreciation: '这首诗是嵇康送其兄嵇喜从军所作，描写了行军休憩时的从容悠闲，体现了诗人的玄学志趣。',
+    tags: ['送别', '写景', '闲适', '隐逸'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 130,
+    title: '逢雪宿芙蓉山主人',
+    author: '刘长卿',
+    dynasty: '唐',
+    content: '日暮苍山远，天寒白屋贫。\n柴门闻犬吠，风雪夜归人。',
+    appreciation: '这首诗描绘了一幅寒山夜宿、风雪归人的图景，语言简练，意境深远。',
+    tags: ['冬天', '写景', '羁旅', '雪景'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 131,
+    title: '送灵澈上人',
+    author: '刘长卿',
+    dynasty: '唐',
+    content: '苍苍竹林寺，杳杳钟声晚。\n荷笠带斜阳，青山独归远。',
+    appreciation: '这首诗描写了诗人傍晚送灵澈上人归竹林寺的情景，意境闲淡，韵味深长。',
+    tags: ['送别', '写景', '禅意', '闲适'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 132,
+    title: '听弹琴',
+    author: '刘长卿',
+    dynasty: '唐',
+    content: '泠泠七弦上，静听松风寒。\n古调虽自爱，今人多不弹。',
+    appreciation: '这首诗借咏琴抒发了诗人孤芳自赏、不与世俗同流的情怀。',
+    tags: ['咏物', '音乐', '感慨', '高洁'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 133,
+    title: '秋夜寄邱员外',
+    author: '韦应物',
+    dynasty: '唐',
+    content: '怀君属秋夜，散步咏凉天。\n空山松子落，幽人应未眠。',
+    appreciation: '这首诗是韦应物在秋夜思念友人丘丹所作，意境清幽，情意深长。',
+    tags: ['秋天', '思念', '友情', '夜晚'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 134,
+    title: '寄李儋元锡',
+    author: '韦应物',
+    dynasty: '唐',
+    content: '去年花里逢君别，今日花开又一年。\n世事茫茫难自料，春愁黯黯独成眠。\n身多疾病思田里，邑有流亡愧俸钱。\n闻道欲来相问讯，西楼望月几回圆。',
+    appreciation: '这首诗表达了诗人对友人的思念和对自己为官失职的愧疚，感情真挚动人。',
+    tags: ['思念', '友情', '春天', '感慨'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 135,
+    title: '调笑令·胡马',
+    author: '韦应物',
+    dynasty: '唐',
+    content: '胡马，胡马，远放燕支山下。\n跑沙跑雪独嘶，东望西望路迷。\n迷路，迷路，边草无穷日暮。',
+    appreciation: '这首小令写边塞胡马迷路的情景，意境开阔，含蕴深远。',
+    tags: ['边塞', '写景', '草原', '马'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 136,
+    title: '兰溪棹歌',
+    author: '戴叔伦',
+    dynasty: '唐',
+    content: '凉月如眉挂柳湾，越中山色镜中看。\n兰溪三日桃花雨，半夜鲤鱼来上滩。',
+    appreciation: '这首诗描写了兰溪的山水风光和渔家生活，清新活泼，富有生活气息。',
+    tags: ['写景', '山水', '春天', '水乡'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 137,
+    title: '除夜宿石头驿',
+    author: '戴叔伦',
+    dynasty: '唐',
+    content: '旅馆谁相问，寒灯独可亲。\n一年将尽夜，万里未归人。\n寥落悲前事，支离笑此身。\n愁颜与衰鬓，明日又逢春。',
+    appreciation: '这首诗是诗人除夕之夜羁旅途中所作，抒发了孤独漂泊、年华老去的感慨。',
+    tags: ['除夕', '思乡', '羁旅', '感慨'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 138,
+    title: '夜上受降城闻笛',
+    author: '李益',
+    dynasty: '唐',
+    content: '回乐烽前沙似雪，受降城外月如霜。\n不知何处吹芦管，一夜征人尽望乡。',
+    appreciation: '这首诗描写了边塞月夜的景色和戍卒的思乡之情，意境凄清，感人至深。',
+    tags: ['边塞', '思乡', '夜晚', '音乐'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 139,
+    title: '江南曲',
+    author: '李益',
+    dynasty: '唐',
+    content: '嫁得瞿塘贾，朝朝误妾期。\n早知潮有信，嫁与弄潮儿。',
+    appreciation: '这首诗以商妇的口吻，表达了对久出不归的丈夫的怨望，构思巧妙，语言清新。',
+    tags: ['爱情', '闺怨', '思念', '水乡'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 140,
+    title: '节妇吟',
+    author: '张籍',
+    dynasty: '唐',
+    content: '君知妾有夫，赠妾双明珠。\n感君缠绵意，系在红罗襦。\n妾家高楼连苑起，良人执戟明光里。\n知君用心如日月，事夫誓拟同生死。\n还君明珠双泪垂，恨不相逢未嫁时。',
+    appreciation: '这首诗表面写一位女子拒绝第三者的爱情，实则是诗人拒绝藩镇李师道的聘请。',
+    tags: ['爱情', '节操', '讽喻', '高洁'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 141,
+    title: '秋思',
+    author: '张籍',
+    dynasty: '唐',
+    content: '洛阳城里见秋风，欲作家书意万重。\n复恐匆匆说不尽，行人临发又开封。',
+    appreciation: '这首诗描写了诗人客居洛阳时寄家书的情景，细腻地表达了对家乡亲人的深切思念。',
+    tags: ['思乡', '秋天', '书信', '羁旅'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 142,
+    title: '新嫁娘词',
+    author: '王建',
+    dynasty: '唐',
+    content: '三日入厨下，洗手作羹汤。\n未谙姑食性，先遣小姑尝。',
+    appreciation: '这首诗描写了新嫁娘初入婆家的谨慎小心，生动传神，富有生活情趣。',
+    tags: ['生活', '妇女', '习俗', '人情'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 143,
+    title: '十五夜望月',
+    author: '王建',
+    dynasty: '唐',
+    content: '中庭地白树栖鸦，冷露无声湿桂花。\n今夜月明人尽望，不知秋思落谁家。',
+    appreciation: '这首诗描写了中秋月夜的景色，抒发了诗人的思乡之情，意境幽美，韵味深长。',
+    tags: ['中秋节', '月亮', '思乡', '秋天'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 144,
+    title: '喜外弟卢纶见宿',
+    author: '司空曙',
+    dynasty: '唐',
+    content: '静夜四无邻，荒居旧业贫。\n雨中黄叶树，灯下白头人。\n以我独沉久，愧君相见频。\n平生自有分，况是蔡家亲。',
+    appreciation: '这首诗描写了诗人在荒村独居时与表弟卢纶相逢的情景，悲喜交加，情真意切。',
+    tags: ['友情', '亲情', '感慨', '雨夜'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 145,
+    title: '江村即事',
+    author: '司空曙',
+    dynasty: '唐',
+    content: '钓罢归来不系船，江村月落正堪眠。\n纵然一夜风吹去，只在芦花浅水边。',
+    appreciation: '这首诗描写了江村渔人悠闲自在的生活，意境清新，富有诗情画意。',
+    tags: ['写景', '水乡', '闲适', '田园'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 146,
+    title: '省试湘灵鼓瑟',
+    author: '钱起',
+    dynasty: '唐',
+    content: '善鼓云和瑟，常闻帝子灵。\n冯夷空自舞，楚客不堪听。\n苦调凄金石，清音入杳冥。\n曲终人不见，江上数峰青。',
+    appreciation: '这首诗是钱起参加科举考试的应试诗，以"曲终人不见，江上数峰青"两句闻名。',
+    tags: ['音乐', '写景', '神话', '山水'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 147,
+    title: '赠阙下裴舍人',
+    author: '钱起',
+    dynasty: '唐',
+    content: '二月黄鹂飞上林，春城紫禁晓阴阴。\n长乐钟声花外尽，龙池柳色雨中深。\n阳和不散穷途恨，霄汉长怀捧日心。\n献赋十年犹未遇，羞将白发对华簪。',
+    appreciation: '这首诗是诗人落第后赠给裴舍人的干谒之作，表达了怀才不遇的愤懑。',
+    tags: ['干谒', '感慨', '春天', '写景'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 148,
+    title: '送李将军赴定州',
+    author: '郎士元',
+    dynasty: '唐',
+    content: '双旌汉飞将，万里授横戈。\n春色临边尽，黄云出塞多。\n鼓鼙悲绝漠，烽戍隔长河。\n莫断阴山路，天骄已请和。',
+    appreciation: '这首诗是送李将军赴定州任职的送别诗，气势雄浑，格调高昂。',
+    tags: ['送别', '边塞', '战争', '将军'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 149,
+    title: '春思',
+    author: '皇甫冉',
+    dynasty: '唐',
+    content: '莺啼燕语报新年，马邑龙堆路几千。\n家住层城临汉苑，心随明月到胡天。\n机中锦字论长恨，楼上花枝笑独眠。\n为问元戎窦车骑，何时返旆勒燕然。',
+    appreciation: '这首诗写一位女子在春日思念出征边塞的丈夫，缠绵悱恻，情致婉转。',
+    tags: ['思念', '爱情', '春天', '闺怨'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 150,
+    title: '送客归常州',
+    author: '皇甫冉',
+    dynasty: '唐',
+    content: '行到河边从此辞，寒天日远暮帆迟。\n千山芳草覆寒水，一路青山相送迎。',
+    appreciation: '这首诗写送别友人归常州的情景，情景交融，意境悠远。',
+    tags: ['送别', '写景', '友情', '羁旅'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 151,
+    title: '秋日送僧',
+    author: '严维',
+    dynasty: '唐',
+    content: '日晚长川不计程，离群独步不能鸣。\n赖有白鸥相访觅，知余今在浙江行。',
+    appreciation: '这首诗写秋日送别僧人，意境清远，禅意盎然。',
+    tags: ['送别', '秋天', '禅意', '写景'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 152,
+    title: '自常州还江阴途中作',
+    author: '李嘉祐',
+    dynasty: '唐',
+    content: '处处空篱落，江村不忍看。\n无人花色惨，多雨鸟声寒。\n黄霸初临郡，陶潜未罢官。\n乘春务征伐，谁肯问凋残。',
+    appreciation: '这首诗描写了战乱后农村的凋敝景象，表达了诗人对民生疾苦的同情。',
+    tags: ['忧国', '写景', '战乱', '感慨'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 153,
+    title: '晚春送王秀才游剡川',
+    author: '李嘉祐',
+    dynasty: '唐',
+    content: '迟日园林悲昔游，今春花鸟作边愁。\n独怜京国人南窜，不似湘江水北流。',
+    appreciation: '这首诗借晚春送友，抒发了自己被贬谪的悲愤和对京城的思念。',
+    tags: ['送别', '春天', '贬谪', '思乡'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 154,
+    title: '酬顾况见寄',
+    author: '包佶',
+    dynasty: '唐',
+    content: '岁暮天涯客，寒窗欲晓天。\n梦魂归故国，风雪满离船。\n旧友凋零尽，余生鬓发偏。\n惟应鲍叔义，犹抱大夫贤。',
+    appreciation: '这首诗写岁暮怀人，抒发了天涯漂泊、故友凋零的深沉感慨。',
+    tags: ['冬天', '思乡', '友情', '感慨'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 155,
+    title: '阊门即事',
+    author: '张继',
+    dynasty: '唐',
+    content: '耕夫占募逐楼船，春草青青万顷田。\n试上吴门窥郡郭，清明几处有新烟。',
+    appreciation: '这首诗写清明时节苏州的景象，反映了战乱后农村的萧条，与《枫桥夜泊》风格迥异。',
+    tags: ['清明节', '忧国', '写景', '感慨'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 156,
+    title: '鹧鸪天·彩袖殷勤捧玉钟',
+    author: '晏几道',
+    dynasty: '宋',
+    content: '彩袖殷勤捧玉钟，当年拚却醉颜红。\n舞低杨柳楼心月，歌尽桃花扇底风。\n从别后，忆相逢，几回魂梦与君同。\n今宵剩把银釭照，犹恐相逢是梦中。',
+    appreciation: '这首词写与恋人久别重逢的情景，今昔对比，感情深挚，是晏几道的代表作。',
+    tags: ['爱情', '思念', '重逢', '婉约'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 157,
+    title: '临江仙·梦后楼台高锁',
+    author: '晏几道',
+    dynasty: '宋',
+    content: '梦后楼台高锁，酒醒帘幕低垂。\n去年春恨却来时。\n落花人独立，微雨燕双飞。\n记得小蘋初见，两重心字罗衣。\n琵琶弦上说相思。\n当时明月在，曾照彩云归。',
+    appreciation: '这首词是晏几道的代表作，怀念歌女小蘋，语言清丽，感情深挚。',
+    tags: ['爱情', '思念', '婉约', '回忆'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 158,
+    title: '蝶恋花·槛菊愁烟兰泣露',
+    author: '晏几道',
+    dynasty: '宋',
+    content: '初捻霜纨生怅望。隔叶莺声，似学秦娥唱。午睡醒来慵一饷，双纹翠簟铺寒浪。\n雨罢苹风吹碧涨。脉脉荷花，泪脸红相向。斜贴绿云新月上，弯环正是愁眉样。',
+    appreciation: '这首词写闺中女子的闲愁，情景交融，细腻婉约。',
+    tags: ['闺怨', '婉约', '夏天', '思念'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 159,
+    title: '踏莎行·郴州旅舍',
+    author: '秦观',
+    dynasty: '宋',
+    content: '雾失楼台，月迷津渡，桃源望断无寻处。\n可堪孤馆闭春寒，杜鹃声里斜阳暮。\n驿寄梅花，鱼传尺素，砌成此恨无重数。\n郴江幸自绕郴山，为谁流下潇湘去？',
+    appreciation: '这首词是秦观被贬郴州时所作，抒发了谪居异乡的凄苦和失意，是婉约词的名篇。',
+    tags: ['贬谪', '思乡', '婉约', '春天'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 160,
+    title: '鹊桥仙·纤云弄巧',
+    author: '秦观',
+    dynasty: '宋',
+    content: '纤云弄巧，飞星传恨，银汉迢迢暗度。\n金风玉露一相逢，便胜却人间无数。\n柔情似水，佳期如梦，忍顾鹊桥归路。\n两情若是久长时，又岂在朝朝暮暮。',
+    appreciation: '这首词借牛郎织女的故事，歌颂了坚贞诚挚的爱情，"两情若是久长时"两句成为千古名句。',
+    tags: ['爱情', '七夕', '神话', '婉约'],
+    category: 'ci',
+    fameLevel: 4
+  },
+  {
+    id: 161,
+    title: '浣溪沙·漠漠轻寒上小楼',
+    author: '秦观',
+    dynasty: '宋',
+    content: '漠漠轻寒上小楼，晓阴无赖似穷秋。\n淡烟流水画屏幽。\n自在飞花轻似梦，无边丝雨细如愁。\n宝帘闲挂小银钩。',
+    appreciation: '这首词写春日清晨的淡淡哀愁，意境空灵，韵味悠长，是秦观小令的代表作。',
+    tags: ['春天', '忧愁', '婉约', '写景'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 162,
+    title: '青门引·春思',
+    author: '张先',
+    dynasty: '宋',
+    content: '乍暖还轻冷，风雨晚来方定。\n庭轩寂寞近清明，残花中酒，又是去年病。\n楼头画角风吹醒，入夜重门静。\n那堪更被明月，隔墙送过秋千影。',
+    appreciation: '这首词写春日寂寞之情，以"隔墙送过秋千影"一句著称，是张先的名作。',
+    tags: ['春天', '思念', '婉约', '清明'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 163,
+    title: '天仙子·水调数声持酒听',
+    author: '张先',
+    dynasty: '宋',
+    content: '水调数声持酒听，午醉醒来愁未醒。\n送春春去几时回？\n临晚镜，伤流景，往事后期空记省。\n沙上并禽池上瞑，云破月来花弄影。\n重重帘幕密遮灯，风不定，人初静，明日落红应满径。',
+    appreciation: '这首词写伤春惜时之情，"云破月来花弄影"一句最为人称道，张先因此得名"云破月来花弄影郎中"。',
+    tags: ['春天', '惜春', '婉约', '感慨'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 164,
+    title: '青玉案·凌波不过横塘路',
+    author: '贺铸',
+    dynasty: '宋',
+    content: '凌波不过横塘路，但目送、芳尘去。\n锦瑟华年谁与度？\n月桥花院，琐窗朱户，只有春知处。\n飞云冉冉蘅皋暮，彩笔新题断肠句。\n试问闲情都几许？\n一川烟草，满城风絮，梅子黄时雨。',
+    appreciation: '这首词写相思闲愁，末四句以江南景色比喻愁思，成为千古绝唱，贺铸因此得号"贺梅子"。',
+    tags: ['爱情', '思念', '婉约', '春天'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 165,
+    title: '鹧鸪天·重过阊门万事非',
+    author: '贺铸',
+    dynasty: '宋',
+    content: '重过阊门万事非，同来何事不同归？\n梧桐半死清霜后，头白鸳鸯失伴飞。\n原上草，露初晞。旧栖新垅两依依。\n空床卧听南窗雨，谁复挑灯夜补衣。',
+    appreciation: '这首词是贺铸悼念亡妻赵氏之作，与苏轼《江城子》并称宋代悼亡词双璧。',
+    tags: ['悼亡', '爱情', '思念', '婉约'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 166,
+    title: '六丑·蔷薇谢后作',
+    author: '周邦彦',
+    dynasty: '宋',
+    content: '正单衣试酒，恨客里、光阴虚掷。\n愿春暂留，春归如过翼。一去无迹。\n为问花何在，夜来风雨，葬楚宫倾国。\n钗钿堕处遗香泽。\n乱点桃蹊，轻翻柳陌。多情为谁追惜？\n但蜂媒蝶使，时叩窗隔。',
+    appreciation: '这首词是周邦彦的代表作，借凋谢的蔷薇抒发惜春伤逝之情，结构曲折，辞藻精丽。',
+    tags: ['惜春', '咏物', '婉约', '感慨'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 167,
+    title: '蝶恋花·月皎惊乌栖不定',
+    author: '周邦彦',
+    dynasty: '宋',
+    content: '月皎惊乌栖不定。更漏将残，轣辘牵金井。\n唤起两眸清炯炯，泪花落枕红绵冷。\n执手霜风吹鬓影。去意徊徨，别语愁难听。\n楼上阑干横斗柄，露寒人远鸡相应。',
+    appreciation: '这首词写秋夜离别情景，细腻真切，是周邦彦婉约词的佳作。',
+    tags: ['离别', '秋天', '婉约', '爱情'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 168,
+    title: '齐天乐·与冯深居登禹陵',
+    author: '吴文英',
+    dynasty: '宋',
+    content: '三千年事残鸦外，无言倦凭秋树。\n逝水移川，高陵变谷，那识当时神禹。\n幽云怪雨。翠蓱湿空梁，夜深飞去。\n雁起青天，数行书似旧藏处。',
+    appreciation: '这首词是吴文英与友人登禹陵怀古之作，辞藻密丽，意境幽邃，是梦窗词的代表作。',
+    tags: ['怀古', '秋天', '写景', '登临'],
+    category: 'ci',
+    fameLevel: 1
+  },
+  {
+    id: 169,
+    title: '唐多令·何处合成愁',
+    author: '吴文英',
+    dynasty: '宋',
+    content: '何处合成愁？离人心上秋。\n纵芭蕉、不雨也飕飕。\n都道晚凉天气好，有明月，怕登楼。\n年事梦中休，花空烟水流。\n燕辞归、客尚淹留。\n垂柳不萦裙带住，漫长是、系行舟。',
+    appreciation: '这首词写羁旅怀人之情，首两句"何处合成愁，离人心上秋"拆字巧妙，传唱人口。',
+    tags: ['秋天', '思乡', '婉约', '羁旅'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 170,
+    title: '眉妩·新月',
+    author: '王沂孙',
+    dynasty: '宋',
+    content: '渐新痕悬柳，淡彩穿花，依约破初暝。\n便有团圆意，深深拜，相逢谁在香径。\n画眉未稳，料素娥、犹带离恨。\n最堪爱、一曲银钩小，宝帘挂秋冷。',
+    appreciation: '这首词咏新月，寄托了词人的亡国之痛和身世之感，是王沂孙咏物词的代表作。',
+    tags: ['咏物', '月亮', '婉约', '亡国'],
+    category: 'ci',
+    fameLevel: 1
+  },
+  {
+    id: 171,
+    title: '齐天乐·蝉',
+    author: '王沂孙',
+    dynasty: '宋',
+    content: '一襟余恨宫魂断，年年翠阴庭树。\n乍咽凉柯，还移暗叶，重把离愁深诉。\n西窗过雨。怪瑶佩流空，玉筝调柱。\n镜暗妆残，为谁娇鬓尚如许。',
+    appreciation: '这首词借咏蝉寄托亡国之痛，是宋末遗民咏物词的名篇。',
+    tags: ['咏物', '亡国', '婉约', '忧愁'],
+    category: 'ci',
+    fameLevel: 1
+  },
+  {
+    id: 172,
+    title: '解连环·孤雁',
+    author: '张炎',
+    dynasty: '宋',
+    content: '楚江空晚。怅离群万里，恍然惊散。\n自顾影、欲下寒塘，正沙净草枯，水平天远。\n写不成书，只寄得、相思一点。\n料因循误了，残毡拥雪，故人心眼。',
+    appreciation: '这首词咏孤雁，寄托词人的身世之感和亡国之痛，张炎因此得号"张孤雁"。',
+    tags: ['咏物', '亡国', '羁旅', '孤独'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 173,
+    title: '高阳台·西湖春感',
+    author: '张炎',
+    dynasty: '宋',
+    content: '接叶巢莺，平波卷絮，断桥斜日归船。\n能几番游，看花又是明年。\n东风且伴蔷薇住，到蔷薇、春已堪怜。\n更凄然。万绿西泠，一抹荒烟。',
+    appreciation: '这首词是张炎游西湖感怀之作，抒发了亡国后的凄凉之感，风格凄清远雅。',
+    tags: ['西湖', '亡国', '春天', '婉约'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 174,
+    title: '一萼红·登蓬莱阁有感',
+    author: '周密',
+    dynasty: '宋',
+    content: '步深幽。正云黄天淡，雪意未全休。\n鉴曲寒沙，茂林烟草，俯仰千古悠悠。\n岁华晚、飘零渐远，谁念我、同载五湖舟？\n磴古松斜，崖阴苔老，一片清愁。',
+    appreciation: '这首词是周密登临绍兴蓬莱阁所作，抒发了亡国后的身世飘零之感。',
+    tags: ['登临', '怀古', '亡国', '冬天'],
+    category: 'ci',
+    fameLevel: 1
+  },
+  {
+    id: 175,
+    title: '曲游春·禁烟湖上薄游',
+    author: '周密',
+    dynasty: '宋',
+    content: '禁苑东风外，飏暖丝晴絮，春思如织。\n燕约莺期，恼芳情偏在，翠深红隙。\n漠漠香尘隔。沸十里、乱丝丛笛。\n看画船、尽入西泠，闲却半湖春色。',
+    appreciation: '这首词描写南宋都城临安清明前后西湖游春的盛况，是南宋繁华的一曲挽歌。',
+    tags: ['西湖', '春天', '写景', '感慨'],
+    category: 'ci',
+    fameLevel: 1
+  },
+  {
+    id: 176,
+    title: '双双燕·咏燕',
+    author: '史达祖',
+    dynasty: '宋',
+    content: '过春社了，度帘幕中间，去年尘冷。\n差池欲住，试入旧巢相并。\n还相雕梁藻井。又软语、商量不定。\n飘然快拂花梢，翠尾分开红影。',
+    appreciation: '这首词是史达祖咏物词的代表作，将春燕写得形神兼备，妙趣横生。',
+    tags: ['咏物', '春天', '燕子', '写景'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 177,
+    title: '绮罗香·春雨',
+    author: '史达祖',
+    dynasty: '宋',
+    content: '做冷欺花，将烟困柳，千里偷催春暮。\n尽日冥迷，愁里欲飞还住。\n惊粉重、蝶宿西园，喜泥润、燕归南浦。\n最妨它、佳约风流，钿车不到杜陵路。',
+    appreciation: '这首词咏春雨，体物工细，遗貌取神，是史达祖的代表作。',
+    tags: ['咏物', '春雨', '婉约', '写景'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 178,
+    title: '虞美人·听雨',
+    author: '蒋捷',
+    dynasty: '宋',
+    content: '少年听雨歌楼上，红烛昏罗帐。\n壮年听雨客舟中，江阔云低、断雁叫西风。\n而今听雨僧庐下，鬓已星星也。\n悲欢离合总无情，一任阶前、点滴到天明。',
+    appreciation: '这首词以听雨为线索，概括了词人一生三个不同阶段的境况和心情，是宋词中的名作。',
+    tags: ['人生', '感慨', '雨', '婉约'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 179,
+    title: '一剪梅·舟过吴江',
+    author: '蒋捷',
+    dynasty: '宋',
+    content: '一片春愁待酒浇。江上舟摇，楼上帘招。\n秋娘渡与泰娘桥，风又飘飘，雨又萧萧。\n何日归家洗客袍？银字笙调，心字香烧。\n流光容易把人抛，红了樱桃，绿了芭蕉。',
+    appreciation: '这首词写诗人乘船经过吴江县的所见所感，"红了樱桃，绿了芭蕉"两句成为千古名句。',
+    tags: ['春天', '思乡', '羁旅', '婉约'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 180,
+    title: '摸鱼儿·雁丘词',
+    author: '元好问',
+    dynasty: '金',
+    content: '问世间，情是何物，直教生死相许？\n天南地北双飞客，老翅几回寒暑。\n欢乐趣，离别苦，就中更有痴儿女。\n君应有语：\n渺万里层云，千山暮雪，只影向谁去？',
+    appreciation: '这首词是元好问为殉情的大雁所作，歌颂了生死不渝的爱情，是金词中的千古绝唱。',
+    tags: ['爱情', '咏物', '感慨', '婉约'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 181,
+    title: '岐阳',
+    author: '元好问',
+    dynasty: '金',
+    content: '百二关河草不横，十年戎马暗秦京。\n岐阳西望无来信，陇水东流闻哭声。\n野蔓有情萦战骨，残阳何意照空城。\n从谁细向苍苍问，争遣蚩尤作五兵。',
+    appreciation: '这首诗是元好问在岐阳城破后所作，描写了战乱后的惨状，表达了对战争的控诉。',
+    tags: ['战争', '忧国', '写景', '感慨'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 182,
+    title: '山坡羊·骊山怀古',
+    author: '张养浩',
+    dynasty: '元',
+    content: '骊山四顾，阿房一炬，当时奢侈今何处？\n只见草萧疏，水萦纡。\n至今遗恨迷烟树。\n列国周齐秦汉楚，赢，都变做了土；输，都变做了土。',
+    appreciation: '这首散曲是张养浩途经骊山时所作，借古讽今，抒发了对历史兴亡的感慨。',
+    tags: ['怀古', '感慨', '骊山', '散曲'],
+    category: 'song',
+    fameLevel: 3
+  },
+  {
+    id: 183,
+    title: '水仙子·咏江南',
+    author: '张养浩',
+    dynasty: '元',
+    content: '一江烟水照晴岚，两岸人家接画檐，芰荷丛一段秋光淡。\n看沙鸥舞再三，卷香风十里珠帘。\n画船儿天边至，酒旗儿风外飐。爱杀江南！',
+    appreciation: '这首小令描绘了江南水乡的美丽风光，格调清新明快，是张养浩散曲中的佳作。',
+    tags: ['写景', '江南', '水乡', '秋天'],
+    category: 'song',
+    fameLevel: 2
+  },
+  {
+    id: 184,
+    title: '寿阳曲·远浦帆归',
+    author: '马致远',
+    dynasty: '元',
+    content: '夕阳下，酒旆闲，两三航未曾着岸。\n落花水香茅舍晚，断桥头卖鱼人散。',
+    appreciation: '这首小令描绘了江村傍晚的渔人晚归图，意境淡远，富有生活气息。',
+    tags: ['写景', '水乡', '傍晚', '田园'],
+    category: 'song',
+    fameLevel: 2
+  },
+  {
+    id: 185,
+    title: '寿阳曲·潇湘夜雨',
+    author: '马致远',
+    dynasty: '元',
+    content: '渔灯暗，客梦回，一声声滴人心碎。\n孤舟五更家万里，是离人几行情泪。',
+    appreciation: '这首小令写潇湘夜雨的羁旅之愁，意境凄清，感情深挚。',
+    tags: ['思乡', '雨夜', '羁旅', '潇湘'],
+    category: 'song',
+    fameLevel: 2
+  },
+  {
+    id: 186,
+    title: '天净沙·秋',
+    author: '白朴',
+    dynasty: '元',
+    content: '孤村落日残霞，轻烟老树寒鸦，一点飞鸿影下。\n青山绿水，白草红叶黄花。',
+    appreciation: '这首小令描绘了秋日黄昏的景色，由寂寥而明丽，是元散曲中写景的名篇。',
+    tags: ['秋天', '写景', '山水', '田园'],
+    category: 'song',
+    fameLevel: 3
+  },
+  {
+    id: 187,
+    title: '沉醉东风·渔夫',
+    author: '白朴',
+    dynasty: '元',
+    content: '黄芦岸白苹渡口，绿柳堤红蓼滩头。\n虽无刎颈交，却有忘机友，点秋江白鹭沙鸥。\n傲杀人间万户侯，不识字烟波钓叟。',
+    appreciation: '这首小令刻画了一个超然物外的渔夫形象，表达了作者对隐逸生活的向往。',
+    tags: ['隐逸', '写景', '渔父', '淡泊'],
+    category: 'song',
+    fameLevel: 2
+  },
+  {
+    id: 188,
+    title: '水仙子·重观瀑布',
+    author: '乔吉',
+    dynasty: '元',
+    content: '天机织罢月梭闲，石壁高垂雪练寒。\n冰丝带雨悬霄汉，几千年晒未干。\n露华凉人怯衣单。\n似白虹饮涧，玉龙下山，晴雪飞滩。',
+    appreciation: '这首小令以奇特的想象描写瀑布的壮观景象，比喻生动，气势磅礴。',
+    tags: ['写景', '山水', '瀑布', '壮观'],
+    category: 'song',
+    fameLevel: 2
+  },
+  {
+    id: 189,
+    title: '凭阑人·金陵道中',
+    author: '乔吉',
+    dynasty: '元',
+    content: '瘦马驮诗天一涯，倦鸟呼愁村数家。\n扑头飞柳花，与人添鬓华。',
+    appreciation: '这首小令写羁旅金陵途中的愁思，情景交融，短小精悍。',
+    tags: ['羁旅', '思乡', '春天', '感慨'],
+    category: 'song',
+    fameLevel: 1
+  },
+  {
+    id: 190,
+    title: '小梁州·春',
+    author: '贯云石',
+    dynasty: '元',
+    content: '春风花草满园香，马系在垂杨。\n桃红柳绿映池塘，堪游赏，沙暖睡鸳鸯。\n宜晴宜雨宜阴暘，比西施淡抹浓妆。\n玉女弹，佳人唱，湖山堂上，直吃醉何妨。',
+    appreciation: '这首散曲描绘了西湖春日的美景和游赏之乐，风格明丽活泼。',
+    tags: ['春天', '写景', '西湖', '游赏'],
+    category: 'song',
+    fameLevel: 1
+  },
+  {
+    id: 191,
+    title: '塞鸿秋·代人作',
+    author: '贯云石',
+    dynasty: '元',
+    content: '战西风几点宾鸿至，感起我南朝千古伤心事。\n展花笺欲写几句知心事，空教我停霜毫半晌无才思。\n往常得兴时，一扫无瑕疵。\n今日个病厌厌刚写下两个相思字。',
+    appreciation: '这首散曲写相思之情，以景起兴，感情细腻，风格婉丽。',
+    tags: ['爱情', '思念', '秋天', '婉约'],
+    category: 'song',
+    fameLevel: 1
+  },
+  {
+    id: 192,
+    title: '山坡羊·西湖杂咏·春',
+    author: '薛昂夫',
+    dynasty: '元',
+    content: '山光如淀，湖光如练，一步一个生绡面。\n叩逋仙，访坡仙，拣西湖好处都游遍，管甚月明归路远。\n船，休放转；杯，休放浅。',
+    appreciation: '这首散曲写春日游西湖的乐趣，表达了作者对湖山美景的热爱。',
+    tags: ['西湖', '春天', '游赏', '写景'],
+    category: 'song',
+    fameLevel: 1
+  },
+  {
+    id: 193,
+    title: '殿前欢·醉翁',
+    author: '徐再思',
+    dynasty: '元',
+    content: '醉翁亭，泉香酒冽竹疏清。\n山肴野蔌朝来定，自别虚灵。\n先生醉不醒，无人应，林下清风静。\n月明天上，天上月明天。',
+    appreciation: '这首小令以欧阳修《醉翁亭记》为题，抒发了隐逸山林的闲适之情。',
+    tags: ['隐逸', '闲适', '醉翁亭', '写景'],
+    category: 'song',
+    fameLevel: 1
+  },
+  {
+    id: 194,
+    title: '水仙子·夜雨',
+    author: '徐再思',
+    dynasty: '元',
+    content: '一声梧叶一声秋，一点芭蕉一点愁，三更归梦三更后。\n落灯花棋未收，叹新丰逆旅淹留。\n枕上十年事，江南二老忧，都到心头。',
+    appreciation: '这首小令写夜雨羁旅之愁，将思乡、念亲、失意融为一体，凄婉动人。',
+    tags: ['思乡', '雨夜', '羁旅', '忧愁'],
+    category: 'song',
+    fameLevel: 2
+  },
+  {
+    id: 195,
+    title: '青丘子歌',
+    author: '高启',
+    dynasty: '明',
+    content: '青丘子，臞而清，本是五云阁下之仙卿。\n何年降谪在世间，向人不道姓与名。\n蹑屩厌远游，荷锄懒躬耕。\n有剑任羞涩，有书任纵横。',
+    appreciation: '这首诗是高启的自况之作，抒发了诗人怀才不遇的愤懑和狂放不羁的性格。',
+    tags: ['咏怀', '狂放', '隐逸', '感慨'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 196,
+    title: '登金陵雨花台望大江',
+    author: '高启',
+    dynasty: '明',
+    content: '大江来从万山中，山势尽与江流东。\n钟山如龙独西上，欲破巨浪乘长风。\n江山相雄不相让，形胜争夸天下壮。\n秦皇空此瘗黄金，佳气葱葱至今王。',
+    appreciation: '这首诗是高登临金陵雨花台眺望长江所作，气势雄浑，感慨深沉。',
+    tags: ['登高', '怀古', '写景', '长江'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 197,
+    title: '梅花',
+    author: '高启',
+    dynasty: '明',
+    content: '琼姿只合在瑶台，谁向江南处处栽。\n雪满山中高士卧，月明林下美人来。\n寒依疏影萧萧竹，春掩残香漠漠苔。\n自去何郎无好咏，东风愁寂几回开。',
+    appreciation: '这首咏梅诗格调高雅，以高士美人喻梅花，是高启七律的代表作。',
+    tags: ['咏物', '梅花', '高洁', '冬天'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 198,
+    title: '岳阳楼',
+    author: '杨基',
+    dynasty: '明',
+    content: '春色醉巴陵，阑干落照平。\n水吞三楚白，山接九疑青。\n空阔鱼龙气，婵娟帝子灵。\n何人夜吹笛，风急雨冥冥。',
+    appreciation: '这首诗登岳阳楼写景抒怀，境界开阔，格调苍凉，是杨基的代表作。',
+    tags: ['登高', '写景', '岳阳楼', '怀古'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 199,
+    title: '春草',
+    author: '杨基',
+    dynasty: '明',
+    content: '嫩绿柔香远更浓，春来无处不茸茸。\n六朝旧恨斜阳里，南浦新愁细雨中。\n近水欲迷歌扇绿，隔花微衬舞裙红。\n永丰坊里东风恶，吹折柔条恨莫穷。',
+    appreciation: '这首咏春草诗，借草抒怀，寄托了朝代兴亡和人生离别的感慨。',
+    tags: ['咏物', '春天', '写景', '感慨'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 200,
+    title: '白燕',
+    author: '袁凯',
+    dynasty: '明',
+    content: '故国飘零事已非，旧时王谢应见稀。\n月明汉水初无影，雪满梁园尚未归。\n柳絮池塘香入梦，梨花庭院冷侵衣。\n赵家姊妹多相忌，莫向昭阳殿里飞。',
+    appreciation: '这首咏白燕诗托物言志，借白燕寄寓了诗人的身世之感，袁凯因此得号"袁白燕"。',
+    tags: ['咏物', '燕子', '感慨', '高洁'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 201,
+    title: '客中除夕',
+    author: '袁凯',
+    dynasty: '明',
+    content: '今夕为何夕，他乡说故乡。\n看人儿女大，为客岁年长。\n戎马无休歇，关山正渺茫。\n一杯椒叶酒，未敌泪千行。',
+    appreciation: '这首诗写除夕客居他乡的思乡之情，质朴自然，感情真挚。',
+    tags: ['除夕', '思乡', '羁旅', '忧愁'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 202,
+    title: '咏煤炭',
+    author: '于谦',
+    dynasty: '明',
+    content: '凿开混沌得乌金，藏蓄阳和意最深。\n爝火燃回春浩浩，洪炉照破夜沉沉。\n鼎彝元赖生成力，铁石犹存死后心。\n但愿苍生俱饱暖，不辞辛苦出山林。',
+    appreciation: '这首咏煤炭诗托物言志，以煤炭自喻，表达了诗人为国为民的献身精神。',
+    tags: ['咏物', '言志', '爱国', '奉献'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 203,
+    title: '临江仙·滚滚长江东逝水',
+    author: '杨慎',
+    dynasty: '明',
+    content: '滚滚长江东逝水，浪花淘尽英雄。\n是非成败转头空。\n青山依旧在，几度夕阳红。\n白发渔樵江渚上，惯看秋月春风。\n一壶浊酒喜相逢。\n古今多少事，都付笑谈中。',
+    appreciation: '这首词是杨慎《廿一史弹词》中的开篇词，借历史兴亡抒发人生感慨，意境雄浑。',
+    tags: ['怀古', '人生', '感慨', '豪放'],
+    category: 'ci',
+    fameLevel: 4
+  },
+  {
+    id: 204,
+    title: '出郊',
+    author: '杨慎',
+    dynasty: '明',
+    content: '高田如楼梯，平田如棋局。\n白鹭忽飞来，点破秧针绿。',
+    appreciation: '这首小诗写春日郊外的田园风光，清新明快，意境如画。',
+    tags: ['田园', '写景', '春天', '农村'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 205,
+    title: '桃花庵歌',
+    author: '唐寅',
+    dynasty: '明',
+    content: '桃花坞里桃花庵，桃花庵下桃花仙。\n桃花仙人种桃树，又折花枝当酒钱。\n酒醒只在花前坐，酒醉还来花下眠。\n半醒半醉日复日，花落花开年复年。',
+    appreciation: '这首诗是唐寅的代表作，表现了诗人狂放不羁、淡泊名利的人生态度。',
+    tags: ['咏怀', '狂放', '隐逸', '桃花'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 206,
+    title: '把酒对月歌',
+    author: '唐寅',
+    dynasty: '明',
+    content: '李白前时原有月，惟有李白诗能说。\n李白如今已仙去，月在青天几圆缺？\n今人犹歌李白诗，明月还如李白时。\n我学李白对明月，白与明月安能知！',
+    appreciation: '这首诗借李白及月抒怀，表达了诗人对李白的仰慕和怀才不遇的感慨。',
+    tags: ['咏怀', '月亮', '感慨', '李白'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 207,
+    title: '题文徵明画',
+    author: '文徵明',
+    dynasty: '明',
+    content: '近山千丈指青莲，远岫浮云灭没边。\n一段江南秋色里，茅檐高卧北窗眠。',
+    appreciation: '这首题画诗描写了江南秋景，表现了画家的隐逸情怀，诗画相得益彰。',
+    tags: ['题画', '写景', '秋天', '隐逸'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 208,
+    title: '沧浪池上',
+    author: '文徵明',
+    dynasty: '明',
+    content: '杨柳阴阴十亩塘，昔人从此咏沧浪。\n春风依旧吹芳杜，陈迹无多半夕阳。\n积雨经时荒渚断，跳鱼一聚晚风凉。\n渺然世事俱陈迹，休向沧浪问行藏。',
+    appreciation: '这首诗写苏州沧浪亭的景色，抒发了世事沧桑的感慨。',
+    tags: ['写景', '怀古', '沧浪亭', '感慨'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 209,
+    title: '思归',
+    author: '归有光',
+    dynasty: '明',
+    content: '岁暮久客愁思归，长安梅花如雪飞。\n江南水乡春未晚，鲤鱼风长河豚肥。\n西家酒香唤客尝，东家蚕熟来上簇。\n此时不归将焉如，三径虽荒幸不锄。',
+    appreciation: '这首诗写岁暮客居长安的思乡之情，以江南风物映衬归思之切。',
+    tags: ['思乡', '岁暮', '羁旅', '江南'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 210,
+    title: '初晴游沧浪亭',
+    author: '苏舜钦',
+    dynasty: '宋',
+    content: '夜雨连明春水生，娇云浓暖弄阴晴。\n帘虚日薄花竹静，时有乳鸠相对鸣。',
+    appreciation: '这首诗写初晴后游沧浪亭的所见所闻，意境清幽，富有闲情逸致。',
+    tags: ['写景', '春天', '沧浪亭', '闲适'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 211,
+    title: '满井游记',
+    author: '袁宏道',
+    dynasty: '明',
+    content: '高柳夹堤，土膏微润，一望空阔，若脱笼之鹄。\n于时冰皮始解，波色乍明，鳞浪层层，清澈见底。',
+    appreciation: '这是袁宏道《满井游记》中的名句，描写北京城郊初春的景色，体现了公安派"独抒性灵"的文学主张。',
+    tags: ['写景', '春天', '游记', '山水'],
+    category: 'fu',
+    fameLevel: 2
+  },
+  {
+    id: 212,
+    title: '山阴道',
+    author: '袁宏道',
+    dynasty: '明',
+    content: '钱塘艳若花，山阴道士如。\n蓝舆嘶晓月，翠幄拥春芜。\n石濑鳞鳞出，云岚面面殊。\n平生山水意，垂老得吾徒。',
+    appreciation: '这首诗写山阴道上的山水美景，表现了诗人对自然山水的热爱。',
+    tags: ['写景', '山水', '游赏', '闲适'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 213,
+    title: '秋日舟中题',
+    author: '钟惺',
+    dynasty: '明',
+    content: '一壑秋声里，孤舟落照间。\n树深黄到叶，水远碧沈山。\n渔火随风远，人家背郭闲。\n故园犹在眼，几日共跻攀。',
+    appreciation: '这首诗写秋日舟行所见景色，意境幽远，体现了竟陵派幽深孤峭的风格。',
+    tags: ['秋天', '写景', '山水', '羁旅'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 214,
+    title: '夏夜',
+    author: '谭元春',
+    dynasty: '明',
+    content: '月出烟亦动，舟中夜悄然。\n风将林影碎，露与草声圆。\n静后闻微物，闲来叩旧缘。\n平生学忘意，到此未能捐。',
+    appreciation: '这首诗写夏夜舟中的感受，细腻幽深，是竟陵派诗歌的代表作品。',
+    tags: ['夏天', '夜晚', '写景', '闲适'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 215,
+    title: '点绛唇·春日风雨有感',
+    author: '陈子龙',
+    dynasty: '明',
+    content: '满眼韶华，东风惯是吹红去。\n几番烟雾，只有花难护。\n梦里相思，故国王孙路。\n春无主，杜鹃啼处，泪染胭脂雨。',
+    appreciation: '这首词借春日风雨抒发亡国之痛，缠绵悱恻，寄托遥深，是陈子龙的代表作。',
+    tags: ['亡国', '春天', '婉约', '感慨'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 216,
+    title: '渡易水',
+    author: '陈子龙',
+    dynasty: '明',
+    content: '并刀昨夜匣中鸣，燕赵悲歌最不平。\n易水潺湲云草碧，可怜无处送荆卿。',
+    appreciation: '这首诗借荆轲刺秦的故事抒发报国无门的悲愤，慷慨悲凉，是陈子龙七绝佳作。',
+    tags: ['怀古', '爱国', '感慨', '荆轲'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 217,
+    title: '别云间',
+    author: '夏完淳',
+    dynasty: '明',
+    content: '三年羁旅客，今日又南冠。\n无限山河泪，谁言天地宽。\n已知泉路近，欲别故乡难。\n毅魄归来日，灵旗空际看。',
+    appreciation: '这首诗是夏完淳抗清被捕后诀别故乡之作，慷慨悲壮，正气凛然，是少年英雄的千古绝唱。',
+    tags: ['爱国', '诀别', '悲壮', '故乡'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 218,
+    title: '卜算子·秋色到空闺',
+    author: '夏完淳',
+    dynasty: '明',
+    content: '秋色到空闺，夜扫梧桐叶。\n谁料同心结不成，翻就相思结。\n十二玉阑干，风动灯明灭。\n立尽黄昏泪几行，一片鸦啼月。',
+    appreciation: '这首词写闺怨，托意深远，在悲秋怀人中暗寓亡国之痛，婉而多讽。',
+    tags: ['闺怨', '秋天', '婉约', '思念'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 219,
+    title: '后秋兴之十二',
+    author: '钱谦益',
+    dynasty: '清',
+    content: '海角崖山一线斜，从今也不属中华。\n更无鱼腹捐躯地，况有龙涎泛海槎。\n望断关河非汉帜，吹残日月是胡笳。\n嫦娥老大无归处，独倚银轮哭桂花。',
+    appreciation: '这首诗是钱谦益《后秋兴》组诗之一，借宋亡崖山事暗寓明亡之痛，沉郁苍凉。',
+    tags: ['亡国', '怀古', '忧愁', '感慨'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 220,
+    title: '和盛集陶落叶',
+    author: '钱谦益',
+    dynasty: '清',
+    content: '秋老钟山万木稀，凋伤总属劫尘飞。\n不堪玄鬓影，来对白头吟。\n露重飞难进，风多响易沉。\n无人信高洁，谁为表予心。',
+    appreciation: '这首和诗借落叶抒怀，寄托了诗人身世飘零和故国之思。',
+    tags: ['秋天', '咏物', '感慨', '落叶'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 221,
+    title: '圆圆曲',
+    author: '吴伟业',
+    dynasty: '清',
+    content: '鼎湖当日弃人间，破敌收京下玉关。\n恸哭六军俱缟素，冲冠一怒为红颜。\n红颜流落非吾恋，逆贼天亡自荒宴。\n电扫黄巾定黑山，哭罢君亲再相见。',
+    appreciation: '这首长诗借陈圆圆与吴三桂的故事，抒写兴亡之感，是吴伟业"梅村体"的代表作。',
+    tags: ['怀古', '历史', '爱情', '感慨'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 222,
+    title: '过淮阴有感',
+    author: '吴伟业',
+    dynasty: '清',
+    content: '登高怅望八公山，琪树丹崖未可攀。\n莫想阴符遇黄石，好将鸿宝驻朱颜。\n浮生所欠只一死，尘世无繇识九还。\n我本淮王旧鸡犬，不随仙去落人间。',
+    appreciation: '这首诗是吴伟业被迫出仕清廷路过淮阴时所作，抒发了故国之思和失节之痛。',
+    tags: ['怀古', '感慨', '人生', '故国'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 223,
+    title: '真州绝句',
+    author: '王士禛',
+    dynasty: '清',
+    content: '江干多是钓人居，柳陌菱塘一带疏。\n好是日斜风定后，半江红树卖鲈鱼。',
+    appreciation: '这首绝句写真州江边渔家风情，清新自然，是王士禛"神韵说"的代表作品。',
+    tags: ['写景', '水乡', '田园', '秋天'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 224,
+    title: '秦淮杂诗',
+    author: '王士禛',
+    dynasty: '清',
+    content: '年来肠断秣陵舟，梦绕秦淮水上楼。\n十日雨丝风片里，浓春烟景似残秋。',
+    appreciation: '这首诗写秦淮春色，以乐景写哀，寄托了对前朝兴亡的感慨，韵味悠长。',
+    tags: ['怀古', '写景', '春天', '秦淮'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 225,
+    title: '桂殿秋·思往事',
+    author: '朱彝尊',
+    dynasty: '清',
+    content: '思往事，渡江干，青蛾低映越山看。\n共眠一舸听秋雨，小簟轻衾各自寒。',
+    appreciation: '这首小令追忆旧日恋情，以极简之笔写极深之情，是朱彝尊小令的代表作。',
+    tags: ['爱情', '回忆', '婉约', '秋天'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 226,
+    title: '卖花声·雨花台',
+    author: '朱彝尊',
+    dynasty: '清',
+    content: '衰柳白门湾，潮打城还。\n小长干接大长干。\n歌板酒旗零落尽，剩有渔竿。\n秋草六朝寒，花雨空坛。\n更无人处一凭阑。\n燕子斜阳来又去，如此江山。',
+    appreciation: '这首词登雨花台怀古，抒发对六朝兴亡和明朝灭亡的感慨，苍凉沉郁。',
+    tags: ['怀古', '登临', '亡国', '秋天'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 227,
+    title: '木兰花令·拟古决绝词',
+    author: '纳兰性德',
+    dynasty: '清',
+    content: '人生若只如初见，何事秋风悲画扇。\n等闲变却故人心，却道故人心易变。\n骊山语罢清宵半，泪雨零铃终不怨。\n何如薄幸锦衣郎，比翼连枝当日愿。',
+    appreciation: '这首词以女子口吻谴责男子的薄情，"人生若只如初见"成为千古名句，是纳兰性德的代表作。',
+    tags: ['爱情', '闺怨', '感慨', '婉约'],
+    category: 'ci',
+    fameLevel: 4
+  },
+  {
+    id: 228,
+    title: '蝶恋花·辛苦最怜天上月',
+    author: '纳兰性德',
+    dynasty: '清',
+    content: '辛苦最怜天上月，一昔如环，昔昔都成玦。\n若似月轮终皎洁，不辞冰雪为卿热。\n无那尘缘容易绝，燕子依然，软踏帘钩说。\n唱罢秋坟愁未歇，春丛认取双栖蝶。',
+    appreciation: '这首词是纳兰性德悼念亡妻卢氏之作，以明月起兴，感情真挚凄婉，令人动容。',
+    tags: ['悼亡', '爱情', '月亮', '婉约'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 229,
+    title: '长相思·山一程',
+    author: '纳兰性德',
+    dynasty: '清',
+    content: '山一程，水一程，身向榆关那畔行，夜深千帐灯。\n风一更，雪一更，聒碎乡心梦不成，故园无此声。',
+    appreciation: '这首词是纳兰性德扈从康熙东巡途中所作，抒写羁旅思乡之情，语言自然，意境深远。',
+    tags: ['思乡', '羁旅', '边塞', '冬天'],
+    category: 'ci',
+    fameLevel: 4
+  },
+  {
+    id: 230,
+    title: '点绛唇·夜宿临洺驿',
+    author: '陈维崧',
+    dynasty: '清',
+    content: '晴髻离离，太行山势如蝌蚪。\n稗花盈亩，一寸霜皮厚。\n赵魏燕韩，历历堪回首。\n悲风吼，临洺驿口，黄叶中原走。',
+    appreciation: '这首词写北行夜宿的所见所感，雄浑苍凉，是阳羡词派的代表作品。',
+    tags: ['登临', '怀古', '豪放', '秋天'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 231,
+    title: '醉落魄·咏鹰',
+    author: '陈维崧',
+    dynasty: '清',
+    content: '寒山几堵，风低削碎中原路。\n秋空一碧无今古。\n醉袒貂裘，略记寻呼处。\n男儿身手和谁赌。\n老来猛气还轩举。\n人间多少闲狐兔。\n月黑沙黄，此际偏思汝。',
+    appreciation: '这首咏鹰词借物抒怀，抒发了词人壮志未酬的感慨，笔力雄健，气势豪迈。',
+    tags: ['咏物', '言志', '豪放', '鹰'],
+    category: 'ci',
+    fameLevel: 2
+  },
+  {
+    id: 232,
+    title: '金缕曲·季子平安否',
+    author: '顾贞观',
+    dynasty: '清',
+    content: '季子平安否？\n便归来，平生万事，那堪回首！\n行路悠悠谁慰藉，母老家贫子幼。\n记不起，从前杯酒。\n魑魅搏人应见惯，总输他，覆雨翻云手。\n冰与雪，周旋久。',
+    appreciation: '这首词是顾贞观为救流放宁古塔的好友吴兆骞而作，以词代书，感情真挚，字字血泪。',
+    tags: ['友情', '思念', '悲愤', '婉约'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 233,
+    title: '金缕曲·我亦飘零久',
+    author: '顾贞观',
+    dynasty: '清',
+    content: '我亦飘零久！\n十年来，深恩负尽，死生师友。\n宿昔齐名非忝窃，只看杜陵消瘦。\n曾不减，夜郎僝僽。\n薄命长辞知己别，问人生到此凄凉否？\n千万恨，为兄剖。',
+    appreciation: '这首词是前一首的续篇，继续倾诉对友人的思念和愧疚，情真意切，感人至深。',
+    tags: ['友情', '感慨', '人生', '悲愤'],
+    category: 'ci',
+    fameLevel: 3
+  },
+  {
+    id: 234,
+    title: '竹',
+    author: '郑燮',
+    dynasty: '清',
+    content: '一节复一节，千枝攒万叶。\n我自不开花，免撩蜂与蝶。',
+    appreciation: '这首题画诗以竹自喻，表现了郑板桥不事张扬、洁身自好的品格。',
+    tags: ['咏物', '题画', '竹子', '高洁'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 235,
+    title: '潍县署中画竹呈年伯包大中丞括',
+    author: '郑燮',
+    dynasty: '清',
+    content: '衙斋卧听萧萧竹，疑是民间疾苦声。\n些小吾曹州县吏，一枝一叶总关情。',
+    appreciation: '这首题画诗表达了郑板桥对民间疾苦的关切，是他为官清廉、体恤民情的写照。',
+    tags: ['题画', '忧民', '竹子', '感慨'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 236,
+    title: '所见',
+    author: '袁枚',
+    dynasty: '清',
+    content: '牧童骑黄牛，歌声振林樾。\n意欲捕鸣蝉，忽然闭口立。',
+    appreciation: '这首小诗描写牧童捕蝉的生动情景，活泼有趣，体现了袁枚"性灵说"的诗歌主张。',
+    tags: ['田园', '儿童', '生活', '夏天'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 237,
+    title: '马嵬',
+    author: '袁枚',
+    dynasty: '清',
+    content: '莫唱当年长恨歌，人间亦自有银河。\n石壕村里夫妻别，泪比长生殿上多。',
+    appreciation: '这首咏史诗别具只眼，将石壕村百姓的苦难与帝王爱情对比，立意新颖。',
+    tags: ['怀古', '忧民', '感慨', '马嵬'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 238,
+    title: '绮怀',
+    author: '黄景仁',
+    dynasty: '清',
+    content: '几回花下坐吹箫，银汉红墙入望遥。\n似此星辰非昨夜，为谁风露立中宵。\n缠绵思尽抽残茧，宛转心伤剥后蕉。\n三五年时三五月，可怜杯酒不曾消。',
+    appreciation: '这首诗是黄景仁怀念恋人之作，"似此星辰非昨夜，为谁风露立中宵"成为千古名句。',
+    tags: ['爱情', '思念', '婉约', '感慨'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 239,
+    title: '都门秋思',
+    author: '黄景仁',
+    dynasty: '清',
+    content: '五剧车声隐若雷，北邙惟见冢千堆。\n夕阳劝客登楼去，山色将秋绕郭来。\n寒甚更无修竹倚，愁多思买白杨栽。\n全家都在秋风里，九月衣裳未剪裁。',
+    appreciation: '这首诗写秋日京师的愁思，抒发了贫困潦倒、怀才不遇的悲愤。',
+    tags: ['秋天', '感慨', '羁旅', '贫困'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 240,
+    title: '舟夜书所见',
+    author: '查慎行',
+    dynasty: '清',
+    content: '月黑见渔灯，孤光一点萤。\n微微风簇浪，散作满河星。',
+    appreciation: '这首五言绝句描写夜晚舟中所见的渔灯，比喻新奇，意境优美。',
+    tags: ['夜晚', '写景', '水乡', '渔灯'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 241,
+    title: '晓过鸳湖',
+    author: '查慎行',
+    dynasty: '清',
+    content: '晓风催我挂帆行，绿涨春芜岸欲平。\n长水塘南三日雨，菜花香过秀州城。',
+    appreciation: '这首诗写早春过鸳湖的景色，清新自然，富有生活气息。',
+    tags: ['春天', '写景', '水乡', '田园'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 242,
+    title: '百字令·秋光今夜',
+    author: '厉鹗',
+    dynasty: '清',
+    content: '秋光今夜，向桐江，为写当年高躅。\n风露皆非人世有，自坐船头吹竹。\n万籁生山，一星在水，鹤梦疑重续。\n挐音遥去，西岩渔父初宿。',
+    appreciation: '这首词追慕严子陵的高风，写景清幽，格调孤峭，是厉鹗浙西词派的代表作。',
+    tags: ['怀古', '秋天', '写景', '隐逸'],
+    category: 'ci',
+    fameLevel: 1
+  },
+  {
+    id: 243,
+    title: '谒金门·七月既望湖上雨后作',
+    author: '厉鹗',
+    dynasty: '清',
+    content: '凭画槛，雨洗秋浓人淡。\n隔水残霞明冉冉，小山三四点。\n艇子几时同泛？\n待折荷花临鉴。\n日日绿盘疏粉艳，西风无处减。',
+    appreciation: '这首词写西湖雨后秋景，意境淡远，是浙西词派"清空"风格的体现。',
+    tags: ['写景', '西湖', '秋天', '婉约'],
+    category: 'ci',
+    fameLevel: 1
+  },
+  {
+    id: 244,
+    title: '水调歌头·春日赋示杨生子掞',
+    author: '张惠言',
+    dynasty: '清',
+    content: '百年复几许，慷慨一何多。\n子当为我击筑，我为子高歌。\n招手海边鸥鸟，看我胸中云梦，蒂芥近如何。\n楚越等闲耳，肝胆有风波。',
+    appreciation: '这首词抒发了词人的人生感慨，寄托了对友人的期望，是常州词派的代表作品。',
+    tags: ['言志', '人生', '友情', '豪放'],
+    category: 'ci',
+    fameLevel: 1
+  },
+  {
+    id: 245,
+    title: '蝶恋花·柳絮年年三月暮',
+    author: '周济',
+    dynasty: '清',
+    content: '柳絮年年三月暮。\n断送莺花，送了春归路。\n斜日欲沉芳草渡。\n断红流水声中语。\n飘泊残英无定处。\n才过回塘，又入长杨去。\n化作浮萍终不聚。\n江南多少闲风雨。',
+    appreciation: '这首咏物词借柳絮抒写身世漂泊之感，是常州词派比兴寄托理论的实践。',
+    tags: ['咏物', '感慨', '春天', '婉约'],
+    category: 'ci',
+    fameLevel: 1
+  },
+  {
+    id: 246,
+    title: '上巳将过金陵',
+    author: '龚鼎孳',
+    dynasty: '清',
+    content: '槛外春江去未停，崖边芳草坐来青。\n江山自入新亭泪，花柳还依旧院亭。\n千骑上头初过雨，六朝残梦欲随潮。\n伤心最是卢家妇，夫婿封侯拜将年。',
+    appreciation: '这首诗路过金陵怀古，抒发了朝代兴亡的感慨，苍凉沉郁。',
+    tags: ['怀古', '金陵', '感慨', '春天'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 247,
+    title: '出关',
+    author: '吴兆骞',
+    dynasty: '清',
+    content: '边楼回望翠崚嶒，万里风沙此一乘。\n马后桃花马前雪，出关争得不回头。',
+    appreciation: '这首诗是吴兆骞被流放宁古塔出山海关时所作，抒发了悲凉的家国身世之感。',
+    tags: ['贬谪', '思乡', '边塞', '感慨'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 248,
+    title: '秋夜集曹舍人斋',
+    author: '吴兆骞',
+    dynasty: '清',
+    content: '边霜凄凄覆琼草，边月苍苍照枯栁。\n迁客相逢易殒悲，故人相见难搔首。',
+    appreciation: '这首诗写流放之地与友人相聚的悲愁，苍凉凄婉，动人心魄。',
+    tags: ['秋天', '友情', '贬谪', '思乡'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 249,
+    title: '己亥杂诗·其二百二十',
+    author: '龚自珍',
+    dynasty: '清',
+    content: '九州生气恃风雷，万马齐喑究可哀。\n我劝天公重抖擞，不拘一格降人才。',
+    appreciation: '这首诗是龚自珍《己亥杂诗》中最著名的一首，呼唤变革，渴望人才，振聋发聩。',
+    tags: ['忧国', '改革', '人才', '感慨'],
+    category: 'poem',
+    fameLevel: 4
+  },
+  {
+    id: 250,
+    title: '己亥杂诗·其八十三',
+    author: '龚自珍',
+    dynasty: '清',
+    content: '只筹一缆十夫多，细算千艘渡此河。\n我亦曾糜太仓粟，夜闻邪许泪滂沱。',
+    appreciation: '这首诗写运河纤夫的艰辛，表达了诗人对劳动人民的同情和对自己无功受禄的愧疚。',
+    tags: ['忧民', '感慨', '运河', '劳动'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 251,
+    title: '自题小像',
+    author: '鲁迅',
+    dynasty: '近代',
+    content: '灵台无计逃神矢，风雨如磐暗故园。\n寄意寒星荃不察，我以我血荐轩辕。',
+    appreciation: '这首诗是鲁迅21岁时在日本留学时所作，表达了深厚的爱国主义情感和献身祖国的决心。',
+    tags: ['爱国', '感慨', '励志', '近代'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 252,
+    title: '自嘲',
+    author: '鲁迅',
+    dynasty: '近代',
+    content: '运交华盖欲何求，未敢翻身已碰头。\n破帽遮颜过闹市，漏船载酒泛中流。\n横眉冷对千夫指，俯首甘为孺子牛。\n躲进小楼成一统，管他冬夏与春秋。',
+    appreciation: '这首诗是鲁迅的代表作，"横眉冷对千夫指，俯首甘为孺子牛"是其精神的写照。',
+    tags: ['人生', '感慨', '咏志', '近代'],
+    category: 'poem',
+    fameLevel: 4
+  },
+  {
+    id: 253,
+    title: '悼杨铨',
+    author: '鲁迅',
+    dynasty: '近代',
+    content: '岂有豪情似旧时，花开花落两由之。\n何期泪洒江南雨，又为斯民哭健儿。',
+    appreciation: '这首诗是鲁迅悼念烈士杨铨之作，表达了对国民党反动派的愤慨和对烈士的哀悼。',
+    tags: ['悼念', '悲愤', '爱国', '近代'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 254,
+    title: '无题·惯于长夜过春时',
+    author: '鲁迅',
+    dynasty: '近代',
+    content: '惯于长夜过春时，挈妇将雏鬓有丝。\n梦里依稀慈母泪，城头变幻大王旗。\n忍看朋辈成新鬼，怒向刀丛觅小诗。\n吟罢低眉无写处，月光如水照缁衣。',
+    appreciation: '这首诗是鲁迅"左联五烈士"被害后所作，抒发了对战友牺牲的悲愤和对黑暗统治的控诉。',
+    tags: ['悲愤', '悼念', '爱国', '近代'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 255,
+    title: '春愁',
+    author: '丘逢甲',
+    dynasty: '近代',
+    content: '春愁难遣强看山，往事惊心泪欲潸。\n四百万人同一哭，去年今日割台湾。',
+    appreciation: '这首诗是丘逢甲在《马关条约》割让台湾一周年时所作，表达了强烈的爱国情怀。',
+    tags: ['爱国', '春愁', '台湾', '近代'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 256,
+    title: '秋夜',
+    author: '郁达夫',
+    dynasty: '近代',
+    content: '月落星稀梦不成，起看北斗尚分明。\n江山如此人何往，风雨纵横事可惊。\n万里长风摧木叶，一天霜气下鸡鸣。\n书生自有头颅在，莫向尊前论不平。',
+    appreciation: '这首诗写秋夜难眠，抒发了对国家命运的忧虑和书生报国的豪情。',
+    tags: ['秋天', '爱国', '感慨', '夜晚'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 257,
+    title: '钓台题壁',
+    author: '郁达夫',
+    dynasty: '近代',
+    content: '不是樽前爱惜身，佯狂难免假成真。\n曾因酒醉鞭名马，生怕情多累美人。\n劫数东南天作孽，鸡鸣风雨海扬尘。\n悲歌痛哭终何补，义士纷纷说帝秦。',
+    appreciation: '这首诗是郁达夫游严子陵钓台时所作，抒发了对时局的忧虑和报国无门的悲愤。',
+    tags: ['怀古', '爱国', '感慨', '悲愤'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 258,
+    title: '题太平天国战史',
+    author: '柳亚子',
+    dynasty: '近代',
+    content: '楚歌声里霸图空，血染胡天烂漫红。\n煮豆燃萁谁管得，莫将成败论英雄。',
+    appreciation: '这首诗题太平天国战史，歌颂了太平天国运动的历史功绩，不以成败论英雄。',
+    tags: ['怀古', '历史', '感慨', '近代'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 259,
+    title: '孤愤',
+    author: '柳亚子',
+    dynasty: '近代',
+    content: '孤愤真防决地维，忍抬醒眼看群尸。\n美新已见扬雄颂，劝进还传阮籍词。\n岂有沐猴能作帝，居然腐鼠亦乘时。\n宵来忽作亡秦梦，北伐声中起誓师。',
+    appreciation: '这首诗抒发了对袁世凯复辟帝制的愤慨，表达了革命到底的决心。',
+    tags: ['爱国', '悲愤', '革命', '近代'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 260,
+    title: '阅报戏作',
+    author: '陈寅恪',
+    dynasty: '近代',
+    content: '自笑平生畏蜀游，无端乘兴到渝州。\n千年故垒英雄尽，万里长江日夜流。\n食蛤那知天下事，看花愁近最高楼。\n行都灯火春寒夕，一梦迷离更白头。',
+    appreciation: '这首诗是陈寅恪抗战期间在重庆所作，抒发了对时局的忧虑和书生无奈的感慨。',
+    tags: ['爱国', '感慨', '抗战', '近代'],
+    category: 'poem',
+    fameLevel: 1
+  },
+  {
+    id: 261,
+    title: '忆故居',
+    author: '陈寅恪',
+    dynasty: '近代',
+    content: '渺渺钟声出远方，依依林影万鸦藏。\n一生负气成今日，四海无人对夕阳。\n破碎河山迎胜利，残余岁月送凄凉。\n松门松菊何年梦，且认他乡作故乡。',
+    appreciation: '这首诗是陈寅恪抗战胜利后所作，抒发了家国破碎的凄凉和对故乡的思念。',
+    tags: ['思乡', '感慨', '爱国', '抗战'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 262,
+    title: '死水',
+    author: '闻一多',
+    dynasty: '近代',
+    content: '这是一沟绝望的死水，\n清风吹不起半点漪沦。\n不如多扔些破铜烂铁，\n爽性泼你的剩菜残羹。',
+    appreciation: '这首诗是闻一多的代表作，以"死水"比喻黑暗腐朽的旧中国，表达了强烈的爱国主义情感。',
+    tags: ['爱国', '讽刺', '感慨', '近代'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 263,
+    title: '一句话',
+    author: '闻一多',
+    dynasty: '近代',
+    content: '有一句话说出就是祸，\n有一句话能点得着火。\n别看五千年没有说破，\n你猜得透火山的缄默？',
+    appreciation: '这首诗以"咱们的中国"为核心，表达了诗人对祖国觉醒的期盼和坚定信念。',
+    tags: ['爱国', '励志', '革命', '近代'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 264,
+    title: '再别康桥',
+    author: '徐志摩',
+    dynasty: '近代',
+    content: '轻轻的我走了，\n正如我轻轻的来；\n我轻轻的招手，\n作别西天的云彩。',
+    appreciation: '这首诗是徐志摩的代表作，以优美的语言和意象抒写了对剑桥大学的眷恋。',
+    tags: ['离别', '写景', '抒情', '近代'],
+    category: 'poem',
+    fameLevel: 4
+  },
+  {
+    id: 265,
+    title: '偶然',
+    author: '徐志摩',
+    dynasty: '近代',
+    content: '我是天空里的一片云，\n偶尔投影在你的波心——\n你不必讶异，\n更无须欢喜——\n在转瞬间消灭了踪影。',
+    appreciation: '这首小诗以云与水的偶然相遇比喻人生的邂逅，意境优美，富有哲理。',
+    tags: ['爱情', '人生', '哲理', '近代'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 266,
+    title: '太平洋舟中',
+    author: '郭沫若',
+    dynasty: '近代',
+    content: '太平洋上的风浪，\n平静了一天又一天。\n我坐在船舷上，\n看着那海天相接处的一线。',
+    appreciation: '这首诗写太平洋舟中的感受，抒发了对祖国的思念和对未来的憧憬。',
+    tags: ['写景', '思乡', '大海', '近代'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 267,
+    title: '狱中诗',
+    author: '恽代英',
+    dynasty: '近代',
+    content: '浪迹江湖忆旧游，故人生死各千秋。\n已摈忧患寻常事，留得豪情作楚囚。',
+    appreciation: '这首诗是恽代英在国民党狱中所作，表达了革命者视死如归的豪迈气概。',
+    tags: ['爱国', '革命', '励志', '近代'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 268,
+    title: '带镣行',
+    author: '刘伯坚',
+    dynasty: '近代',
+    content: '带镣长街行，蹒跚复蹒跚。\n市人争瞩目，我心无愧怍。\n带镣长街行，镣声何铿锵。\n市人皆惊讶，我心自安详。',
+    appreciation: '这首诗是刘伯坚被捕后押解游街时所作，表现了共产党人的凛然正气和坚定信念。',
+    tags: ['爱国', '革命', '励志', '近代'],
+    category: 'poem',
+    fameLevel: 2
+  },
+  {
+    id: 269,
+    title: '梅岭三章·其一',
+    author: '陈毅',
+    dynasty: '近代',
+    content: '断头今日意如何？创业艰难百战多。\n此去泉台招旧部，旌旗十万斩阎罗。',
+    appreciation: '这首诗是陈毅在梅岭被围时"绝笔"之作，表现了革命者至死不渝的战斗精神。',
+    tags: ['爱国', '革命', '豪迈', '近代'],
+    category: 'poem',
+    fameLevel: 3
+  },
+  {
+    id: 270,
+    title: '梅岭三章·其三',
+    author: '陈毅',
+    dynasty: '近代',
+    content: '投身革命即为家，血雨腥风应有涯。\n取义成仁今日事，人间遍种自由花。',
+    appreciation: '这首诗表达了陈毅为革命献身的决心和对革命胜利的坚定信念，慷慨悲壮。',
+    tags: ['爱国', '革命', '励志', '近代'],
+    category: 'poem',
+    fameLevel: 3
   }
 ];

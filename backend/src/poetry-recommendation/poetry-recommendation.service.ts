@@ -160,16 +160,22 @@ export class PoetryRecommendationService {
     return { score, reasons };
   }
 
-  recommend(query: string, limit: number = 5): ScoredPoem[] {
+  recommend(query: string, limit: number = 5, fameLevelRange?: [number, number]): ScoredPoem[] {
     const keywords = this.getKeywords(query);
 
+    let poemsPool = this.poems;
+    if (fameLevelRange) {
+      const [min, max] = fameLevelRange;
+      poemsPool = this.poems.filter(p => p.fameLevel >= min && p.fameLevel <= max);
+    }
+
     if (keywords.length === 0) {
-      return this.poems
+      return poemsPool
         .slice(0, limit)
         .map(p => ({ ...p, score: 1, matchReasons: ['随机推荐'] }));
     }
 
-    const scored: ScoredPoem[] = this.poems.map(poem => {
+    const scored: ScoredPoem[] = poemsPool.map(poem => {
       const { score, reasons } = this.matchPoem(poem, keywords);
       return { ...poem, score, matchReasons: reasons };
     });
@@ -179,9 +185,9 @@ export class PoetryRecommendationService {
     const filtered = scored.filter(p => p.score > 0);
 
     if (filtered.length === 0) {
-      return this.poems
+      return poemsPool
         .slice(0, limit)
-        .map(p => ({ ...p, score: 1, matchReasons: ['未找到精准匹配，为您推荐经典作品'] }));
+        .map(p => ({ ...p, score: 1, matchReasons: ['未找到精准匹配，为您推荐相关作品'] }));
     }
 
     return filtered.slice(0, limit);
@@ -210,7 +216,7 @@ export class PoetryRecommendationService {
   }
 
   getAll(
-    params: { tag?: string; dynasty?: string; author?: string; category?: string } = {}
+    params: { tag?: string; dynasty?: string; author?: string; category?: string; minFame?: number; maxFame?: number } = {}
   ): Poem[] {
     let result = [...this.poems];
 
@@ -226,6 +232,12 @@ export class PoetryRecommendationService {
     if (params.category) {
       result = result.filter(p => p.category === params.category);
     }
+    if (params.minFame !== undefined) {
+      result = result.filter(p => p.fameLevel >= params.minFame!);
+    }
+    if (params.maxFame !== undefined) {
+      result = result.filter(p => p.fameLevel <= params.maxFame!);
+    }
 
     return result;
   }
@@ -234,9 +246,18 @@ export class PoetryRecommendationService {
     return this.poems.find(p => p.id === id);
   }
 
-  search(keyword: string, limit: number = 20): Poem[] {
+  search(
+    keyword: string,
+    limit: number = 20,
+    fameLevelRange?: [number, number]
+  ): Poem[] {
     const lower = keyword.toLowerCase();
-    return this.poems
+    let pool = this.poems;
+    if (fameLevelRange) {
+      const [min, max] = fameLevelRange;
+      pool = this.poems.filter(p => p.fameLevel >= min && p.fameLevel <= max);
+    }
+    return pool
       .filter(p =>
         p.title.toLowerCase().includes(lower) ||
         p.author.toLowerCase().includes(lower) ||

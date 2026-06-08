@@ -15,6 +15,7 @@ export interface Poem {
   appreciation?: string
   tags: string[]
   category: 'song' | 'poem' | 'ci' | 'fu'
+  fameLevel: 1 | 2 | 3 | 4 | 5
 }
 
 export interface ScoredPoem extends Poem {
@@ -28,9 +29,9 @@ export interface QuickTag {
 }
 
 export const poetryApi = {
-  recommend: (query: string, limit?: number) =>
+  recommend: (query: string, limit?: number, minFame?: number, maxFame?: number) =>
     api.get<ScoredPoem[]>('/poetry-recommendation/recommend', {
-      params: { query, limit }
+      params: { query, limit, minFame, maxFame }
     }),
 
   getQuickTags: () =>
@@ -48,11 +49,11 @@ export const poetryApi = {
   getById: (id: number) =>
     api.get<Poem>(`/poetry-recommendation/poem/${id}`),
 
-  search: (keyword: string, limit?: number) =>
+  search: (keyword: string, limit?: number, minFame?: number, maxFame?: number) =>
     api.get<Poem[]>('/poetry-recommendation/search', {
-      params: { keyword, limit }
+      params: { keyword, limit, minFame, maxFame }
     }),
 
-  getAll: (params?: { tag?: string; dynasty?: string; author?: string; category?: string }) =>
+  getAll: (params?: { tag?: string; dynasty?: string; author?: string; category?: string; minFame?: number; maxFame?: number }) =>
     api.get<Poem[]>('/poetry-recommendation', { params })
 }
