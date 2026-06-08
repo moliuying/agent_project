@@ -109,4 +109,31 @@ export class PoetryRecommendationController {
       maxFame: maxFame ? parseInt(maxFame, 10) : undefined
     });
   }
+
+  @Get('inspiration')
+  getInspiration(@Query('count') count?: string): Poem[] {
+    const num = count ? parseInt(count, 10) : 5;
+    return this.poetryService.getInspiration(Math.min(num, 20));
+  }
+
+  @Get('related-theme/:id')
+  getRelatedByTheme(
+    @Param('id') id: string,
+    @Query('limit') limit?: string
+  ): Poem[] {
+    const limitNum = limit ? parseInt(limit, 10) : 5;
+    return this.poetryService.getRelatedByTheme(parseInt(id, 10), Math.min(limitNum, 10));
+  }
+
+  @Get('related-imagery')
+  getRelatedByImagery(
+    @Query('imagery') imagery: string,
+    @Query('limit') limit?: string
+  ): Poem[] {
+    if (!imagery || !imagery.trim()) {
+      throw new HttpException('请输入意象关键词', HttpStatus.BAD_REQUEST);
+    }
+    const limitNum = limit ? parseInt(limit, 10) : 8;
+    return this.poetryService.getRelatedByImagery(imagery.trim(), Math.min(limitNum, 20));
+  }
 }

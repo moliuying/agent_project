@@ -266,4 +266,41 @@ export class PoetryRecommendationService {
       )
       .slice(0, limit);
   }
+
+  getInspiration(count: number = 5): Poem[] {
+    const obscure = this.poems.filter(p => p.fameLevel <= 2);
+    const shuffled = [...obscure].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, Math.min(count, obscure.length));
+  }
+
+  getRelatedByTheme(poemId: number, limit: number = 5): Poem[] {
+    const target = this.poems.find(p => p.id === poemId);
+    if (!target) return [];
+    const others = this.poems.filter(p => p.id !== poemId);
+    const scored = others.map(p => {
+      let score = 0;
+      for (const tag of target.tags) {
+        if (p.tags.includes(tag)) score += 2;
+        else for (const t of p.tags) {
+          if (t.includes(tag) || tag.includes(t)) score += 1;
+        }
+      }
+      if (p.category === target.category) score += 1;
+      return { poem: p, score };
+    });
+    return scored
+      .filter(s => s.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map(s => s.poem);
+  }
+
+  getRelatedByImagery(imagery: string, limit: number = 8): Poem[] {
+    const kw = imagery.trim();
+    if (!kw) return [];
+    return this.poems
+      .filter(p => p.content.includes(kw) || p.tags.some(t => t.includes(kw)))
+      .sort((a, b) => a.fameLevel - b.fameLevel)
+      .slice(0, limit);
+  }
 }

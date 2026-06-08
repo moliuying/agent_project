@@ -13,6 +13,7 @@ export interface Poem {
   content: string
   translation?: string
   appreciation?: string
+  inspiration?: string
   tags: string[]
   category: 'song' | 'poem' | 'ci' | 'fu'
   fameLevel: 1 | 2 | 3 | 4 | 5
@@ -55,5 +56,20 @@ export const poetryApi = {
     }),
 
   getAll: (params?: { tag?: string; dynasty?: string; author?: string; category?: string; minFame?: number; maxFame?: number }) =>
-    api.get<Poem[]>('/poetry-recommendation', { params })
+    api.get<Poem[]>('/poetry-recommendation', { params }),
+
+  getInspiration: (count?: number) =>
+    api.get<Poem[]>('/poetry-recommendation/inspiration', {
+      params: { count }
+    }),
+
+  getRelatedByTheme: (id: number, limit?: number) =>
+    api.get<Poem[]>(`/poetry-recommendation/related-theme/${id}`, {
+      params: { limit }
+    }),
+
+  getRelatedByImagery: (imagery: string, limit?: number) =>
+    api.get<Poem[]>('/poetry-recommendation/related-imagery', {
+      params: { imagery, limit }
+    })
 }
