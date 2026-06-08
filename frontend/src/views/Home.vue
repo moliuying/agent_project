@@ -101,6 +101,15 @@
               </el-card>
             </el-col>
             <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/formula-ocr')" class="feature-card">
+                <el-icon :size="40" color="#165DFF">
+                  <Camera />
+                </el-icon>
+                <h3>拍照识别公式</h3>
+                <p>数学物理化学公式智能识别</p>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
               <el-card shadow="hover" @click="navigateTo('/ai-art-prompts')" class="feature-card">
                 <el-icon :size="40" color="#722ed1">
                   <MagicStick />
@@ -118,6 +127,8 @@
                 <p>学术论文内容自动生成</p>
               </el-card>
             </el-col>
+          </el-row>
+          <el-row :gutter="20" style="margin-top: 20px">
             <el-col :span="6">
               <el-card shadow="hover" @click="navigateTo('/excel-formula')" class="feature-card">
                 <el-icon :size="40" color="#165DFF">
@@ -125,6 +136,15 @@
                 </el-icon>
                 <h3>Excel公式查询</h3>
                 <p>智能匹配函数与示例公式</p>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/image-to-prompt')" class="feature-card">
+                <el-icon :size="40" color="#722ed1">
+                  <PictureFilled />
+                </el-icon>
+                <h3>图片转提示词</h3>
+                <p>AI 分析图片生成绘画提示词</p>
               </el-card>
             </el-col>
             <el-col :span="6">

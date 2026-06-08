@@ -100,6 +100,11 @@ const routes: RouteRecordRaw[] = [
         path: '/idiom-chain',
         name: 'IdiomChain',
         component: () => import('@/views/IdiomChain.vue')
+      },
+      {
+        path: '/formula-ocr',
+        name: 'FormulaOcr',
+        component: () => import('@/views/FormulaOcr.vue')
       }
     ]
   }
