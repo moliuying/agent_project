@@ -19,6 +19,7 @@ async function ensureMenus(app: any) {
     { name: '字数统计', path: '/word-counter', icon: 'Document', parentId: null, sort: 4.5, component: 'views/WordCounter.vue' },
     { name: '随机抽取', path: '/random-picker', icon: 'Dice', parentId: null, sort: 4.6, component: 'views/RandomPicker.vue' },
     { name: 'AI扩文', path: '/ai-text-expander', icon: 'MagicStick', parentId: null, sort: 4.7, component: 'views/AiTextExpander.vue' },
+    { name: 'Excel公式查询', path: '/excel-formula', icon: 'DataBoard', parentId: null, sort: 4.8, component: 'views/ExcelFormula.vue' },
     { name: 'IP地址查询', path: '/ip-lookup', icon: 'Location', parentId: null, sort: 5, component: 'views/IpLookup.vue' },
   ];
 

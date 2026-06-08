@@ -1,0 +1,37 @@
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { ExcelFormulaService, type ExcelFormula, type FormulaCategory } from './excel-formula.service';
+
+@Controller('excel-formula')
+export class ExcelFormulaController {
+  constructor(private readonly excelFormulaService: ExcelFormulaService) {}
+
+  @Get('categories')
+  getCategories() {
+    return this.excelFormulaService.getAllCategories();
+  }
+
+  @Get()
+  getAllFormulas(): ExcelFormula[] {
+    return this.excelFormulaService.getAllFormulas();
+  }
+
+  @Get('category/:category')
+  getByCategory(@Param('category') category: FormulaCategory): ExcelFormula[] {
+    return this.excelFormulaService.getFormulasByCategory(category);
+  }
+
+  @Get('search')
+  search(@Query('q') query: string): ExcelFormula[] {
+    return this.excelFormulaService.searchFormulas(query || '');
+  }
+
+  @Get('recommend')
+  recommend(@Query('scenario') scenario: string) {
+    return this.excelFormulaService.getSmartRecommendations(scenario || '');
+  }
+
+  @Get('id/:id')
+  getById(@Param('id') id: string) {
+    return this.excelFormulaService.getFormulaById(id);
+  }
+}

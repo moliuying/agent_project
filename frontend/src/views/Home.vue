@@ -110,6 +110,15 @@
               </el-card>
             </el-col>
             <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/excel-formula')" class="feature-card">
+                <el-icon :size="40" color="#165DFF">
+                  <DataBoard />
+                </el-icon>
+                <h3>Excel公式查询</h3>
+                <p>智能匹配函数与示例公式</p>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
               <el-card shadow="hover" @click="navigateTo('/system/menu')" class="feature-card">
                 <el-icon :size="40" color="#909399">
                   <Setting />

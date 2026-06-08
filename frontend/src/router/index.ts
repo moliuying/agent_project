@@ -85,6 +85,11 @@ const routes: RouteRecordRaw[] = [
         path: '/thesis-writer',
         name: 'ThesisWriter',
         component: () => import('@/views/ThesisWriter.vue')
+      },
+      {
+        path: '/excel-formula',
+        name: 'ExcelFormula',
+        component: () => import('@/views/ExcelFormula.vue')
       }
     ]
   }

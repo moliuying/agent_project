@@ -7,6 +7,7 @@ import { Holiday } from './holiday/holiday.entity';
 import { IpLookupModule } from './ip-lookup/ip-lookup.module';
 import { AiTextExpanderModule } from './ai-text-expander/ai-text-expander.module';
 import { ThesisWriterModule } from './thesis-writer/thesis-writer.module';
+import { ExcelFormulaModule } from './excel-formula/excel-formula.module';
 import * as path from 'path';
 
 @Module({
@@ -23,6 +24,7 @@ import * as path from 'path';
     IpLookupModule,
     AiTextExpanderModule,
     ThesisWriterModule,
+    ExcelFormulaModule,
   ],
 })
 export class AppModule {}
