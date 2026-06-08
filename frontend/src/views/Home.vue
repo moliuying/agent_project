@@ -185,6 +185,15 @@
                 <p>AI 英语对话·场景练习·口语提升</p>
               </el-card>
             </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/poetry-recommendation')" class="feature-card">
+                <el-icon :size="40" color="#eb2f96">
+                  <Reading />
+                </el-icon>
+                <h3>诗词推荐</h3>
+                <p>描述心情场景·智能匹配经典诗句</p>
+              </el-card>
+            </el-col>
           </el-row>
         </div>
       </div>

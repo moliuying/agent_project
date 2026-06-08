@@ -14,6 +14,7 @@ import { FormulaRecognitionModule } from './formula-recognition/formula-recognit
 import { PictureWritingModule } from './picture-writing/picture-writing.module';
 import { WordOcrModule } from './word-ocr/word-ocr.module';
 import { EnglishConversationModule } from './english-conversation/english-conversation.module';
+import { PoetryRecommendationModule } from './poetry-recommendation/poetry-recommendation.module';
 import * as path from 'path';
 
 @Module({
@@ -37,6 +38,7 @@ import * as path from 'path';
     PictureWritingModule,
     WordOcrModule,
     EnglishConversationModule,
+    PoetryRecommendationModule,
   ],
 })
 export class AppModule {}

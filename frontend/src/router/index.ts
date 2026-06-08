@@ -120,6 +120,11 @@ const routes: RouteRecordRaw[] = [
         path: '/english-conversation',
         name: 'EnglishConversation',
         component: () => import('@/views/EnglishConversation.vue')
+      },
+      {
+        path: '/poetry-recommendation',
+        name: 'PoetryRecommendation',
+        component: () => import('@/views/PoetryRecommendation.vue')
       }
     ]
   }
