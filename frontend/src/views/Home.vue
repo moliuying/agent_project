@@ -101,6 +101,15 @@
               </el-card>
             </el-col>
             <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/thesis-writer')" class="feature-card">
+                <el-icon :size="40" color="#e6a23c">
+                  <Reading />
+                </el-icon>
+                <h3>论文辅助写作</h3>
+                <p>学术论文内容自动生成</p>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
               <el-card shadow="hover" @click="navigateTo('/system/menu')" class="feature-card">
                 <el-icon :size="40" color="#909399">
                   <Setting />

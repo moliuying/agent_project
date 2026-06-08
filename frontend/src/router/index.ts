@@ -80,6 +80,11 @@ const routes: RouteRecordRaw[] = [
         path: '/python-code-samples',
         name: 'PythonCodeSamples',
         component: () => import('@/views/PythonCodeSamples.vue')
+      },
+      {
+        path: '/thesis-writer',
+        name: 'ThesisWriter',
+        component: () => import('@/views/ThesisWriter.vue')
       }
     ]
   }
