@@ -538,6 +538,15 @@ const sectionOutlineMap: Record<string, string[]> = {
   full: ['摘要', '绪论', '文献综述与理论基础', '研究设计', '实证分析', '讨论与建议', '结论与展望', '参考文献']
 }
 
+const disciplineFullOutlines: Record<string, string[]> = {
+  engineering: ['摘要', '绪论', '相关理论与技术基础', '方法设计', '实验设计与数据说明', '实验结果与分析', '讨论与应用展望', '参考文献'],
+  humanities: ['摘要', '绪论', '概念溯源与历史演进', '理论内核与内在结构', '文本阐释与案例分析', '当代反思与价值重构', '参考文献'],
+  medical: ['摘要', '绪论', '研究对象与方法', '研究结果', '讨论', '参考文献'],
+  business: ['摘要', '绪论', '文献综述与理论分析', '研究设计', '实证结果与分析', '拓展性分析', '研究结论与政策建议', '参考文献'],
+  education: ['摘要', '绪论', '文献综述与理论基础', '研究设计与方法', '定量研究结果', '定性研究结果与讨论', '研究结论与建议', '参考文献'],
+  general: ['摘要', '绪论', '文献综述与理论基础', '研究设计', '实证分析', '讨论与建议', '结论与展望', '参考文献']
+}
+
 const quickExamples = [
   { topic: '人工智能在教育领域的应用研究', direction: '教育技术学' },
   { topic: '数字经济对产业结构升级的影响', direction: '产业经济学' },
@@ -556,6 +565,9 @@ const sceneIconMap: Record<string, any> = {
 }
 
 const currentOutline = computed(() => {
+  if (sectionType.value === 'full') {
+    return disciplineFullOutlines[discipline.value] || disciplineFullOutlines['general']
+  }
   return sectionOutlineMap[sectionType.value] || []
 })
 
