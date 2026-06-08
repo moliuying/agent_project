@@ -7,14 +7,14 @@
             <Camera />
           </el-icon>
           <span>拍照识别公式</span>
-          <el-tag size="small" type="primary" class="header-tag">拍照上传 · 智能识别 · 多格式输出</el-tag>
+          <el-tag size="small" type="primary" class="header-tag">手写/印刷 · 智能识别 · 多格式输出</el-tag>
         </div>
       </template>
       <div class="intro-section">
         <el-steps :active="0" finish-status="wait" simple class="intro-steps">
           <el-step title="上传/拍摄图片" description="支持拍照或从相册上传公式图片" />
-          <el-step title="选择学科类型" description="数学、物理、化学，提升识别准确率" />
-          <el-step title="AI 识别公式" description="自动转换为 LaTeX、文本等格式" />
+          <el-step title="选择类型" description="选择手写/印刷 + 学科，提升准确率" />
+          <el-step title="AI 识别 & 核对" description="标红可疑字符，候选答案快速修正" />
         </el-steps>
       </div>
     </el-card>
@@ -100,6 +100,32 @@
           </template>
 
           <el-form label-position="top" class="config-form">
+            <el-form-item label="书写类型（强烈建议选择，可显著提升识别准确率）">
+              <el-radio-group v-model="form.writingMode" size="default">
+                <el-radio-button value="auto">
+                  <el-icon><MagicStick /></el-icon>
+                  自动检测
+                </el-radio-button>
+                <el-radio-button value="printed">
+                  <el-icon><Document /></el-icon>
+                  印刷体
+                </el-radio-button>
+                <el-radio-button value="handwritten">
+                  <el-icon><EditPen /></el-icon>
+                  手写体
+                </el-radio-button>
+              </el-radio-group>
+              <div v-if="form.writingMode === 'handwritten'" class="writing-mode-tip">
+                <el-alert
+                  type="warning"
+                  :closable="false"
+                  show-icon
+                  title="手写模式提示"
+                  description="已启用手写识别增强，系统将针对手写字体的连笔、潦草、易混字符进行特殊处理。识别后请重点核对标红的低置信度字符。"
+                />
+              </div>
+            </el-form-item>
+
             <el-form-item label="学科类型（选择学科可提升识别准确率）">
               <el-radio-group v-model="form.subjectType" size="default">
                 <el-radio-button value="auto">
@@ -123,11 +149,28 @@
 
             <el-form-item label="输出格式">
               <el-checkbox-group v-model="form.outputFormats">
-                <el-checkbox value="latex">LaTeX 公式</el-checkbox>
                 <el-checkbox value="text">纯文本</el-checkbox>
+                <el-checkbox value="latex">LaTeX 公式</el-checkbox>
                 <el-checkbox value="asciimath">AsciiMath</el-checkbox>
                 <el-checkbox value="mathml">MathML</el-checkbox>
               </el-checkbox-group>
+            </el-form-item>
+
+            <el-form-item label="辅助功能">
+              <el-switch
+                v-model="form.reviewMode"
+                active-text="逐字核对模式"
+                inactive-text="标准模式"
+              />
+              <div v-if="form.reviewMode" class="writing-mode-tip">
+                <el-alert
+                  type="info"
+                  :closable="false"
+                  show-icon
+                  title="逐字核对模式"
+                  description="识别完成后将逐个字符展示置信度和候选答案，方便逐项核对确认。"
+                />
+              </div>
             </el-form-item>
 
             <el-button
@@ -150,16 +193,42 @@
           <template #header>
             <div class="card-header small result-header">
               <div class="header-left">
-                <el-icon :size="18" color="#67c23a">
-                  <CircleCheckFilled />
+                <el-icon :size="18" :color="recognitionResult.imageAnalysis.needsReviewCount > 0 ? '#e6a23c' : '#67c23a'">
+                  <CircleCheckFilled v-if="recognitionResult.imageAnalysis.needsReviewCount === 0" />
+                  <Warning v-else />
                 </el-icon>
                 <span>识别结果</span>
                 <el-tag size="small" type="success">
-                  识别到 {{ recognitionResult.formulas.length }} 个公式 · {{ recognitionResult.processingTime }}ms
+                  {{ recognitionResult.formulas.length }} 个公式 · {{ recognitionResult.processingTime }}ms
+                </el-tag>
+                <el-tag v-if="recognitionResult.imageAnalysis.writingMode === 'handwritten'" size="small" type="warning">
+                  <el-icon><EditPen /></el-icon>
+                  手写体
+                </el-tag>
+                <el-tag v-else size="small" type="info">
+                  <el-icon><Document /></el-icon>
+                  印刷体
+                </el-tag>
+                <el-tag
+                  v-if="recognitionResult.imageAnalysis.handwritingQuality"
+                  :type="handwritingQualityType"
+                  size="small"
+                >
+                  书写质量: {{ handwritingQualityLabel }}
                 </el-tag>
               </div>
             </div>
           </template>
+
+          <el-alert
+            v-if="recognitionResult.imageAnalysis.needsReviewCount > 0"
+            type="warning"
+            :closable="false"
+            show-icon
+            class="review-alert"
+            :title="`检测到 ${recognitionResult.imageAnalysis.needsReviewCount} 个公式需要核对，共 ${recognitionResult.imageAnalysis.totalLowConfidence} 个低置信度字符`"
+            description="下方红色标记的字符识别置信度较低，请点击字符查看候选答案快速修正"
+          />
 
           <div class="analysis-section">
             <div class="analysis-grid">
@@ -180,14 +249,13 @@
               </div>
               <div class="analysis-item">
                 <span class="analysis-label">公式数量</span>
-                <span class="analysis-value">{{ recognitionResult.imageAnalysis.formulaCount }} 个</span>
+                <span class="analysis-value">{{ recognitionResult.formulas.length }} 个</span>
               </div>
               <div class="analysis-item">
-                <span class="analysis-label">包含内容</span>
-                <div class="content-tags">
-                  <el-tag size="small" effect="plain" v-if="recognitionResult.imageAnalysis.hasText">含文字</el-tag>
-                  <el-tag size="small" effect="plain" type="warning" v-if="recognitionResult.imageAnalysis.hasDiagram">含图表</el-tag>
-                </div>
+                <span class="analysis-label">需核对</span>
+                <span class="analysis-value" :class="{ 'text-warning': recognitionResult.imageAnalysis.needsReviewCount > 0 }">
+                  {{ recognitionResult.imageAnalysis.needsReviewCount }} 个
+                </span>
               </div>
             </div>
           </div>
@@ -199,6 +267,13 @@
               <h4 class="section-title">
                 <el-icon :size="16"><EditPen /></el-icon>
                 识别到的公式
+                <el-tag
+                  v-if="recognitionResult.imageAnalysis.totalLowConfidence > 0"
+                  type="danger"
+                  size="small"
+                >
+                  {{ recognitionResult.imageAnalysis.totalLowConfidence }} 个低置信度字符
+                </el-tag>
               </h4>
               <div class="section-actions">
                 <el-button type="primary" size="small" @click="copyAllLatex">
@@ -217,13 +292,100 @@
                 v-for="(formula, index) in recognitionResult.formulas"
                 :key="formula.id"
                 class="formula-item"
+                :class="{ 'needs-review': formula.needsReview }"
               >
                 <div class="formula-header">
-                  <span class="formula-index">公式 {{ index + 1 }}</span>
-                  <el-tag size="small" :type="getConfidenceType(formula.confidence)">
-                    置信度 {{ (formula.confidence * 100).toFixed(0) }}%
-                  </el-tag>
+                  <div class="formula-header-left">
+                    <span class="formula-index">公式 {{ index + 1 }}</span>
+                    <el-tag size="small" :type="getConfidenceType(formula.confidence)">
+                      置信度 {{ (formula.confidence * 100).toFixed(0) }}%
+                    </el-tag>
+                    <el-tag
+                      v-if="formula.lowConfidenceCount > 0"
+                      type="danger"
+                      size="small"
+                    >
+                      {{ formula.lowConfidenceCount }} 个可疑字符
+                    </el-tag>
+                  </div>
+                  <el-checkbox
+                    v-model="checkedFormulas[formula.id]"
+                    label="已核对"
+                  />
                 </div>
+
+                <el-alert
+                  v-for="(w, wi) in formula.warnings"
+                  :key="wi"
+                  type="warning"
+                  :closable="false"
+                  show-icon
+                  size="small"
+                  class="formula-warning"
+                  :title="w"
+                />
+
+                <div class="highlighted-preview" v-if="form.reviewMode">
+                  <span class="preview-label">字符级预览（点击可疑字符可快速替换）：</span>
+                  <div class="char-display">
+                    <span
+                      v-for="(seg, sIdx) in formula.segments"
+                      :key="sIdx"
+                      class="char-seg"
+                      :class="{
+                        'low-conf': seg.isLowConfidence,
+                        'medium-conf': !seg.isLowConfidence && seg.confidence < 0.9,
+                        'high-conf': seg.confidence >= 0.9
+                      }"
+                      @click="openCharCandidates(formula, sIdx)"
+                    >
+                      {{ seg.char }}
+                      <span v-if="seg.isLowConfidence" class="conf-badge">
+                        {{ (seg.confidence * 100).toFixed(0) }}%
+                      </span>
+                    </span>
+                  </div>
+                </div>
+
+                <el-popover
+                  ref="charPopoverRef"
+                  placement="bottom-start"
+                  trigger="manual"
+                  :width="320"
+                  v-model="charPopoverVisible"
+                >
+                  <template v-if="activeCharSegment">
+                    <div class="char-candidates-panel">
+                      <div class="candidates-title">
+                        <span>候选字符 - 当前：<strong class="current-char">{{ activeCharSegment.char }}</strong>（{{ (activeCharSegment.confidence * 100).toFixed(0) }}%）</span>
+                      </div>
+                      <div class="candidates-list">
+                        <el-button
+                          v-for="(cand, ci) in activeCharSegment.candidates"
+                          :key="ci"
+                          size="small"
+                          :type="cand.value === activeCharSegment.char ? 'primary' : 'default'"
+                          @click="applyCandidate(formula, activeSegIdx, cand.value)"
+                        >
+                          <span class="cand-char">{{ cand.value }}</span>
+                          <span class="cand-conf">{{ (cand.confidence * 100).toFixed(0) }}%</span>
+                        </el-button>
+                      </div>
+                      <div class="candidates-input">
+                        <el-input
+                          v-model="customChar"
+                          size="small"
+                          placeholder="或手动输入字符..."
+                          maxlength="5"
+                          style="flex: 1"
+                        />
+                        <el-button size="small" type="primary" @click="applyCustomChar(formula, activeSegIdx)">
+                          确定
+                        </el-button>
+                      </div>
+                    </div>
+                  </template>
+                </el-popover>
 
                 <div v-if="form.outputFormats.includes('text')" class="formula-row">
                   <div class="formula-format-label">
@@ -374,7 +536,9 @@
               <div class="history-info">
                 <p class="history-time">{{ formatTime(h.timestamp) }}</p>
                 <p class="history-desc">{{ h.subjectLabel }} · {{ h.formulaCount }}个公式</p>
-                <p class="history-meta">置信度 {{ (h.avgConfidence * 100).toFixed(0) }}%</p>
+                <p class="history-meta" :class="{ 'text-warning': h.needsReviewCount > 0 }">
+                  {{ h.writingModeLabel }} · {{ h.needsReviewCount > 0 ? h.needsReviewCount + '个待核对' : '已核对' }}
+                </p>
               </div>
             </div>
           </div>
@@ -384,15 +548,23 @@
           <div class="empty-state">
             <el-icon :size="64" color="#c0c4cc"><Picture /></el-icon>
             <p class="empty-text">上传包含公式的图片开始识别</p>
-            <p class="empty-hint">支持数学、物理、化学公式，可输出 LaTeX、文本等多种格式</p>
+            <p class="empty-hint">支持手写/印刷公式，智能标红可疑字符，候选答案一键替换</p>
             <div class="feature-hints">
               <el-tag size="small" effect="plain">
                 <el-icon><Camera /></el-icon>
                 拍照或上传图片
               </el-tag>
               <el-tag size="small" effect="plain">
-                <el-icon><MagicStick /></el-icon>
-                多学科智能识别
+                <el-icon><EditPen /></el-icon>
+                手写/印刷体切换
+              </el-tag>
+              <el-tag size="small" effect="plain" type="warning">
+                <el-icon><Warning /></el-icon>
+                可疑字符自动标红
+              </el-tag>
+              <el-tag size="small" effect="plain">
+                <el-icon><List /></el-icon>
+                候选答案快速修正
               </el-tag>
               <el-tag size="small" effect="plain">
                 <el-icon><DocumentCopy /></el-icon>
@@ -411,7 +583,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import {
   Camera,
   CameraFilled,
@@ -433,10 +605,11 @@ import {
   Operation,
   Files,
   Warning,
-  Clock
+  Clock,
+  List
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { formulaOcrApi, type FormulaRecognitionResponse, type FormulaItem } from '@/api/formulaOcr'
+import { formulaOcrApi, type FormulaRecognitionResponse, type FormulaItem, type CharSegment } from '@/api/formulaOcr'
 
 const HISTORY_KEY = 'formula_ocr_history'
 
@@ -445,8 +618,11 @@ interface HistoryItem {
   imagePreview: string
   subjectType: string
   subjectLabel: string
+  writingMode: string
+  writingModeLabel: string
   formulaCount: number
   avgConfidence: number
+  needsReviewCount: number
   result: FormulaRecognitionResponse
 }
 
@@ -457,6 +633,12 @@ const subjectLabelMap: Record<string, string> = {
   chemistry: '化学'
 }
 
+const writingModeLabelMap: Record<string, string> = {
+  auto: '自动检测',
+  printed: '印刷体',
+  handwritten: '手写体'
+}
+
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const cameraInputRef = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
@@ -465,12 +647,41 @@ const imageBase64 = ref('')
 const isRecognizing = ref(false)
 const recognitionResult = ref<FormulaRecognitionResponse | null>(null)
 const historyList = ref<HistoryItem[]>([])
+const checkedFormulas = reactive<Record<string, boolean>>({})
+
+const charPopoverRef = ref<any>(null)
+const charPopoverVisible = ref(false)
+const activeCharSegment = ref<CharSegment | null>(null)
+const activeSegIdx = ref<number>(-1)
+const customChar = ref('')
 
 const copyingState = reactive<Record<string, boolean>>({})
 
 const form = reactive({
   subjectType: 'auto' as 'math' | 'physics' | 'chemistry' | 'auto',
-  outputFormats: ['latex', 'text'] as string[]
+  writingMode: 'auto' as 'handwritten' | 'printed' | 'auto',
+  outputFormats: ['text', 'latex'] as string[],
+  reviewMode: true
+})
+
+const handwritingQualityLabel = computed(() => {
+  if (!recognitionResult.value?.imageAnalysis.handwritingQuality) return ''
+  const map: Record<string, string> = {
+    good: '良好',
+    fair: '一般',
+    poor: '较差'
+  }
+  return map[recognitionResult.value.imageAnalysis.handwritingQuality]
+})
+
+const handwritingQualityType = computed((): 'success' | 'warning' | 'danger' => {
+  if (!recognitionResult.value?.imageAnalysis.handwritingQuality) return 'info'
+  const map: Record<string, 'success' | 'warning' | 'danger'> = {
+    good: 'success',
+    fair: 'warning',
+    poor: 'danger'
+  }
+  return map[recognitionResult.value.imageAnalysis.handwritingQuality]
 })
 
 const qualityProgressColor = computed(() => {
@@ -517,6 +728,7 @@ const loadFromHistory = (h: HistoryItem) => {
   imageBase64.value = h.imagePreview.split(',')[1] || h.imagePreview
   recognitionResult.value = h.result
   form.subjectType = h.subjectType as any
+  Object.keys(checkedFormulas).forEach(k => delete checkedFormulas[k])
   ElMessage.success('已加载历史记录')
 }
 
@@ -571,6 +783,7 @@ const processFile = (file: File) => {
     imagePreview.value = dataUrl
     imageBase64.value = dataUrl.split(',')[1] || dataUrl
     recognitionResult.value = null
+    Object.keys(checkedFormulas).forEach(k => delete checkedFormulas[k])
   }
   reader.readAsDataURL(file)
 }
@@ -579,6 +792,7 @@ const removeImage = () => {
   imagePreview.value = ''
   imageBase64.value = ''
   recognitionResult.value = null
+  Object.keys(checkedFormulas).forEach(k => delete checkedFormulas[k])
   if (fileInputRef.value) {
     fileInputRef.value.value = ''
   }
@@ -595,11 +809,13 @@ const recognizeFormula = async () => {
 
   isRecognizing.value = true
   recognitionResult.value = null
+  Object.keys(checkedFormulas).forEach(k => delete checkedFormulas[k])
 
   try {
     const response = await formulaOcrApi.recognize({
       imageBase64: imageBase64.value,
       subjectType: form.subjectType,
+      writingMode: form.writingMode,
       outputFormat: 'all'
     })
 
@@ -612,18 +828,76 @@ const recognizeFormula = async () => {
       imagePreview: imagePreview.value,
       subjectType: form.subjectType,
       subjectLabel: subjectLabelMap[form.subjectType],
+      writingMode: form.writingMode,
+      writingModeLabel: writingModeLabelMap[form.writingMode],
       formulaCount: response.data.formulas.length,
       avgConfidence,
+      needsReviewCount: response.data.imageAnalysis.needsReviewCount,
       result: JSON.parse(JSON.stringify(response.data))
     })
     saveHistory()
 
-    ElMessage.success(`成功识别 ${response.data.formulas.length} 个公式！`)
+    if (response.data.imageAnalysis.needsReviewCount > 0) {
+      ElMessage.warning(`识别成功，共 ${response.data.formulas.length} 个公式，其中 ${response.data.imageAnalysis.needsReviewCount} 个需要核对`)
+    } else {
+      ElMessage.success(`成功识别 ${response.data.formulas.length} 个公式！`)
+    }
   } catch (error: any) {
     ElMessage.error(error.response?.data?.message || '识别失败，请稍后重试')
   } finally {
     isRecognizing.value = false
   }
+}
+
+const openCharCandidates = (formula: FormulaItem, segIdx: number) => {
+  activeCharSegment.value = formula.segments[segIdx]
+  activeSegIdx.value = segIdx
+  customChar.value = ''
+  nextTick(() => {
+    charPopoverVisible.value = true
+  })
+}
+
+const applyCandidate = (formula: FormulaItem, segIdx: number, newChar: string) => {
+  const seg = formula.segments[segIdx]
+  const oldChar = seg.char
+
+  seg.char = newChar
+  seg.isLowConfidence = false
+  seg.confidence = 1.0
+  seg.candidates = [{ value: newChar, confidence: 1.0 }]
+
+  const oldText = formula.plainText
+  let newText = ''
+  let charIdx = 0
+  for (let i = 0; i < formula.segments.length; i++) {
+    if (i === segIdx) {
+      newText += newChar
+      charIdx += oldChar.length
+    } else {
+      const s = formula.segments[i]
+      newText += s.char
+      charIdx += s.char.length
+    }
+  }
+  formula.plainText = newText
+
+  formula.lowConfidenceCount = formula.segments.filter(s => s.isLowConfidence).length
+  if (formula.lowConfidenceCount === 0) {
+    formula.needsReview = false
+    formula.warnings = formula.warnings.filter(w => !w.includes('低置信度') && !w.includes('核对'))
+  }
+
+  charPopoverVisible.value = false
+  ElMessage.success(`已将 "${oldChar}" 替换为 "${newChar}"`)
+}
+
+const applyCustomChar = (formula: FormulaItem, segIdx: number) => {
+  if (!customChar.value.trim()) {
+    ElMessage.warning('请输入字符')
+    return
+  }
+  applyCandidate(formula, segIdx, customChar.value.trim())
 }
 
 const copyToClipboard = async (text: string, label: string, stateKey: string) => {
@@ -801,6 +1075,10 @@ const copyAllText = () => {
   margin-top: 8px;
 }
 
+.writing-mode-tip {
+  margin-top: 10px;
+}
+
 .recognize-btn {
   width: 100%;
   margin-top: 12px;
@@ -817,6 +1095,11 @@ const copyAllText = () => {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.review-alert {
+  margin-bottom: 16px;
 }
 
 .analysis-section {
@@ -852,10 +1135,8 @@ const copyAllText = () => {
   text-align: center;
 }
 
-.content-tags {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
+.text-warning {
+  color: #e6a23c !important;
 }
 
 .section-header {
@@ -863,6 +1144,8 @@ const copyAllText = () => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .section-title {
@@ -891,19 +1174,159 @@ const copyAllText = () => {
   border: 1px solid #ebeef5;
   border-radius: 10px;
   padding: 16px;
+  transition: all 0.2s;
+}
+
+.formula-item.needs-review {
+  border-color: #faad14;
+  background: linear-gradient(180deg, #fffbe6 0%, #fafbfc 100%);
 }
 
 .formula-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.formula-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .formula-index {
   font-size: 14px;
   font-weight: 600;
   color: #303133;
+}
+
+.formula-warning {
+  margin-bottom: 10px;
+}
+
+.formula-warning:last-child {
+  margin-bottom: 12px;
+}
+
+.highlighted-preview {
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.preview-label {
+  display: block;
+  font-size: 12px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.char-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.char-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  position: relative;
+}
+
+.char-seg:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.char-seg.high-conf {
+  background: #f0f9eb;
+  color: #529b2e;
+}
+
+.char-seg.medium-conf {
+  background: #fdf6ec;
+  color: #b88230;
+}
+
+.char-seg.low-conf {
+  background: #fef0f0;
+  color: #f56c6c;
+  font-weight: 600;
+  animation: lowConfidencePulse 2s ease-in-out infinite;
+}
+
+@keyframes lowConfidencePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 108, 108, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(245, 108, 108, 0); }
+}
+
+.conf-badge {
+  font-size: 10px;
+  background: rgba(245, 108, 108, 0.15);
+  padding: 0 4px;
+  border-radius: 3px;
+  margin-left: 2px;
+}
+
+.char-candidates-panel {
+  padding: 4px;
+}
+
+.candidates-title {
+  font-size: 13px;
+  color: #606266;
+  margin-bottom: 10px;
+}
+
+.current-char {
+  color: #165DFF;
+  font-size: 14px;
+}
+
+.candidates-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.candidates-list .el-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cand-char {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+}
+
+.cand-conf {
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+.candidates-input {
+  display: flex;
+  gap: 6px;
+  border-top: 1px solid #ebeef5;
+  padding-top: 10px;
 }
 
 .formula-row {

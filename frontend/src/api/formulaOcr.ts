@@ -9,6 +9,26 @@ export interface FormulaRecognitionRequest {
   imageBase64: string
   outputFormat?: 'latex' | 'mathml' | 'asciimath' | 'all'
   subjectType?: 'math' | 'physics' | 'chemistry' | 'auto'
+  writingMode?: 'handwritten' | 'printed' | 'auto'
+}
+
+export interface CharCandidate {
+  value: string
+  confidence: number
+}
+
+export interface CharSegment {
+  char: string
+  latex?: string
+  confidence: number
+  candidates: CharCandidate[]
+  isLowConfidence: boolean
+  position?: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
 }
 
 export interface FormulaItem {
@@ -18,6 +38,11 @@ export interface FormulaItem {
   asciimath: string
   plainText: string
   confidence: number
+  lowConfidenceCount: number
+  totalChars: number
+  segments: CharSegment[]
+  needsReview: boolean
+  warnings: string[]
   position?: {
     x: number
     y: number
@@ -38,6 +63,10 @@ export interface FormulaRecognitionResponse {
     hasDiagram: boolean
     qualityScore: number
     suggestedSubject: string
+    writingMode: 'handwritten' | 'printed' | 'mixed'
+    handwritingQuality?: 'good' | 'fair' | 'poor'
+    totalLowConfidence: number
+    needsReviewCount: number
   }
   suggestions: string[]
 }
