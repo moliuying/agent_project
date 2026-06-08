@@ -31,6 +31,22 @@ export interface CharSegment {
   }
 }
 
+export interface AutoCorrection {
+  from: string
+  to: string
+  reason: string
+  segmentIndex: number
+}
+
+export interface CorrectionSuggestion {
+  id: string
+  current: string
+  suggested: string
+  reason: string
+  confidence: number
+  segmentIndex?: number
+}
+
 export interface FormulaItem {
   id: string
   latex: string
@@ -43,6 +59,8 @@ export interface FormulaItem {
   segments: CharSegment[]
   needsReview: boolean
   warnings: string[]
+  autoCorrections: AutoCorrection[]
+  correctionSuggestions: CorrectionSuggestion[]
   position?: {
     x: number
     y: number
@@ -67,6 +85,8 @@ export interface FormulaRecognitionResponse {
     handwritingQuality?: 'good' | 'fair' | 'poor'
     totalLowConfidence: number
     needsReviewCount: number
+    totalAutoCorrections: number
+    totalSuggestions: number
   }
   suggestions: string[]
 }

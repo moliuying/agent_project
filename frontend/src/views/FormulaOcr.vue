@@ -257,6 +257,20 @@
                   {{ recognitionResult.imageAnalysis.needsReviewCount }} 个
                 </span>
               </div>
+              <div class="analysis-item" v-if="recognitionResult.imageAnalysis.totalAutoCorrections > 0">
+                <span class="analysis-label">自动纠错</span>
+                <el-tag type="success" effect="light">
+                  <el-icon><CircleCheckFilled /></el-icon>
+                  {{ recognitionResult.imageAnalysis.totalAutoCorrections }} 处
+                </el-tag>
+              </div>
+              <div class="analysis-item" v-if="recognitionResult.imageAnalysis.totalSuggestions > 0">
+                <span class="analysis-label">纠错建议</span>
+                <el-tag type="warning" effect="light">
+                  <el-icon><Warning /></el-icon>
+                  {{ recognitionResult.imageAnalysis.totalSuggestions }} 条
+                </el-tag>
+              </div>
             </div>
           </div>
 
@@ -324,6 +338,68 @@
                   class="formula-warning"
                   :title="w"
                 />
+
+                <div v-if="formula.autoCorrections && formula.autoCorrections.length > 0" class="auto-corrections">
+                  <div class="corrections-header">
+                    <el-icon :size="14" color="#67c23a"><CircleCheckFilled /></el-icon>
+                    <span class="corrections-title">系统自动修正（{{ formula.autoCorrections.length }} 处）</span>
+                  </div>
+                  <div class="corrections-list">
+                    <div
+                      v-for="(corr, ci) in formula.autoCorrections"
+                      :key="ci"
+                      class="correction-item auto"
+                    >
+                      <div class="correction-content">
+                        <span class="corr-from">{{ corr.from }}</span>
+                        <el-icon :size="14" color="#67c23a"><Right /></el-icon>
+                        <span class="corr-to">{{ corr.to }}</span>
+                        <span class="corr-reason">{{ corr.reason }}</span>
+                      </div>
+                      <el-button
+                        size="small"
+                        type="danger"
+                        plain
+                        @click="revertAutoCorrection(formula, ci)"
+                      >
+                        <el-icon><RefreshLeft /></el-icon>
+                        恢复
+                      </el-button>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="formula.correctionSuggestions && formula.correctionSuggestions.length > 0" class="suggestion-corrections">
+                  <div class="corrections-header">
+                    <el-icon :size="14" color="#e6a23c"><Warning /></el-icon>
+                    <span class="corrections-title">智能纠错建议（{{ formula.correctionSuggestions.length }} 条）</span>
+                  </div>
+                  <div class="corrections-list">
+                    <div
+                      v-for="(sugg, si) in formula.correctionSuggestions"
+                      :key="sugg.id"
+                      class="correction-item suggestion"
+                    >
+                      <div class="correction-content">
+                        <span class="corr-from">{{ sugg.current }}</span>
+                        <el-icon :size="14" color="#e6a23c"><Right /></el-icon>
+                        <span class="corr-to">{{ sugg.suggested }}</span>
+                        <span class="corr-reason">{{ sugg.reason }}</span>
+                        <el-tag size="small" type="warning" effect="plain">
+                          {{ (sugg.confidence * 100).toFixed(0) }}% 置信
+                        </el-tag>
+                      </div>
+                      <el-button
+                        size="small"
+                        type="success"
+                        @click="applySuggestion(formula, si)"
+                      >
+                        <el-icon><Check /></el-icon>
+                        应用建议
+                      </el-button>
+                    </div>
+                  </div>
+                </div>
 
                 <div class="highlighted-preview" v-if="form.reviewMode">
                   <span class="preview-label">字符级预览（点击可疑字符可快速替换）：</span>
@@ -494,6 +570,79 @@
                     </el-button>
                   </div>
                 </div>
+
+                <div class="quick-symbol-panel">
+                  <div class="symbol-panel-header">
+                    <el-icon :size="14" color="#165DFF"><Operation /></el-icon>
+                    <span class="symbol-panel-title">数学符号快速修正（点击插入到光标位置或替换选中字符）</span>
+                  </div>
+                  <div class="symbol-groups">
+                    <div class="symbol-group">
+                      <span class="symbol-group-label">微积分</span>
+                      <div class="symbol-buttons">
+                        <el-button
+                          v-for="sym in quickSymbolGroups.calculus"
+                          :key="sym.value"
+                          size="small"
+                          class="symbol-btn"
+                          @click="insertSymbol(formula, sym.value)"
+                          :title="sym.label"
+                        >
+                          <span class="symbol-char">{{ sym.value }}</span>
+                          <span class="symbol-label">{{ sym.label }}</span>
+                        </el-button>
+                      </div>
+                    </div>
+                    <div class="symbol-group">
+                      <span class="symbol-group-label">求和/乘积</span>
+                      <div class="symbol-buttons">
+                        <el-button
+                          v-for="sym in quickSymbolGroups.series"
+                          :key="sym.value"
+                          size="small"
+                          class="symbol-btn"
+                          @click="insertSymbol(formula, sym.value)"
+                          :title="sym.label"
+                        >
+                          <span class="symbol-char">{{ sym.value }}</span>
+                          <span class="symbol-label">{{ sym.label }}</span>
+                        </el-button>
+                      </div>
+                    </div>
+                    <div class="symbol-group">
+                      <span class="symbol-group-label">希腊字母</span>
+                      <div class="symbol-buttons">
+                        <el-button
+                          v-for="sym in quickSymbolGroups.greek"
+                          :key="sym.value"
+                          size="small"
+                          class="symbol-btn"
+                          @click="insertSymbol(formula, sym.value)"
+                          :title="sym.label"
+                        >
+                          <span class="symbol-char">{{ sym.value }}</span>
+                          <span class="symbol-label">{{ sym.label }}</span>
+                        </el-button>
+                      </div>
+                    </div>
+                    <div class="symbol-group">
+                      <span class="symbol-group-label">关系/运算</span>
+                      <div class="symbol-buttons">
+                        <el-button
+                          v-for="sym in quickSymbolGroups.relation"
+                          :key="sym.value"
+                          size="small"
+                          class="symbol-btn"
+                          @click="insertSymbol(formula, sym.value)"
+                          :title="sym.label"
+                        >
+                          <span class="symbol-char">{{ sym.value }}</span>
+                          <span class="symbol-label">{{ sym.label }}</span>
+                        </el-button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -591,6 +740,7 @@ import {
   Upload,
   Delete,
   Refresh,
+  RefreshLeft,
   Setting,
   MagicStick,
   Calculator,
@@ -606,8 +756,11 @@ import {
   Files,
   Warning,
   Clock,
-  List
+  List,
+  Right,
+  Check
 } from '@element-plus/icons-vue'
+import type { AutoCorrection, CorrectionSuggestion } from '@/api/formulaOcr'
 import { ElMessage } from 'element-plus'
 import { formulaOcrApi, type FormulaRecognitionResponse, type FormulaItem, type CharSegment } from '@/api/formulaOcr'
 
@@ -656,6 +809,62 @@ const activeSegIdx = ref<number>(-1)
 const customChar = ref('')
 
 const copyingState = reactive<Record<string, boolean>>({})
+
+const quickSymbolGroups = {
+  calculus: [
+    { value: '∫', label: '积分' },
+    { value: '∬', label: '二重积分' },
+    { value: '∭', label: '三重积分' },
+    { value: '∮', label: '闭合曲线积分' },
+    { value: '∂', label: '偏导' },
+    { value: '∇', label: '梯度/nabla' },
+    { value: 'dx', label: '微分dx' },
+    { value: 'dy', label: '微分dy' },
+    { value: 'dz', label: '微分dz' },
+    { value: 'lim', label: '极限' },
+    { value: '∞', label: '无穷' }
+  ],
+  series: [
+    { value: '∑', label: '求和' },
+    { value: '∏', label: '连乘' },
+    { value: '∩', label: '交集' },
+    { value: '∪', label: '并集' },
+    { value: '∈', label: '属于' },
+    { value: '∀', label: '任意' },
+    { value: '∃', label: '存在' }
+  ],
+  greek: [
+    { value: 'α', label: 'alpha' },
+    { value: 'β', label: 'beta' },
+    { value: 'γ', label: 'gamma' },
+    { value: 'δ', label: 'delta' },
+    { value: 'ε', label: 'epsilon' },
+    { value: 'θ', label: 'theta' },
+    { value: 'λ', label: 'lambda' },
+    { value: 'μ', label: 'mu' },
+    { value: 'π', label: 'pi' },
+    { value: 'σ', label: 'sigma' },
+    { value: 'φ', label: 'phi' },
+    { value: 'ω', label: 'omega' },
+    { value: 'Δ', label: 'Delta' },
+    { value: 'Σ', label: 'Sigma' },
+    { value: 'Ω', label: 'Omega' }
+  ],
+  relation: [
+    { value: '≠', label: '不等于' },
+    { value: '≤', label: '小于等于' },
+    { value: '≥', label: '大于等于' },
+    { value: '≈', label: '约等于' },
+    { value: '±', label: '正负' },
+    { value: '×', label: '乘' },
+    { value: '÷', label: '除' },
+    { value: '√', label: '根号' },
+    { value: '⊥', label: '垂直' },
+    { value: '∥', label: '平行' },
+    { value: '∠', label: '角' },
+    { value: '°', label: '度' }
+  ]
+}
 
 const form = reactive({
   subjectType: 'auto' as 'math' | 'physics' | 'chemistry' | 'auto',
@@ -898,6 +1107,81 @@ const applyCustomChar = (formula: FormulaItem, segIdx: number) => {
     return
   }
   applyCandidate(formula, segIdx, customChar.value.trim())
+}
+
+const revertAutoCorrection = (formula: FormulaItem, corrIdx: number) => {
+  const corr = formula.autoCorrections[corrIdx]
+  if (!corr) return
+
+  const segIdx = corr.segmentIndex
+  if (segIdx >= 0 && segIdx < formula.segments.length) {
+    const seg = formula.segments[segIdx]
+    const oldChar = seg.char
+    seg.char = corr.from
+    seg.isLowConfidence = true
+    seg.confidence = 0.5
+    seg.candidates = [
+      { value: corr.from, confidence: 0.5 },
+      { value: corr.to, confidence: 0.8 }
+    ]
+
+    let newText = ''
+    for (let i = 0; i < formula.segments.length; i++) {
+      newText += formula.segments[i].char
+    }
+    formula.plainText = newText
+    formula.lowConfidenceCount = formula.segments.filter(s => s.isLowConfidence).length
+    formula.needsReview = true
+  }
+
+  formula.autoCorrections.splice(corrIdx, 1)
+  ElMessage.info(`已恢复 "${corr.to}" → "${corr.from}"，请重新核对`)
+}
+
+const applySuggestion = (formula: FormulaItem, suggIdx: number) => {
+  const sugg = formula.correctionSuggestions[suggIdx]
+  if (!sugg) return
+
+  const segIdx = sugg.segmentIndex
+  if (segIdx !== undefined && segIdx >= 0 && segIdx < formula.segments.length) {
+    applyCandidate(formula, segIdx, sugg.suggested)
+  } else {
+    if (formula.plainText.includes(sugg.current)) {
+      formula.plainText = formula.plainText.replace(sugg.current, sugg.suggested)
+    }
+    if (formula.latex) {
+      const latexMap: Record<string, string> = {
+        '∑': '\\sum', 'Σ': '\\sum', '∫': '\\int', '∏': '\\prod',
+        '∂': '\\partial', '∇': '\\nabla', '≈': '\\approx',
+        '≠': '\\neq', '≤': '\\leq', '≥': '\\geq', '±': '\\pm',
+        '×': '\\times', '÷': '\\div', '√': '\\sqrt', '∞': '\\infty',
+        'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
+        'ε': '\\epsilon', 'θ': '\\theta', 'λ': '\\lambda', 'μ': '\\mu',
+        'π': '\\pi', 'σ': '\\sigma', 'φ': '\\phi', 'ω': '\\omega',
+        'Δ': '\\Delta', 'Ω': '\\Omega'
+      }
+      const currentLatex = latexMap[sugg.current] || sugg.current
+      const suggestedLatex = latexMap[sugg.suggested] || sugg.suggested
+      if (formula.latex.includes(currentLatex)) {
+        formula.latex = formula.latex.replace(currentLatex, suggestedLatex)
+      }
+    }
+    ElMessage.success(`已应用建议："${sugg.current}" → "${sugg.suggested}"`)
+  }
+
+  formula.correctionSuggestions.splice(suggIdx, 1)
+}
+
+const insertSymbol = (formula: FormulaItem, symbol: string) => {
+  const targetSeg = formula.segments.find(s => s.isLowConfidence)
+  if (targetSeg) {
+    const segIdx = formula.segments.indexOf(targetSeg)
+    applyCandidate(formula, segIdx, symbol)
+  } else {
+    formula.plainText += symbol
+    formula.latex += symbol
+    ElMessage.success(`已插入符号 "${symbol}"`)
+  }
 }
 
 const copyToClipboard = async (text: string, label: string, stateKey: string) => {
@@ -1467,5 +1751,173 @@ const copyAllText = () => {
   font-size: 12px;
   color: #909399;
   margin: 0;
+}
+
+.auto-corrections,
+.suggestion-corrections {
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.auto-corrections {
+  border-left: 3px solid #67c23a;
+}
+
+.suggestion-corrections {
+  border-left: 3px solid #e6a23c;
+}
+
+.corrections-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.corrections-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.corrections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.correction-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  gap: 12px;
+}
+
+.correction-item.auto {
+  background: #f0f9eb;
+}
+
+.correction-item.suggestion {
+  background: #fdf6ec;
+}
+
+.correction-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.corr-from {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: #f56c6c;
+  text-decoration: line-through;
+  padding: 2px 6px;
+  background: #fef0f0;
+  border-radius: 4px;
+}
+
+.corr-to {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: #67c23a;
+  padding: 2px 6px;
+  background: #f0f9eb;
+  border-radius: 4px;
+}
+
+.corr-reason {
+  font-size: 12px;
+  color: #606266;
+  margin-left: 6px;
+}
+
+.quick-symbol-panel {
+  background: #f5f7fa;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.symbol-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.symbol-panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.symbol-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.symbol-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.symbol-group-label {
+  font-size: 12px;
+  color: #909399;
+  font-weight: 500;
+  min-width: 60px;
+  padding-top: 6px;
+}
+
+.symbol-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.symbol-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 8px !important;
+  min-width: 48px;
+  height: auto !important;
+  line-height: 1.3 !important;
+}
+
+.symbol-char {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 16px;
+  font-weight: 600;
+  color: #165DFF;
+  line-height: 1.2;
+}
+
+.symbol-label {
+  font-size: 10px;
+  color: #909399;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.analysis-item .el-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 </style>
