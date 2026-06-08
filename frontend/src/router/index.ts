@@ -75,6 +75,11 @@ const routes: RouteRecordRaw[] = [
         path: '/ai-text-expander',
         name: 'AiTextExpander',
         component: () => import('@/views/AiTextExpander.vue')
+      },
+      {
+        path: '/python-code-samples',
+        name: 'PythonCodeSamples',
+        component: () => import('@/views/PythonCodeSamples.vue')
       }
     ]
   }

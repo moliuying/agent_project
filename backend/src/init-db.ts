@@ -25,8 +25,9 @@ async function bootstrap() {
       { name: 'AI扩文', path: '/ai-text-expander', icon: 'MagicStick', parentId: null, sort: 8, component: 'views/AiTextExpander.vue' },
       { name: '代码反混淆', path: '/code-deobfuscator', icon: 'Monitor', parentId: null, sort: 9, component: 'views/CodeDeobfuscator.vue' },
       { name: 'WebSocket 调试', path: '/websocket-debugger', icon: 'DataLine', parentId: null, sort: 10, component: 'views/WebSocketDebugger.vue' },
+      { name: 'Python代码示例', path: '/python-code-samples', icon: 'Cpu', parentId: null, sort: 11, component: 'views/PythonCodeSamples.vue' },
       { name: '系统管理', path: '/system', icon: 'Setting', parentId: null, sort: 99, component: null },
-      { name: '菜单管理', path: '/system/menu', icon: 'Menu', parentId: 10, sort: 1, component: 'views/Menu.vue' },
+      { name: '菜单管理', path: '/system/menu', icon: 'Menu', parentId: 11, sort: 1, component: 'views/Menu.vue' },
     ];
 
     for (const menu of menus) {
