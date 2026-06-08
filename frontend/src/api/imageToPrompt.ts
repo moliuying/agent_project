@@ -9,8 +9,14 @@ export interface ImageToPromptRequest {
   imageBase64: string
   userDescription?: string
   targetStyle?: string
+  forcedStyles?: string[]
+  forcedCompositions?: string[]
+  forcedLightings?: string[]
+  forcedMoods?: string[]
+  colorProfile?: string
   detailLevel?: string
   includeNegative?: boolean
+  variantSeed?: number
   outputLanguage?: string
 }
 
