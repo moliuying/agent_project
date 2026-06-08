@@ -65,6 +65,11 @@ const routes: RouteRecordRaw[] = [
         path: '/websocket-debugger',
         name: 'WebSocketDebugger',
         component: () => import('@/views/WebSocketDebugger.vue')
+      },
+      {
+        path: '/ai-art-prompts',
+        name: 'AiArtPrompts',
+        component: () => import('@/views/AiArtPrompts.vue')
       }
     ]
   }
