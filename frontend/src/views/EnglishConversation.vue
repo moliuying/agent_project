@@ -211,6 +211,73 @@
           </div>
         </div>
 
+        <div v-if="wordPracticeMode" class="word-practice-bar">
+          <div class="practice-header">
+            <el-icon :size="18" color="#e6a23c"><Microphone /></el-icon>
+            <span class="practice-title">逐词跟读练习</span>
+            <el-tag size="small" type="warning">
+              {{ wordPracticeIndex + 1 }} / {{ wordPracticeWords.length }}
+            </el-tag>
+          </div>
+          <div class="practice-progress">
+            <div
+              v-for="(w, i) in wordPracticeWords"
+              :key="i"
+              class="progress-dot"
+              :class="{ active: i === wordPracticeIndex, done: i < wordPracticeIndex }"
+            ></div>
+          </div>
+          <div
+            class="current-word-display"
+            @click="speakWord(currentPracticeWord)"
+            :class="{ speaking: currentlySpeakingId === 'practice-word' }"
+          >
+            <span class="big-word">{{ currentPracticeWord }}</span>
+            <el-icon size="16" color="#e6a23c"><VideoPlay /></el-icon>
+          </div>
+          <div class="word-phonetic-display" v-if="currentPracticeWordPhonetic">
+            {{ currentPracticeWordPhonetic }}
+          </div>
+          <div class="word-tip-display" v-if="currentPracticeWordTip">
+            💡 {{ currentPracticeWordTip }}
+          </div>
+          <div class="practice-actions">
+            <el-button
+              size="small"
+              @click="prevPracticeWord"
+              :disabled="wordPracticeIndex === 0"
+            >
+              上一个
+            </el-button>
+            <el-button
+              type="primary"
+              size="large"
+              @click="speakWord(currentPracticeWord)"
+            >
+              <el-icon><VideoPlay /></el-icon>
+              听标准发音
+            </el-button>
+            <el-button
+              :type="isListening ? 'danger' : 'warning'"
+              size="large"
+              @click="toggleVoiceInput"
+            >
+              <el-icon><Microphone /></el-icon>
+              {{ isListening ? '录音中...' : '我来跟读' }}
+            </el-button>
+            <el-button
+              size="small"
+              @click="nextPracticeWord"
+              :disabled="wordPracticeIndex >= wordPracticeWords.length - 1"
+            >
+              下一个
+            </el-button>
+          </div>
+          <div class="practice-exit">
+            <el-button size="small" text @click="exitWordPractice">退出逐词练习</el-button>
+          </div>
+        </div>
+
         <div class="messages-container" ref="messagesContainerRef">
           <div
             v-for="msg in conversationState.messages"
@@ -248,10 +315,61 @@
                   <el-icon :size="12"><Document /></el-icon>
                   <span>{{ msg.translation }}</span>
                 </div>
+                <div v-if="msg.role === 'user' && msg.pronunciation" class="pronunciation-feedback">
+                  <div class="pronunciation-header">
+                    <div class="pronunciation-score" :class="msg.pronunciation.level">
+                      <el-icon size="14"><Microphone /></el-icon>
+                      <span class="score-value">{{ msg.pronunciation.overallScore }}</span>
+                      <span class="score-label">分</span>
+                    </div>
+                    <el-tag
+                      size="small"
+                      :type="msg.pronunciation.level === 'excellent' ? 'success' : msg.pronunciation.level === 'good' ? 'warning' : 'info'"
+                      effect="light"
+                    >
+                      {{ msg.pronunciation.level === 'excellent' ? '优秀' : msg.pronunciation.level === 'good' ? '良好' : '需练习' }}
+                    </el-tag>
+                    <span class="pronunciation-msg">{{ msg.pronunciation.encouragingMessage }}</span>
+                  </div>
+                </div>
+                <div v-if="msg.role === 'user' && msg.pronunciation?.words && msg.pronunciation.words.length > 0" class="word-by-word">
+                  <span
+                    v-for="(word, idx) in msg.pronunciation.words"
+                    :key="idx"
+                    class="word-item"
+                    :class="[word.difficulty, { 'common-mistake': word.isCommonMistake }]"
+                    @click="speakWord(word.word)"
+                  >
+                    <span class="word-text">{{ word.word }}</span>
+                    <span v-if="word.phonetic" class="word-phonetic">{{ word.phonetic }}</span>
+                    <el-icon class="word-speak-icon" size="10"><VideoPlay /></el-icon>
+                    <el-tooltip
+                      v-if="word.tips || word.commonMistake"
+                      placement="top"
+                      :content="word.commonMistake || word.tips"
+                      :show-after="200"
+                    >
+                      <el-icon class="word-tip-icon" size="10"><Warning /></el-icon>
+                    </el-tooltip>
+                  </span>
+                </div>
+                <div v-if="msg.role === 'user' && msg.pronunciation?.practiceWords && msg.pronunciation.practiceWords.length > 0" class="practice-words">
+                  <el-icon size="12" color="#e6a23c"><Warning /></el-icon>
+                  <span class="practice-label">重点练习：</span>
+                  <span
+                    v-for="(word, idx) in msg.pronunciation.practiceWords"
+                    :key="idx"
+                    class="practice-word"
+                    @click="speakWord(word)"
+                  >
+                    {{ word }}
+                    <el-icon size="10"><VideoPlay /></el-icon>
+                  </span>
+                </div>
                 <div v-if="msg.role === 'user' && msg.correction" class="correction">
                   <el-icon :size="12" color="#e6a23c"><EditPen /></el-icon>
                   <div class="correction-content">
-                    <span class="correction-label">更正：</span>
+                    <span class="correction-label">语法更正：</span>
                     <span class="correction-text" @click="speakText(msg.correction!)">
                       {{ msg.correction }}
                       <el-icon size="11"><VideoPlay /></el-icon>
@@ -291,6 +409,15 @@
                   >
                     <el-icon><VideoPlay /></el-icon>
                     再听一遍
+                  </el-button>
+                  <el-button
+                    size="small"
+                    type="warning"
+                    plain
+                    @click.stop="startWordByWordPractice(msg.content)"
+                  >
+                    <el-icon><Microphone /></el-icon>
+                    逐词跟读
                   </el-button>
                 </div>
               </div>
@@ -545,6 +672,7 @@ import {
   Reading,
   Edit,
   Lightbulb,
+  Warning,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
@@ -552,6 +680,7 @@ import {
   type ConversationScene,
   type ConversationState,
   type ConversationMessage,
+  type WordPronunciation,
 } from '@/api/englishConversation'
 
 const loading = ref(false)
@@ -570,6 +699,10 @@ const currentlySpeakingId = ref<number | string | null>(null)
 const showVoiceSettings = ref(false)
 const followingMode = ref(false)
 const followSentence = ref('')
+const wordPracticeMode = ref(false)
+const wordPracticeWords = ref<string[]>([])
+const wordPracticeIndex = ref(0)
+const wordPracticeData = ref<Record<string, WordPronunciation>>({})
 
 let speechRecognition: any = null
 let recognitionFinalTranscript = ''
@@ -679,12 +812,87 @@ const exitFollowMode = () => {
   }
 }
 
+const currentPracticeWord = computed(() => wordPracticeWords.value[wordPracticeIndex.value] || '')
+
+const currentPracticeWordPhonetic = computed(() => {
+  const word = currentPracticeWord.value.toLowerCase()
+  return wordPracticeData.value[word]?.phonetic || ''
+})
+
+const currentPracticeWordTip = computed(() => {
+  const word = currentPracticeWord.value.toLowerCase()
+  const data = wordPracticeData.value[word]
+  return data?.commonMistake || data?.tips || ''
+})
+
+const speakWord = (word: string) => {
+  speakText(word, 'practice-word')
+}
+
+const startWordByWordPractice = (sentence: string) => {
+  const words = sentence
+    .replace(/[.,!?;:'"]/g, '')
+    .split(/\s+/)
+    .filter(w => w.length > 0)
+
+  if (words.length === 0) {
+    ElMessage.warning('没有可练习的单词')
+    return
+  }
+
+  wordPracticeWords.value = words
+  wordPracticeIndex.value = 0
+  wordPracticeMode.value = true
+
+  if (conversationState.value) {
+    const allWords: WordPronunciation[] = []
+    conversationState.value.messages.forEach(m => {
+      if (m.pronunciation?.words) {
+        m.pronunciation.words.forEach(w => {
+          allWords.push(w)
+        })
+      }
+    })
+    allWords.forEach(w => {
+      wordPracticeData.value[w.word.toLowerCase()] = w
+    })
+  }
+
+  setTimeout(() => {
+    speakWord(currentPracticeWord.value)
+  }, 300)
+}
+
+const exitWordPractice = () => {
+  wordPracticeMode.value = false
+  wordPracticeWords.value = []
+  wordPracticeIndex.value = 0
+  if (isListening.value) {
+    stopVoiceInput()
+  }
+}
+
+const prevPracticeWord = () => {
+  if (wordPracticeIndex.value > 0) {
+    wordPracticeIndex.value--
+    setTimeout(() => speakWord(currentPracticeWord.value), 200)
+  }
+}
+
+const nextPracticeWord = () => {
+  if (wordPracticeIndex.value < wordPracticeWords.value - 1) {
+    wordPracticeIndex.value++
+    setTimeout(() => speakWord(currentPracticeWord.value), 200)
+  }
+}
+
 const changeScene = () => {
   conversationState.value = null
   currentScene.value = null
   userInput.value = ''
   quickSuggestions.value = []
   followingMode.value = false
+  wordPracticeMode.value = false
   stopVoiceInput()
   window.speechSynthesis?.cancel()
 }
@@ -1834,6 +2042,273 @@ onUnmounted(() => {
   align-items: center;
   font-size: 14px;
   color: #606266;
+}
+
+.pronunciation-feedback {
+  background: linear-gradient(135deg, #f0f9ff 0%, #fff 100%);
+  border: 1px solid #bae7ff;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.pronunciation-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pronunciation-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-weight: 700;
+}
+
+.pronunciation-score.excellent {
+  background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
+  color: #52c41a;
+}
+
+.pronunciation-score.good {
+  background: linear-gradient(135deg, #fffbe6 0%, #fff1b8 100%);
+  color: #faad14;
+}
+
+.pronunciation-score.needs_practice {
+  background: linear-gradient(135deg, #fff2e8 0%, #ffd8bf 100%);
+  color: #fa8c16;
+}
+
+.score-value {
+  font-size: 16px;
+}
+
+.score-label {
+  font-size: 11px;
+  font-weight: normal;
+}
+
+.pronunciation-msg {
+  font-size: 12px;
+  color: #606266;
+  margin-left: 4px;
+}
+
+.word-by-word {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+  background: #fafbfc;
+  border-radius: 8px;
+  border: 1px solid #ebeef5;
+}
+
+.word-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+}
+
+.word-item:hover {
+  transform: translateY(-1px);
+  border-color: #165DFF;
+  background: #ecf5ff;
+}
+
+.word-item.easy {
+  border-left: 3px solid #67c23a;
+}
+
+.word-item.medium {
+  border-left: 3px solid #e6a23c;
+}
+
+.word-item.hard {
+  border-left: 3px solid #f56c6c;
+}
+
+.word-item.common-mistake {
+  background: linear-gradient(135deg, #fff7e6 0%, #fff 100%);
+  border-color: #ffd591;
+}
+
+.word-text {
+  font-weight: 500;
+  color: #303133;
+}
+
+.word-phonetic {
+  font-size: 11px;
+  color: #909399;
+  font-style: italic;
+}
+
+.word-speak-icon {
+  color: #c0c4cc;
+  margin-left: 2px;
+}
+
+.word-item:hover .word-speak-icon {
+  color: #165DFF;
+}
+
+.word-tip-icon {
+  color: #e6a23c;
+  margin-left: 2px;
+}
+
+.practice-words {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #fff7e6 0%, #fff 100%);
+  border-radius: 8px;
+  border: 1px solid #ffd591;
+}
+
+.practice-label {
+  font-size: 12px;
+  color: #d48806;
+  font-weight: 500;
+}
+
+.practice-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #fff;
+  border: 1px solid #ffd591;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 12px;
+  color: #d46b08;
+  font-weight: 500;
+}
+
+.practice-word:hover {
+  background: #fffbe6;
+  transform: translateY(-1px);
+}
+
+.word-practice-bar {
+  padding: 20px;
+  background: linear-gradient(135deg, #fffbe6 0%, #fff 100%);
+  border: 2px solid #ffe58f;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.practice-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.practice-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #d48806;
+  flex: 1;
+}
+
+.practice-progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.progress-dot {
+  width: 100%;
+  height: 4px;
+  background: #ffe58f;
+  border-radius: 2px;
+  flex: 1;
+  transition: all 0.3s;
+}
+
+.progress-dot.active {
+  background: #faad14;
+  height: 6px;
+}
+
+.progress-dot.done {
+  background: #52c41a;
+}
+
+.current-word-display {
+  text-align: center;
+  padding: 24px;
+  background: #fff;
+  border-radius: 10px;
+  border: 2px dashed #ffd591;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+}
+
+.current-word-display:hover {
+  background: #fffbe6;
+  border-color: #faad14;
+}
+
+.current-word-display.speaking {
+  background: #fffbe6;
+  border-color: #faad14;
+  box-shadow: 0 0 0 4px rgba(250, 173, 20, 0.1);
+}
+
+.big-word {
+  font-size: 32px;
+  font-weight: 700;
+  color: #303133;
+  margin-right: 10px;
+  letter-spacing: 1px;
+}
+
+.word-phonetic-display {
+  text-align: center;
+  font-size: 16px;
+  color: #909399;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.word-tip-display {
+  text-align: center;
+  font-size: 13px;
+  color: #d46b08;
+  background: #fffbe6;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.practice-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.practice-exit {
+  text-align: center;
 }
 
 @media (max-width: 768px) {

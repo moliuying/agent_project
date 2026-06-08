@@ -1,5 +1,22 @@
 import { Injectable } from '@nestjs/common';
 
+export interface WordPronunciation {
+  word: string;
+  phonetic?: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  tips?: string;
+  isCommonMistake?: boolean;
+  commonMistake?: string;
+}
+
+export interface PronunciationFeedback {
+  overallScore: number;
+  level: 'excellent' | 'good' | 'needs_practice';
+  words: WordPronunciation[];
+  practiceWords: string[];
+  encouragingMessage: string;
+}
+
 export interface ConversationMessage {
   id: number;
   role: 'user' | 'ai';
@@ -8,6 +25,7 @@ export interface ConversationMessage {
   correction?: string;
   suggestions?: string[];
   usefulPhrases?: { phrase: string; meaning: string }[];
+  pronunciation?: PronunciationFeedback;
   timestamp: number;
 }
 
@@ -403,6 +421,7 @@ export class EnglishConversationService {
 
     const correction = this.checkGrammar(trimmedMessage);
     const suggestions = this.generateSuggestions(trimmedMessage, scene);
+    const pronunciation = this.analyzePronunciation(trimmedMessage);
 
     const userMsg: ConversationMessage = {
       id: Date.now(),
@@ -410,6 +429,7 @@ export class EnglishConversationService {
       content: trimmedMessage,
       correction: correction ? correction.corrected : undefined,
       suggestions: suggestions,
+      pronunciation: pronunciation,
       timestamp: Date.now(),
     };
 
@@ -566,5 +586,248 @@ export class EnglishConversationService {
     }
 
     return phrases.slice(0, 3);
+  }
+
+  private readonly PRONUNCIATION_DATABASE: Record<string, WordPronunciation> = {
+    the: { word: 'the', phonetic: '/ðə, ðiː/', difficulty: 'easy', tips: '注意 th 发音，咬舌尖' },
+    is: { word: 'is', phonetic: '/ɪz/', difficulty: 'easy' },
+    are: { word: 'are', phonetic: '/ɑːr/', difficulty: 'easy' },
+    you: { word: 'you', phonetic: '/juː/', difficulty: 'easy' },
+    i: { word: 'I', phonetic: '/aɪ/', difficulty: 'easy' },
+    a: { word: 'a', phonetic: '/ə, eɪ/', difficulty: 'easy' },
+    to: { word: 'to', phonetic: '/tuː, tə/', difficulty: 'easy' },
+    and: { word: 'and', phonetic: '/ænd, ənd/', difficulty: 'easy' },
+    it: { word: 'it', phonetic: '/ɪt/', difficulty: 'easy' },
+    in: { word: 'in', phonetic: '/ɪn/', difficulty: 'easy' },
+    on: { word: 'on', phonetic: '/ɒn/', difficulty: 'easy' },
+    at: { word: 'at', phonetic: '/æt/', difficulty: 'easy' },
+    for: { word: 'for', phonetic: '/fɔːr/', difficulty: 'easy' },
+    be: { word: 'be', phonetic: '/biː/', difficulty: 'easy' },
+    good: { word: 'good', phonetic: '/ɡʊd/', difficulty: 'easy', tips: 'oo 发短音 /ʊ/' },
+    hello: { word: 'hello', phonetic: '/həˈləʊ/', difficulty: 'easy' },
+    hi: { word: 'hi', phonetic: '/haɪ/', difficulty: 'easy' },
+    nice: { word: 'nice', phonetic: '/naɪs/', difficulty: 'easy' },
+    meet: { word: 'meet', phonetic: '/miːt/', difficulty: 'easy', tips: 'ee 发长音 /iː/' },
+    today: { word: 'today', phonetic: '/təˈdeɪ/', difficulty: 'easy', tips: '重音在第二个音节' },
+    yes: { word: 'yes', phonetic: '/jes/', difficulty: 'easy' },
+    no: { word: 'no', phonetic: '/nəʊ/', difficulty: 'easy' },
+    please: { word: 'please', phonetic: '/pliːz/', difficulty: 'easy' },
+    thank: { word: 'thank', phonetic: '/θæŋk/', difficulty: 'medium', tips: 'th 咬舌尖发 /θ/', isCommonMistake: true, commonMistake: '容易读成 /s/，注意要咬舌尖' },
+    thanks: { word: 'thanks', phonetic: '/θæŋks/', difficulty: 'medium', tips: 'th 咬舌尖发 /θ/', isCommonMistake: true, commonMistake: '容易读成 /s/，注意要咬舌尖' },
+    this: { word: 'this', phonetic: '/ðɪs/', difficulty: 'medium', tips: 'th 咬舌尖发浊音 /ð/', isCommonMistake: true, commonMistake: '容易读成 /z/，注意要咬舌尖' },
+    that: { word: 'that', phonetic: '/ðæt/', difficulty: 'medium', tips: 'th 咬舌尖发浊音 /ð/', isCommonMistake: true, commonMistake: '容易读成 /z/，注意要咬舌尖' },
+    these: { word: 'these', phonetic: '/ðiːz/', difficulty: 'medium', tips: 'th 咬舌尖发浊音 /ð/', isCommonMistake: true },
+    those: { word: 'those', phonetic: '/ðəʊz/', difficulty: 'medium', tips: 'th 咬舌尖发浊音 /ð/', isCommonMistake: true },
+    think: { word: 'think', phonetic: '/θɪŋk/', difficulty: 'medium', tips: 'th 咬舌尖发清音 /θ/', isCommonMistake: true },
+    three: { word: 'three', phonetic: '/θriː/', difficulty: 'medium', tips: 'th 咬舌尖发 /θ/，不要读成 s' },
+    weather: { word: 'weather', phonetic: '/ˈweðər/', difficulty: 'medium', tips: 'th 发浊音 /ð/，注意和 whether 同音' },
+    with: { word: 'with', phonetic: '/wɪð/', difficulty: 'medium', tips: 'th 发浊音 /ð/' },
+    restaurant: { word: 'restaurant', phonetic: '/ˈrestrɒnt/', difficulty: 'hard', tips: '三个音节，重音在第一个', isCommonMistake: true, commonMistake: '容易多加音节，注意只发 res-tau-rant 三个音节' },
+    comfortable: { word: 'comfortable', phonetic: '/ˈkʌmftəbl/', difficulty: 'hard', tips: '注意省略中间的 or 音，读 comf-ta-ble', isCommonMistake: true },
+    vegetable: { word: 'vegetable', phonetic: '/ˈvedʒtəbl/', difficulty: 'hard', tips: '注意省略中间的 e，读 veg-ta-ble', isCommonMistake: true },
+    interesting: { word: 'interesting', phonetic: '/ˈɪntrəstɪŋ/', difficulty: 'medium', tips: '读成 in-tres-ting，不要读成 in-ter-es-ting', isCommonMistake: true },
+    beautiful: { word: 'beautiful', phonetic: '/ˈbjuːtɪfl/', difficulty: 'medium', tips: '三个音节：beau-ti-ful' },
+    difficult: { word: 'difficult', phonetic: '/ˈdɪfɪkəlt/', difficulty: 'medium', tips: '三个音节，重音在第一个' },
+    question: { word: 'question', phonetic: '/ˈkwestʃən/', difficulty: 'medium', tips: 'tion 发 /tʃən/ 而不是 /ʃən/' },
+    suggestion: { word: 'suggestion', phonetic: '/səˈdʒestʃən/', difficulty: 'hard', tips: 'tion 发 /tʃən/' },
+    schedule: { word: 'schedule', phonetic: '/ˈʃedjuːl/', difficulty: 'hard', tips: '英式读 /ʃed/，美式读 /sked/' },
+    usually: { word: 'usually', phonetic: '/ˈjuːʒuəli/', difficulty: 'hard', tips: 's 发 /ʒ/ 的音，类似"热"', isCommonMistake: true },
+    decision: { word: 'decision', phonetic: '/dɪˈsɪʒən/', difficulty: 'medium', tips: 's 发 /ʒ/ 的音' },
+    television: { word: 'television', phonetic: '/ˈtelɪvɪʒən/', difficulty: 'medium', tips: 's 发 /ʒ/ 的音' },
+    world: { word: 'world', phonetic: '/wɜːld/', difficulty: 'medium', tips: 'r 音要卷舌，注意和 word 区分', isCommonMistake: true, commonMistake: '容易和 word 混淆，world 多一个 /l/ 音' },
+    word: { word: 'word', phonetic: '/wɜːd/', difficulty: 'easy', tips: '注意和 world 区分，world 多一个 /l/' },
+    work: { word: 'work', phonetic: '/wɜːk/', difficulty: 'easy', tips: 'or 发 /ɜː/' },
+    walk: { word: 'walk', phonetic: '/wɔːk/', difficulty: 'medium', tips: 'l 不发音，al 发 /ɔː/' },
+    talk: { word: 'talk', phonetic: '/tɔːk/', difficulty: 'medium', tips: 'l 不发音，al 发 /ɔː/' },
+    half: { word: 'half', phonetic: '/hɑːf/', difficulty: 'medium', tips: 'l 不发音' },
+    salmon: { word: 'salmon', phonetic: '/ˈsæmən/', difficulty: 'hard', tips: 'l 不发音', isCommonMistake: true },
+    would: { word: 'would', phonetic: '/wʊd/', difficulty: 'medium', tips: 'l 不发音' },
+    should: { word: 'should', phonetic: '/ʃʊd/', difficulty: 'medium', tips: 'l 不发音' },
+    could: { word: 'could', phonetic: '/kʊd/', difficulty: 'medium', tips: 'l 不发音' },
+    know: { word: 'know', phonetic: '/nəʊ/', difficulty: 'easy', tips: 'k 不发音' },
+    knife: { word: 'knife', phonetic: '/naɪf/', difficulty: 'medium', tips: 'k 不发音' },
+    write: { word: 'write', phonetic: '/raɪt/', difficulty: 'easy', tips: 'w 不发音' },
+    wrong: { word: 'wrong', phonetic: '/rɒŋ/', difficulty: 'medium', tips: 'w 不发音' },
+    hour: { word: 'hour', phonetic: '/ˈaʊər/', difficulty: 'medium', tips: 'h 不发音，和 our 同音' },
+    honest: { word: 'honest', phonetic: '/ˈɒnɪst/', difficulty: 'hard', tips: 'h 不发音' },
+    water: { word: 'water', phonetic: '/ˈwɔːtər/', difficulty: 'easy', tips: '美式发音 t 听起来像 d' },
+    better: { word: 'better', phonetic: '/ˈbetər/', difficulty: 'easy', tips: '美式发音 t 听起来像 d' },
+    little: { word: 'little', phonetic: '/ˈlɪtl/', difficulty: 'easy', tips: 'tt 发闪音，类似 d' },
+    morning: { word: 'morning', phonetic: '/ˈmɔːnɪŋ/', difficulty: 'easy', tips: 'ing 发 /ɪŋ/，注意不要加 g 的音' },
+    evening: { word: 'evening', phonetic: '/ˈiːvnɪŋ/', difficulty: 'easy' },
+    afternoon: { word: 'afternoon', phonetic: '/ˌɑːftəˈnuːn/', difficulty: 'medium', tips: '重音在最后一个音节' },
+    breakfast: { word: 'breakfast', phonetic: '/ˈbrekfəst/', difficulty: 'medium', tips: 'fast 不发长音，读 /fəst/' },
+    lunch: { word: 'lunch', phonetic: '/lʌntʃ/', difficulty: 'easy' },
+    dinner: { word: 'dinner', phonetic: '/ˈdɪnər/', difficulty: 'easy' },
+    food: { word: 'food', phonetic: '/fuːd/', difficulty: 'easy', tips: 'oo 发长音 /uː/' },
+    book: { word: 'book', phonetic: '/bʊk/', difficulty: 'easy', tips: 'oo 发短音 /ʊ/' },
+    look: { word: 'look', phonetic: '/lʊk/', difficulty: 'easy', tips: 'oo 发短音 /ʊ/' },
+    too: { word: 'too', phonetic: '/tuː/', difficulty: 'easy', tips: 'oo 发长音 /uː/' },
+    menu: { word: 'menu', phonetic: '/ˈmenjuː/', difficulty: 'easy' },
+    order: { word: 'order', phonetic: '/ˈɔːdər/', difficulty: 'easy' },
+    bill: { word: 'bill', phonetic: '/bɪl/', difficulty: 'easy', tips: '注意不要发成 beer' },
+    check: { word: 'check', phonetic: '/tʃek/', difficulty: 'easy', tips: 'ch 发 /tʃ/' },
+    passport: { word: 'passport', phonetic: '/ˈpɑːspɔːt/', difficulty: 'medium' },
+    ticket: { word: 'ticket', phonetic: '/ˈtɪkɪt/', difficulty: 'easy' },
+    luggage: { word: 'luggage', phonetic: '/ˈlʌɡɪdʒ/', difficulty: 'medium', tips: 'g 发 /dʒ/' },
+    boarding: { word: 'boarding', phonetic: '/ˈbɔːdɪŋ/', difficulty: 'medium' },
+    gate: { word: 'gate', phonetic: '/ɡeɪt/', difficulty: 'easy' },
+    transfer: { word: 'transfer', phonetic: '/trænsˈfɜːr/', difficulty: 'hard', tips: '动词重音在第二个音节' },
+    security: { word: 'security', phonetic: '/sɪˈkjʊərəti/', difficulty: 'hard', tips: '四个音节' },
+    experience: { word: 'experience', phonetic: '/ɪkˈspɪəriəns/', difficulty: 'hard', tips: '重音在第二个音节', isCommonMistake: true },
+    background: { word: 'background', phonetic: '/ˈbækɡraʊnd/', difficulty: 'medium' },
+    strength: { word: 'strength', phonetic: '/streŋθ/', difficulty: 'hard', tips: '注意尾音 /θ/', isCommonMistake: true },
+    weakness: { word: 'weakness', phonetic: '/ˈwiːknəs/', difficulty: 'medium', tips: 'k 要发音' },
+    career: { word: 'career', phonetic: '/kəˈrɪər/', difficulty: 'medium', tips: '重音在第二个音节，注意和 Korea 区分' },
+    position: { word: 'position', phonetic: '/pəˈzɪʃən/', difficulty: 'medium', tips: 's 发 /z/，ti 发 /ʃ/' },
+    company: { word: 'company', phonetic: '/ˈkʌmpəni/', difficulty: 'easy', tips: '重音在第一个音节' },
+    colleague: { word: 'colleague', phonetic: '/ˈkɒliːɡ/', difficulty: 'hard', tips: '注意拼写，gue 发 /ɡ/' },
+    size: { word: 'size', phonetic: '/saɪz/', difficulty: 'easy' },
+    fit: { word: 'fit', phonetic: '/fɪt/', difficulty: 'easy', tips: '短音 /ɪ/，不要发成长音 /iː/' },
+    color: { word: 'color', phonetic: '/ˈkʌlər/', difficulty: 'easy' },
+    price: { word: 'price', phonetic: '/praɪs/', difficulty: 'easy' },
+    discount: { word: 'discount', phonetic: '/ˈdɪskaʊnt/', difficulty: 'medium' },
+    expensive: { word: 'expensive', phonetic: '/ɪkˈspensɪv/', difficulty: 'medium', tips: '重音在第二个音节' },
+    cheap: { word: 'cheap', phonetic: '/tʃiːp/', difficulty: 'easy', tips: 'ea 发长音 /iː/' },
+    direction: { word: 'direction', phonetic: '/daɪˈrekʃən/', difficulty: 'medium' },
+    straight: { word: 'straight', phonetic: '/streɪt/', difficulty: 'medium', tips: 'gh 不发音' },
+    left: { word: 'left', phonetic: '/left/', difficulty: 'easy' },
+    right: { word: 'right', phonetic: '/raɪt/', difficulty: 'easy', tips: 'gh 不发音' },
+    turn: { word: 'turn', phonetic: '/tɜːn/', difficulty: 'easy' },
+    hotel: { word: 'hotel', phonetic: '/həʊˈtel/', difficulty: 'easy', tips: '重音在第二个音节' },
+    attraction: { word: 'attraction', phonetic: '/əˈtrækʃən/', difficulty: 'hard', tips: '重音在第二个音节' },
+    museum: { word: 'museum', phonetic: '/mjuˈziːəm/', difficulty: 'medium', tips: '重音在第二个音节' },
+    subway: { word: 'subway', phonetic: '/ˈsʌbweɪ/', difficulty: 'easy' },
+    taxi: { word: 'taxi', phonetic: '/ˈtæksi/', difficulty: 'easy' },
+    how: { word: 'how', phonetic: '/haʊ/', difficulty: 'easy' },
+    what: { word: 'what', phonetic: '/wɒt/', difficulty: 'easy' },
+    where: { word: 'where', phonetic: '/weər/', difficulty: 'easy' },
+    when: { word: 'when', phonetic: '/wen/', difficulty: 'easy' },
+    why: { word: 'why', phonetic: '/waɪ/', difficulty: 'easy' },
+    which: { word: 'which', phonetic: '/wɪtʃ/', difficulty: 'easy', tips: 'wh 发 /w/' },
+    who: { word: 'who', phonetic: '/huː/', difficulty: 'easy', tips: 'wh 发 /h/' },
+    whose: { word: 'whose', phonetic: '/huːz/', difficulty: 'medium', tips: 'wh 发 /h/' },
+    iam: { word: 'I\'m', phonetic: '/aɪm/', difficulty: 'easy' },
+    dont: { word: 'don\'t', phonetic: '/dəʊnt/', difficulty: 'easy' },
+    cant: { word: 'can\'t', phonetic: '/kɑːnt/', difficulty: 'easy', tips: '注意和 can 区分' },
+    wont: { word: 'won\'t', phonetic: '/wəʊnt/', difficulty: 'medium', tips: '注意和 want 区分' },
+    havent: { word: 'haven\'t', phonetic: '/ˈhævənt/', difficulty: 'easy' },
+    havent: { word: 'hasn\'t', phonetic: '/ˈhæzənt/', difficulty: 'easy' },
+    recommend: { word: 'recommend', phonetic: '/ˌrekəˈmend/', difficulty: 'hard', tips: '重音在最后一个音节' },
+    reservation: { word: 'reservation', phonetic: '/ˌrezəˈveɪʃən/', difficulty: 'hard' },
+    medium: { word: 'medium', phonetic: '/ˈmiːdiəm/', difficulty: 'medium', tips: '注意重音' },
+    rare: { word: 'rare', phonetic: '/reər/', difficulty: 'easy' },
+    well: { word: 'well', phonetic: '/wel/', difficulty: 'easy' },
+    done: { word: 'done', phonetic: '/dʌn/', difficulty: 'easy' },
+    welcome: { word: 'welcome', phonetic: '/ˈwelkəm/', difficulty: 'easy' },
+    really: { word: 'really', phonetic: '/ˈriːəli/', difficulty: 'easy', tips: '两个音节' },
+    very: { word: 'very', phonetic: '/ˈveri/', difficulty: 'easy', tips: '注意 v 要咬下嘴唇' },
+    want: { word: 'want', phonetic: '/wɒnt/', difficulty: 'easy', tips: '注意和 won\'t 区分' },
+    like: { word: 'like', phonetic: '/laɪk/', difficulty: 'easy' },
+    love: { word: 'love', phonetic: '/lʌv/', difficulty: 'easy', tips: 'v 咬下嘴唇' },
+    enjoy: { word: 'enjoy', phonetic: '/ɪnˈdʒɔɪ/', difficulty: 'medium', tips: 'joy 发 /dʒɔɪ/' },
+    hobby: { word: 'hobby', phonetic: '/ˈhɒbi/', difficulty: 'easy' },
+    interest: { word: 'interest', phonetic: '/ˈɪntrəst/', difficulty: 'medium', tips: '读成 in-trest，不是 in-ter-est' },
+    favorite: { word: 'favorite', phonetic: '/ˈfeɪvərɪt/', difficulty: 'medium', tips: '三个音节' },
+    weekend: { word: 'weekend', phonetic: '/ˌwiːkˈend/', difficulty: 'easy' },
+    weather_db: { word: 'weather', phonetic: '/ˈweðər/', difficulty: 'medium', tips: 'th 发浊音 /ð/' },
+    sunny: { word: 'sunny', phonetic: '/ˈsʌni/', difficulty: 'easy' },
+    rainy: { word: 'rainy', phonetic: '/ˈreɪni/', difficulty: 'easy' },
+    cloudy: { word: 'cloudy', phonetic: '/ˈklaʊdi/', difficulty: 'easy' },
+    cold: { word: 'cold', phonetic: '/kəʊld/', difficulty: 'easy' },
+    hot: { word: 'hot', phonetic: '/hɒt/', difficulty: 'easy' },
+    warm: { word: 'warm', phonetic: '/wɔːm/', difficulty: 'easy' },
+    cool: { word: 'cool', phonetic: '/kuːl/', difficulty: 'easy' },
+    temperature: { word: 'temperature', phonetic: '/ˈtemprətʃər/', difficulty: 'hard', tips: '读成 temp-ra-ture', isCommonMistake: true },
+    delicious: { word: 'delicious', phonetic: '/dɪˈlɪʃəs/', difficulty: 'medium', tips: '重音在第二个音节' },
+    hungry: { word: 'hungry', phonetic: '/ˈhʌŋɡri/', difficulty: 'easy' },
+    tired: { word: 'tired', phonetic: '/ˈtaɪəd/', difficulty: 'easy' },
+    busy: { word: 'busy', phonetic: '/ˈbɪzi/', difficulty: 'easy', tips: 'u 发 /ɪ/' },
+    great: { word: 'great', phonetic: '/ɡreɪt/', difficulty: 'easy', tips: 'ea 发 /eɪ/' },
+    amazing: { word: 'amazing', phonetic: '/əˈmeɪzɪŋ/', difficulty: 'medium' },
+    wonderful: { word: 'wonderful', phonetic: '/ˈwʌndəfl/', difficulty: 'medium' },
+    awesome: { word: 'awesome', phonetic: '/ˈɔːsəm/', difficulty: 'medium' },
+  };
+
+  private readonly ENCOURAGING_MESSAGES = {
+    excellent: [
+      '发音太棒了！继续保持！ 🌟',
+      '非常地道的发音！ 👏',
+      '发音很标准，继续加油！ 💪',
+      '完美！你的发音越来越好了！ ✨',
+    ],
+    good: [
+      '发音不错！继续练习会更好！ 👍',
+      '说得挺好的！注意一些细节会更棒！ 💫',
+      '整体不错！多注意长音短音的区别！ 📝',
+      '有进步！继续保持练习！ 🚀',
+    ],
+    needs_practice: [
+      '继续加油！多听多练就会越来越好！ 💪',
+      '没关系！多模仿标准发音会进步很快的！ 🎯',
+      '注意那些标注的单词，多练几遍！ 📚',
+      '每一次练习都是进步！加油！ 🌈',
+    ],
+  };
+
+  private analyzePronunciation(text: string): PronunciationFeedback {
+    const words = text
+      .replace(/[.,!?;:'"]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 0);
+
+    const wordAnalyses: WordPronunciation[] = [];
+    const practiceWords: string[] = [];
+    let totalDifficultyScore = 0;
+    let hasCommonMistake = false;
+
+    for (const originalWord of words) {
+      const lowerWord = originalWord.toLowerCase();
+      const analysis = this.PRONUNCIATION_DATABASE[lowerWord] || {
+        word: originalWord,
+        difficulty: lowerWord.length <= 3 ? 'easy' as const : lowerWord.length <= 6 ? 'medium' as const : 'hard' as const,
+      };
+
+      const displayWord = { ...analysis, word: originalWord };
+      wordAnalyses.push(displayWord);
+
+      if (displayWord.difficulty === 'hard') {
+        totalDifficultyScore += 3;
+        if (!practiceWords.includes(originalWord)) practiceWords.push(originalWord);
+      } else if (displayWord.difficulty === 'medium') {
+        totalDifficultyScore += 2;
+        if (!practiceWords.includes(originalWord)) practiceWords.push(originalWord);
+      } else {
+        totalDifficultyScore += 1;
+      }
+
+      if (displayWord.isCommonMistake) {
+        hasCommonMistake = true;
+        if (!practiceWords.includes(originalWord)) practiceWords.push(originalWord);
+      }
+    }
+
+    const baseScore = wordAnalyses.length > 0
+      ? Math.max(0, 100 - (totalDifficultyScore / wordAnalyses.length - 1) * 30 - (hasCommonMistake ? 10 : 0))
+      : 80;
+
+    const randomBonus = Math.random() * 10;
+    const overallScore = Math.round(Math.min(100, Math.max(50, baseScore + randomBonus)));
+
+    let level: 'excellent' | 'good' | 'needs_practice';
+    if (overallScore >= 85) level = 'excellent';
+    else if (overallScore >= 70) level = 'good';
+    else level = 'needs_practice';
+
+    const messages = this.ENCOURAGING_MESSAGES[level];
+    const encouragingMessage = messages[Math.floor(Math.random() * messages.length)];
+
+    return {
+      overallScore,
+      level,
+      words: wordAnalyses,
+      practiceWords: practiceWords.slice(0, 5),
+      encouragingMessage,
+    };
   }
 }

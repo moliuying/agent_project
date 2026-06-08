@@ -5,6 +5,23 @@ const api = axios.create({
   timeout: 20000
 })
 
+export interface WordPronunciation {
+  word: string
+  phonetic?: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  tips?: string
+  isCommonMistake?: boolean
+  commonMistake?: string
+}
+
+export interface PronunciationFeedback {
+  overallScore: number
+  level: 'excellent' | 'good' | 'needs_practice'
+  words: WordPronunciation[]
+  practiceWords: string[]
+  encouragingMessage: string
+}
+
 export interface ConversationMessage {
   id: number
   role: 'user' | 'ai'
@@ -13,6 +30,7 @@ export interface ConversationMessage {
   correction?: string
   suggestions?: string[]
   usefulPhrases?: { phrase: string; meaning: string }[]
+  pronunciation?: PronunciationFeedback
   timestamp: number
 }
 
