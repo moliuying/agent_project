@@ -449,7 +449,178 @@ const LOCATION_BY_GRADE: Record<string, string[]> = {
   grade6: ['承载着{adj}与{adj}的{location}古巷', '弥漫着{adj}与{adj}的{location}书院', '积淀着{adj}底蕴的{location}旧址', '镌刻着{adj}篇章的{location}长廊', '诉说着{adj}故事的{location}小院']
 };
 
+const TEMPLATE_VALUES_BY_GRADE: Record<string, Record<string, string[]>> = {
+  grade1: {
+    feeling: ['很开心', '很高兴', '很快乐'],
+    thought: ['真好！', '真好玩！', '真好看！'],
+    exclamation: ['真好！', '真美！', '真好玩！'],
+    metaphor: ['一朵花', '一只小鸟', '一个太阳'],
+    description: ['好看', '好玩', '美丽'],
+    discovery: ['一只小鸟', '一朵小花', '一只蝴蝶'],
+    decision: ['以后还要来玩', '以后要好好学习', '以后要天天开心'],
+    insight: ['快乐很重要', '学习很重要', '朋友很重要'],
+    result: ['快乐', '开心', '好朋友'],
+    quality: ['开心', '快乐', '认真'],
+    belief: ['好好学习', '天天开心', '和朋友好好玩'],
+    memory: ['昨天玩的游戏', '妈妈讲的故事', '幼儿园的事'],
+    association: ['好玩的事', '学过的儿歌', '妈妈讲的故事'],
+    realization: ['要开心', '要好好学习', '要和小朋友好好玩'],
+    sound: ['小鸟叫', '小朋友笑', '风吹树叶响'],
+    bigtheme: ['开心', '快乐', '好玩'],
+    simpleview: ['一件小事', '很好玩的事', '一件好事'],
+    deepview: ['快乐的事', '开心的事', '好玩的事'],
+    deepestview: ['最开心的事', '最好玩的事', '最快乐的事'],
+    bigquestion: ['为什么这么好玩', '为什么这么开心', '怎么这么好看'],
+    answer: ['因为开心', '因为好玩', '因为好看'],
+    vision: ['更多好玩的', '更多好吃的', '更多朋友'],
+    story: ['好玩的事', '开心的事', '好看的事'],
+    person: ['妈妈', '老师', '爸爸'],
+    reading: ['好玩的事', '好看的东西', '好吃的东西'],
+    shortquote: ['真好玩！', '真开心！', '真好看！'],
+    finalquote: ['我要天天开心！', '我要好好学习！', '我要和好朋友好好玩！'],
+    detaileddescription: ['一只小鸟在飞', '一朵小花在开', '小朋友在玩'],
+    deepmeaning: ['好看的', '好玩的', '好吃的'],
+    alternative: ['坐着不动', '不好好玩', '不学习'],
+    question: ['为什么好玩', '为什么开心', '为什么好看'],
+    unexpected: ['这么好玩', '这么开心', '这么好看'],
+    history: ['以前好玩的事', '以前开心的事', '好看的东西'],
+    oldview: ['不好玩', '不开心', '不好看'],
+    newview: ['很好玩', '很开心', '很好看'],
+    reason: ['因为好看', '因为好玩', '因为开心'],
+    condition: ['下雨了', '天黑了', '累了']
+  },
+  grade2: {
+    feeling: ['心情很好', '很开心', '很快乐', '很高兴'],
+    thought: ['真是太美了！', '真有趣！', '我也要这样！', '真开心！'],
+    exclamation: ['真美啊！', '真有趣！', '好开心啊！'],
+    metaphor: ['一朵美丽的花', '一只可爱的小鸟', '一个红红的太阳'],
+    description: ['美丽动人', '很好看', '真有趣'],
+    discovery: ['一件有趣的事情', '一个小小的惊喜', '一朵美丽的花'],
+    decision: ['以后还要来这里', '要更加努力学习', '要做个好孩子'],
+    insight: ['快乐的意义', '朋友很重要', '学习很有趣'],
+    result: ['美好的回忆', '开心的一天', '好朋友'],
+    quality: ['勇敢', '善良', '勤劳'],
+    belief: ['努力就会进步', '开心过好每一天', '帮助别人很快乐'],
+    memory: ['小时候的趣事', '老师说过的话', '妈妈讲的故事'],
+    association: ['有趣的往事', '学过的课文', '好朋友在一起的时光'],
+    realization: ['帮助别人很快乐', '认真学习很重要', '大自然真美丽'],
+    sound: ['小鸟的歌声', '小朋友的笑声', '树叶沙沙响'],
+    bigtheme: ['快乐', '成长', '友谊', '美好'],
+    simpleview: ['一件简单的事', '一件有趣的事', '一件小事'],
+    deepview: ['一份快乐', '一份友谊', '美好的时光'],
+    deepestview: ['最珍贵的回忆', '最快乐的时光', '最好的朋友'],
+    bigquestion: ['为什么这么快乐', '我们要怎样学习', '什么是好朋友'],
+    answer: ['因为有好朋友', '要认真努力', '一起玩一起学习'],
+    vision: ['更美好的明天', '更多的好朋友', '学到更多知识'],
+    story: ['有趣的故事', '美好的时光', '快乐的回忆'],
+    person: ['妈妈', '老师', '爸爸'],
+    reading: ['有趣的故事', '美丽的风景', '快乐的时光'],
+    shortquote: ['今天真开心！', '真是美好的一天！', '我喜欢这里！'],
+    finalquote: ['我要快乐地学习和成长！', '每一天都值得珍惜！', '我要和好朋友永远在一起！'],
+    detaileddescription: ['一只小鸟在树上唱歌', '一朵小花在阳光下开放', '小朋友们在一起快乐地玩耍'],
+    deepmeaning: ['大自然的美好', '快乐的感觉', '友谊的温暖'],
+    alternative: ['坐着不动', '不认真学习', '不跟朋友玩'],
+    question: ['什么是快乐', '怎样学习更好', '怎样交到好朋友'],
+    unexpected: ['会这么开心', '会这么有趣', '会这么美丽'],
+    history: ['过去的美好时光', '小时候的趣事', '以前的回忆'],
+    oldview: ['学习很无聊', '交朋友很难', '这里不好玩'],
+    newview: ['学习很有趣', '交朋友很开心', '这里真好玩'],
+    reason: ['景色太美了', '和朋友在一起很开心', '今天收获很多'],
+    condition: ['天气不太好', '有点累了', '天快黑了']
+  },
+  grade3: {
+    feeling: ['心旷神怡', '心情舒畅', '流连忘返', '很感动', '很开心'],
+    thought: ['真是太美了！', '我也要像这样！', '大自然真神奇！', '今天真开心！'],
+    exclamation: ['太美了！', '真有趣啊！', '好感动啊！', '太神奇了！'],
+    metaphor: ['一幅美丽的画', '一首动听的歌', '一个温暖的梦', '一颗闪亮的星星'],
+    description: ['美丽动人', '栩栩如生', '光彩夺目', '令人陶醉'],
+    discovery: ['一个小小的秘密', '一件有趣的事情', '一个意想不到的惊喜', '一道美丽的风景'],
+    decision: ['以后还要来这里', '要更加努力学习', '要做一个乐于助人的人', '要好好保护大自然'],
+    insight: ['快乐的真谛', '坚持的意义', '团结的力量', '大自然的美好'],
+    result: ['宝贵的收获', '深刻的感悟', '美好的回忆', '心灵的成长'],
+    quality: ['坚持', '勇气', '善良', '勤劳', '热爱'],
+    belief: ['努力就会有收获', '世界是美好的', '团结就是力量', '付出就有回报'],
+    memory: ['小时候的一件事', '老师曾经说过的话', '妈妈的教诲', '那段美好的时光'],
+    association: ['很多美好的往事', '书本上学到的知识', '爸爸妈妈的教导', '一个古老的传说'],
+    realization: ['什么才是真正的美', '坚持的意义有多么重要', '大自然有多么神奇', '帮助别人是多么快乐'],
+    sound: ['小鸟的歌声', '溪水的流淌声', '树叶的沙沙声', '孩子们的欢笑声'],
+    bigtheme: ['生命', '成长', '自然', '时光', '美好', '勇气'],
+    simpleview: ['很简单的一件事', '表面看到的那样', '一件容易的事'],
+    deepview: ['一种精神的追求', '一份珍贵的情感', '人生的一种境界'],
+    deepestview: ['我们生命中最宝贵的财富', '心灵深处最温暖的港湾', '人生永恒的追求'],
+    bigquestion: ['人生的意义究竟是什么', '我们应该怎样面对生活', '什么才是真正的美好'],
+    answer: ['用热爱和坚持去书写每一天', '珍惜当下，感恩生活', '用心感受生命中的每一份美好'],
+    vision: ['更美好的未来', '前方灿烂的阳光', '生活中更多的精彩'],
+    story: ['岁月的故事', '时光的变迁', '生命的美好'],
+    person: ['那位伟大的作家', '历史上的先贤', '身边的榜样'],
+    reading: ['生命的律动', '时光的珍贵', '自然的伟大', '人性的光辉'],
+    shortquote: ['这一刻，将永远定格。', '原来美好就在身边。', '生活，值得我们用心去爱。'],
+    finalquote: ['生活，永远值得我去热爱、去探索、去书写。', '每一个今天，都是未来最珍贵的回忆。', '用心感受，才能看见生命最美的风景。'],
+    detaileddescription: ['一只小蚂蚁正在努力搬运比自己大几倍的食物', '一朵小花在石缝中顽强地绽放', '一位老人正在耐心地给孩子讲故事'],
+    deepmeaning: ['生命的力量', '时光的低语', '自然的智慧'],
+    alternative: ['被动地等待', '随波逐流', '墨守成规'],
+    question: ['什么才是真正有价值的', '我们应该追求什么', '生命的意义在哪里'],
+    unexpected: ['自己会有如此深刻的感悟', '这个瞬间会如此动人', '这样的场景会带来启迪'],
+    history: ['岁月的沧桑', '时光的变迁', '历史的印记'],
+    oldview: ['事情不过如此简单', '一切都理所当然', '生活就是平平淡淡'],
+    newview: ['平凡中蕴含着伟大', '每一刻都值得珍惜', '生活处处皆是美好'],
+    reason: ['眼前的景象太美了', '今天的收获特别大', '他付出了很多努力', '这件事让他深受感动'],
+    condition: ['天气不好', '遇到了困难', '已经很累了', '时间很晚了']
+  }
+};
+
+const FORBIDDEN_WORDS_BY_GRADE: Record<string, string[]> = {
+  grade1: [
+    '然而', '但是', '可是', '虽然', '尽管', '不过', '反而', '因此', '所以', '因为',
+    '不仅', '而且', '并且', '或者', '还是', '如果', '假如', '即使', '就算', '既然',
+    '无论', '不管', '只要', '只有', '除非', '以便', '以免', '于是', '然后', '接着',
+    '首先', '其次', '最后', '终于', '其实', '实际上', '事实上', '显然', '当然',
+    '的确', '确实', '或许', '大概', '似乎', '好像', '仿佛', '宛如', '犹如',
+    '兴高采烈', '聚精会神', '情不自禁', '恋恋不舍', '小心翼翼', '津津有味',
+    '风景如画', '生机勃勃', '五彩斑斓', '清澈见底', '郁郁葱葱', '秋高气爽',
+    '不约而同', '栩栩如生', '春暖花开', '一碧如洗', '热闹非凡', '专心致志',
+    '心旷神怡', '美不胜收', '引人入胜', '触景生情', '回味无穷', '流光溢彩',
+    '精妙绝伦', '喜气洋洋', '全神贯注', '意味深长', '淋漓尽致', '繁花似锦',
+    '层林尽染', '硕果累累', '兴致盎然', '心潮澎湃', '意蕴深远', '惟妙惟肖',
+    '跌宕起伏', '感人至深', '姹紫嫣红', '如诗如画', '五彩缤纷', '层峦叠翠'
+  ],
+  grade2: [
+    '然而', '尽管', '反而', '因此', '既然', '无论', '不管', '除非', '以便', '以免',
+    '其实', '实际上', '事实上', '显然', '的确', '确实', '或许', '大概',
+    '情不自禁', '恋恋不舍', '小心翼翼', '津津有味', '风景如画', '生机勃勃',
+    '五彩斑斓', '清澈见底', '郁郁葱葱', '秋高气爽', '不约而同', '栩栩如生',
+    '春暖花开', '一碧如洗', '心旷神怡', '美不胜收', '引人入胜', '触景生情',
+    '回味无穷', '流光溢彩', '精妙绝伦', '全神贯注', '意味深长', '淋漓尽致',
+    '繁花似锦', '层林尽染', '硕果累累', '兴致盎然', '心潮澎湃', '意蕴深远',
+    '惟妙惟肖', '跌宕起伏', '感人至深', '姹紫嫣红', '如诗如画', '五彩缤纷',
+    '层峦叠翠'
+  ],
+  grade3: [
+    '然而', '尽管', '反而', '因此', '既然', '无论', '不管', '除非', '以便', '以免',
+    '其实', '实际上', '事实上', '显然', '的确', '确实', '或许', '大概',
+    '心旷神怡', '美不胜收', '引人入胜', '触景生情', '回味无穷', '流光溢彩',
+    '精妙绝伦', '全神贯注', '意味深长', '淋漓尽致', '繁花似锦', '层林尽染',
+    '硕果累累', '兴致盎然', '心潮澎湃', '意蕴深远', '惟妙惟肖', '跌宕起伏',
+    '感人至深', '姹紫嫣红', '如诗如画', '五彩缤纷', '层峦叠翠'
+  ],
+  grade4: [
+    '心潮澎湃', '意蕴深远', '惟妙惟肖', '跌宕起伏', '感人至深'
+  ],
+  grade5: [],
+  grade6: []
+};
+
+const MAX_SENTENCE_LENGTH: Record<string, number> = {
+  grade1: 10,
+  grade2: 14,
+  grade3: 20,
+  grade4: 24,
+  grade5: 28,
+  grade6: 32
+};
+
 interface SceneContext {
+  gradeLevel: string;
   characters: string[];
   actions: string[];
   emotions: string[];
@@ -527,8 +698,20 @@ export class PictureWritingService {
     };
   }
 
+  private getTemplateValue(key: string, gradeLevel: string, rand: () => number): string {
+    const gradePool = TEMPLATE_VALUES_BY_GRADE[gradeLevel];
+    if (gradePool && gradePool[key]) {
+      return this.pickOne(gradePool[key], rand);
+    }
+    const grade3Pool = TEMPLATE_VALUES_BY_GRADE.grade3;
+    if (grade3Pool && grade3Pool[key]) {
+      return this.pickOne(grade3Pool[key], rand);
+    }
+    return '';
+  }
+
   private fillTemplate(template: string, ctx: SceneContext, rand: () => number): string {
-    const { vocab } = ctx;
+    const { vocab, gradeLevel } = ctx;
     let result = template;
 
     result = result.replace(/{character}/g, ctx.mainCharacter);
@@ -544,43 +727,43 @@ export class PictureWritingService {
     result = result.replace(/{scene}/g, () => ctx.scene || '美丽的景象');
     result = result.replace(/{season}/g, () => this.pickOne(['春天', '夏天', '秋天', '冬天'], rand));
     result = result.replace(/{placename}/g, () => this.pickOne(['远方', '记忆深处', '童年时光', '历史长河'], rand));
-    result = result.replace(/{reason}/g, () => this.pickOne(['眼前的景象太美了', '今天的收获特别大', '他付出了很多努力', '这件事让他深受感动'], rand));
-    result = result.replace(/{condition}/g, () => this.pickOne(['天气不好', '遇到了困难', '已经很累了', '时间很晚了'], rand));
-    result = result.replace(/{feeling}/g, () => this.pickOne(['心旷神怡', '心情舒畅', '流连忘返', '思绪万千', '深受感动'], rand));
-    result = result.replace(/{thought}/g, () => this.pickOne(['真是太美了！', '我也要像这样', '大自然真神奇', '今天真开心'], rand));
-    result = result.replace(/{exclamation}/g, () => this.pickOne(['太美了！', '真有趣啊！', '好感动啊！', '太神奇了！'], rand));
-    result = result.replace(/{metaphor}/g, () => this.pickOne(['一幅美丽的画', '一首动听的歌', '一个温暖的梦', '一颗闪亮的星星', '一泓清澈的泉水'], rand));
-    result = result.replace(/{description}/g, () => this.pickOne(['美丽动人', '栩栩如生', '光彩夺目', '令人陶醉'], rand));
-    result = result.replace(/{discovery}/g, () => this.pickOne(['一个小小的秘密', '一件有趣的事情', '一个意想不到的惊喜', '一道美丽的风景'], rand));
-    result = result.replace(/{decision}/g, () => this.pickOne(['以后还要来这里', '要更加努力学习', '要做一个乐于助人的人', '要好好保护大自然'], rand));
-    result = result.replace(/{insight}/g, () => this.pickOne(['快乐的真谛', '坚持的意义', '团结的力量', '大自然的美好'], rand));
-    result = result.replace(/{result}/g, () => this.pickOne(['宝贵的收获', '深刻的感悟', '美好的回忆', '心灵的成长'], rand));
-    result = result.replace(/{quality}/g, () => this.pickOne(['坚持', '勇气', '善良', '勤劳', '热爱'], rand));
-    result = result.replace(/{belief}/g, () => this.pickOne(['努力就会有收获', '世界是美好的', '团结就是力量', '付出就有回报'], rand));
-    result = result.replace(/{memory}/g, () => this.pickOne(['小时候的一件事', '老师曾经说过的话', '妈妈的教诲', '那段美好的时光'], rand));
-    result = result.replace(/{association}/g, () => this.pickOne(['很多美好的往事', '书本上学到的知识', '爸爸妈妈的教导', '一个古老的传说'], rand));
-    result = result.replace(/{realization}/g, () => this.pickOne(['什么才是真正的美', '坚持的意义有多么重要', '大自然有多么神奇', '帮助别人是多么快乐'], rand));
-    result = result.replace(/{sound}/g, () => this.pickOne(['小鸟的歌声', '溪水的流淌声', '树叶的沙沙声', '孩子们的欢笑声'], rand));
-    result = result.replace(/{bigtheme}/g, () => this.pickOne(['生命', '成长', '自然', '时光', '美好', '勇气'], rand));
-    result = result.replace(/{simpleview}/g, () => this.pickOne(['很简单的一件事', '表面看到的那样', '一件容易的事'], rand));
-    result = result.replace(/{deepview}/g, () => this.pickOne(['一种精神的追求', '一份珍贵的情感', '人生的一种境界'], rand));
-    result = result.replace(/{deepestview}/g, () => this.pickOne(['我们生命中最宝贵的财富', '心灵深处最温暖的港湾', '人生永恒的追求'], rand));
-    result = result.replace(/{bigquestion}/g, () => this.pickOne(['人生的意义究竟是什么', '我们应该怎样面对生活', '什么才是真正的美好'], rand));
-    result = result.replace(/{answer}/g, () => this.pickOne(['用热爱和坚持去书写每一天', '珍惜当下，感恩生活', '用心感受生命中的每一份美好'], rand));
-    result = result.replace(/{vision}/g, () => this.pickOne(['更美好的未来', '前方灿烂的阳光', '生活中更多的精彩'], rand));
-    result = result.replace(/{story}/g, () => this.pickOne(['岁月的故事', '时光的变迁', '生命的美好'], rand));
-    result = result.replace(/{person}/g, () => this.pickOne(['那位伟大的作家', '历史上的先贤', '身边的榜样'], rand));
-    result = result.replace(/{reading}/g, () => this.pickOne(['生命的律动', '时光的珍贵', '自然的伟大', '人性的光辉'], rand));
-    result = result.replace(/{shortquote}/g, () => this.pickOne(['这一刻，将永远定格。', '原来美好就在身边。', '生活，值得我们用心去爱。'], rand));
-    result = result.replace(/{finalquote}/g, () => this.pickOne(['生活，永远值得我去热爱、去探索、去书写。', '每一个今天，都是未来最珍贵的回忆。', '用心感受，才能看见生命最美的风景。'], rand));
-    result = result.replace(/{detaileddescription}/g, () => this.pickOne(['一只小蚂蚁正在努力搬运比自己大几倍的食物', '一朵小花在石缝中顽强地绽放', '一位老人正在耐心地给孩子讲故事'], rand));
-    result = result.replace(/{deepmeaning}/g, () => this.pickOne(['生命的力量', '时光的低语', '自然的智慧'], rand));
-    result = result.replace(/{alternative}/g, () => this.pickOne(['被动地等待', '随波逐流', '墨守成规'], rand));
-    result = result.replace(/{question}/g, () => this.pickOne(['什么才是真正有价值的', '我们应该追求什么', '生命的意义在哪里'], rand));
-    result = result.replace(/{unexpected}/g, () => this.pickOne(['自己会有如此深刻的感悟', '这个瞬间会如此动人', '这样的场景会带来启迪'], rand));
-    result = result.replace(/{history}/g, () => this.pickOne(['岁月的沧桑', '时光的变迁', '历史的印记'], rand));
-    result = result.replace(/{oldview}/g, () => this.pickOne(['事情不过如此简单', '一切都理所当然', '生活就是平平淡淡'], rand));
-    result = result.replace(/{newview}/g, () => this.pickOne(['平凡中蕴含着伟大', '每一刻都值得珍惜', '生活处处皆是美好'], rand));
+    result = result.replace(/{reason}/g, () => this.getTemplateValue('reason', gradeLevel, rand));
+    result = result.replace(/{condition}/g, () => this.getTemplateValue('condition', gradeLevel, rand));
+    result = result.replace(/{feeling}/g, () => this.getTemplateValue('feeling', gradeLevel, rand));
+    result = result.replace(/{thought}/g, () => this.getTemplateValue('thought', gradeLevel, rand));
+    result = result.replace(/{exclamation}/g, () => this.getTemplateValue('exclamation', gradeLevel, rand));
+    result = result.replace(/{metaphor}/g, () => this.getTemplateValue('metaphor', gradeLevel, rand));
+    result = result.replace(/{description}/g, () => this.getTemplateValue('description', gradeLevel, rand));
+    result = result.replace(/{discovery}/g, () => this.getTemplateValue('discovery', gradeLevel, rand));
+    result = result.replace(/{decision}/g, () => this.getTemplateValue('decision', gradeLevel, rand));
+    result = result.replace(/{insight}/g, () => this.getTemplateValue('insight', gradeLevel, rand));
+    result = result.replace(/{result}/g, () => this.getTemplateValue('result', gradeLevel, rand));
+    result = result.replace(/{quality}/g, () => this.getTemplateValue('quality', gradeLevel, rand));
+    result = result.replace(/{belief}/g, () => this.getTemplateValue('belief', gradeLevel, rand));
+    result = result.replace(/{memory}/g, () => this.getTemplateValue('memory', gradeLevel, rand));
+    result = result.replace(/{association}/g, () => this.getTemplateValue('association', gradeLevel, rand));
+    result = result.replace(/{realization}/g, () => this.getTemplateValue('realization', gradeLevel, rand));
+    result = result.replace(/{sound}/g, () => this.getTemplateValue('sound', gradeLevel, rand));
+    result = result.replace(/{bigtheme}/g, () => this.getTemplateValue('bigtheme', gradeLevel, rand));
+    result = result.replace(/{simpleview}/g, () => this.getTemplateValue('simpleview', gradeLevel, rand));
+    result = result.replace(/{deepview}/g, () => this.getTemplateValue('deepview', gradeLevel, rand));
+    result = result.replace(/{deepestview}/g, () => this.getTemplateValue('deepestview', gradeLevel, rand));
+    result = result.replace(/{bigquestion}/g, () => this.getTemplateValue('bigquestion', gradeLevel, rand));
+    result = result.replace(/{answer}/g, () => this.getTemplateValue('answer', gradeLevel, rand));
+    result = result.replace(/{vision}/g, () => this.getTemplateValue('vision', gradeLevel, rand));
+    result = result.replace(/{story}/g, () => this.getTemplateValue('story', gradeLevel, rand));
+    result = result.replace(/{person}/g, () => this.getTemplateValue('person', gradeLevel, rand));
+    result = result.replace(/{reading}/g, () => this.getTemplateValue('reading', gradeLevel, rand));
+    result = result.replace(/{shortquote}/g, () => this.getTemplateValue('shortquote', gradeLevel, rand));
+    result = result.replace(/{finalquote}/g, () => this.getTemplateValue('finalquote', gradeLevel, rand));
+    result = result.replace(/{detaileddescription}/g, () => this.getTemplateValue('detaileddescription', gradeLevel, rand));
+    result = result.replace(/{deepmeaning}/g, () => this.getTemplateValue('deepmeaning', gradeLevel, rand));
+    result = result.replace(/{alternative}/g, () => this.getTemplateValue('alternative', gradeLevel, rand));
+    result = result.replace(/{question}/g, () => this.getTemplateValue('question', gradeLevel, rand));
+    result = result.replace(/{unexpected}/g, () => this.getTemplateValue('unexpected', gradeLevel, rand));
+    result = result.replace(/{history}/g, () => this.getTemplateValue('history', gradeLevel, rand));
+    result = result.replace(/{oldview}/g, () => this.getTemplateValue('oldview', gradeLevel, rand));
+    result = result.replace(/{newview}/g, () => this.getTemplateValue('newview', gradeLevel, rand));
 
     return result;
   }
@@ -622,6 +805,7 @@ export class PictureWritingService {
     ], rand);
 
     return {
+      gradeLevel,
       characters,
       actions,
       emotions,
@@ -724,6 +908,58 @@ export class PictureWritingService {
     return paragraphs;
   }
 
+  private removeForbiddenWords(text: string, gradeLevel: string): string {
+    const forbidden = FORBIDDEN_WORDS_BY_GRADE[gradeLevel];
+    if (!forbidden || forbidden.length === 0) return text;
+    let result = text;
+    for (const word of forbidden) {
+      const regex = new RegExp(word, 'g');
+      result = result.replace(regex, '');
+    }
+    return result;
+  }
+
+  private truncateLongSentences(text: string, gradeLevel: string): string {
+    const maxLen = MAX_SENTENCE_LENGTH[gradeLevel] || 30;
+    return text.split(/(?<=[。！？!?])/).map(sentence => {
+      if (!sentence.trim()) return sentence;
+      if (sentence.length > maxLen + 2) {
+        let cutIdx = -1;
+        const puncts = ['，', ',', '、', '；', ';'];
+        for (let i = maxLen; i >= Math.floor(maxLen * 0.6); i--) {
+          if (puncts.includes(sentence.charAt(i))) {
+            cutIdx = i;
+            break;
+          }
+        }
+        if (cutIdx > 0) {
+          return sentence.substring(0, cutIdx) + sentence.charAt(sentence.length - 1);
+        }
+        return sentence.substring(0, maxLen) + sentence.charAt(sentence.length - 1);
+      }
+      return sentence;
+    }).join('');
+  }
+
+  private simplifyPunctuation(text: string, gradeLevel: string): string {
+    if (gradeLevel !== 'grade1' && gradeLevel !== 'grade2') return text;
+    return text
+      .replace(/[；;：:]/g, '，')
+      .replace(/……/g, '。')
+      .replace(/\.\.\./g, '。')
+      .replace(/[（(【\[][^）)】\]]*[）)】\]]/g, '');
+  }
+
+  private sanitizeContentForGrade(content: string, gradeLevel: string): string {
+    if (!content || !content.trim()) return content;
+    let result = content;
+    result = this.removeForbiddenWords(result, gradeLevel);
+    result = this.simplifyPunctuation(result, gradeLevel);
+    result = this.truncateLongSentences(result, gradeLevel);
+    result = result.replace(/[ ]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n');
+    return result.trim();
+  }
+
   async generate(request: PictureWritingRequest): Promise<PictureWritingResponse> {
     const {
       userDescription,
@@ -755,12 +991,15 @@ export class PictureWritingService {
 
     let content = paragraphs.join('\n\n');
 
-    if (customRequirements && customRequirements.trim()) {
+    if (gradeLevel !== 'grade1' && gradeLevel !== 'grade2' && customRequirements && customRequirements.trim()) {
       content = customRequirements.trim() + '\n\n' + content;
     }
 
+    content = this.sanitizeContentForGrade(content, gradeLevel);
+
     const titleTemplates = TITLE_TEMPLATES[gradeLevel] || TITLE_TEMPLATES.grade3;
     let title = this.fillTemplate(this.pickOne(titleTemplates, rand), ctx, rand);
+    title = this.removeForbiddenWords(title, gradeLevel);
 
     if (title.length > 20) {
       title = title.substring(0, 18) + '…';
@@ -780,7 +1019,15 @@ export class PictureWritingService {
       ]
     };
 
-    const keyWords = this.pickSeeded([...vocab.idioms, ...vocab.adjectives.slice(0, 5)], 5, rand);
+    let keywordPool: string[];
+    if (gradeLevel === 'grade1') {
+      keywordPool = vocab.adjectives.slice(0, 8);
+    } else if (gradeLevel === 'grade2') {
+      keywordPool = [...vocab.idioms.slice(0, 2), ...vocab.adjectives.slice(0, 6)];
+    } else {
+      keywordPool = [...vocab.idioms, ...vocab.adjectives.slice(0, 5)];
+    }
+    const keyWords = this.pickSeeded(keywordPool, 5, rand);
 
     const tipsPool = GRADE_WRITING_TIPS[gradeLevel] || GRADE_WRITING_TIPS.grade3;
     const writingTips = this.pickSeeded(tipsPool, 3, rand);
