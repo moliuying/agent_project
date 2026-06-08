@@ -461,7 +461,10 @@ export class AiTextExpanderService {
     return template.replace(/\{text\}/g, text);
   }
 
-  private applyTone(sentence: string, toneModifiers: typeof TONE_MODIFIERS[string], isFirst: boolean, isLast: boolean): string {
+  private applyTone(sentence: string, toneModifiers: typeof TONE_MODIFIERS[string], isFirst: boolean, isLast: boolean, disabled: boolean = false): string {
+    if (disabled) {
+      return sentence;
+    }
     let result = sentence;
 
     if (toneModifiers.interjections.length > 0 && (isFirst || Math.random() < 0.2)) {
@@ -504,8 +507,24 @@ export class AiTextExpanderService {
 
     const styleKey = STYLE_EXPANSIONS[style] ? style : 'article';
     const lengthConfig = LENGTH_CONFIGS[length] || LENGTH_CONFIGS.medium;
-    const toneConfig = TONE_MODIFIERS[tone] || TONE_MODIFIERS.casual;
-    const audienceConfig = AUDIENCE_ADAPTATIONS[audience] || AUDIENCE_ADAPTATIONS.general;
+
+    const FORMAL_STYLES = ['email', 'report', 'academic'];
+    const isFormalStyle = FORMAL_STYLES.includes(styleKey);
+
+    let effectiveTone = tone;
+    let effectiveAudience = audience;
+
+    if (isFormalStyle) {
+      effectiveTone = 'formal';
+      if (styleKey === 'email') {
+        effectiveAudience = 'business';
+      } else if (styleKey === 'report' || styleKey === 'academic') {
+        effectiveAudience = 'professional';
+      }
+    }
+
+    const toneConfig = TONE_MODIFIERS[effectiveTone] || TONE_MODIFIERS.casual;
+    const audienceConfig = AUDIENCE_ADAPTATIONS[effectiveAudience] || AUDIENCE_ADAPTATIONS.general;
     const styleExpansions = STYLE_EXPANSIONS[styleKey];
 
     const trimmedText = text.trim();
@@ -526,7 +545,7 @@ export class AiTextExpanderService {
 
       if (isFirstPara) {
         const opening = this.fillTemplate(this.getRandomItem(styleExpansions.openings), coreText);
-        sentences.push(this.applyTone(opening, toneConfig, true, false));
+        sentences.push(this.applyTone(opening, toneConfig, true, false, isFormalStyle));
       }
 
       const typesToUse = sentenceTypes.slice(0, lengthConfig.sentencesPerPara);
@@ -534,12 +553,12 @@ export class AiTextExpanderService {
         const template = this.getRandomItem(styleExpansions[type as keyof typeof styleExpansions]);
         const filled = this.fillTemplate(template, coreText);
         const isLastSent = isLastPara && idx === typesToUse.length - 1;
-        sentences.push(this.applyTone(filled, toneConfig, false, isLastSent));
+        sentences.push(this.applyTone(filled, toneConfig, false, isLastSent, isFormalStyle));
       });
 
       if (isLastPara) {
         const closing = this.fillTemplate(this.getRandomItem(styleExpansions.closings), coreText);
-        sentences.push(this.applyTone(closing, toneConfig, false, true));
+        sentences.push(this.applyTone(closing, toneConfig, false, true, isFormalStyle));
       }
 
       const adaptedSentences = this.applyAudienceContext(sentences, audienceConfig);

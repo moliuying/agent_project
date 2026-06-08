@@ -297,7 +297,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import {
   Document,
   InfoFilled,
@@ -356,15 +356,23 @@ const scenes = [
 ]
 
 const writingStyles = [
-  { key: 'article', name: '公众号文章', tag: '推荐', tagType: 'success' },
-  { key: 'social', name: '社交媒体', tag: '热门', tagType: 'danger' },
-  { key: 'email', name: '商务邮件', tag: '专业', tagType: 'primary' },
-  { key: 'essay', name: '散文随笔', tag: '文艺', tagType: 'warning' },
-  { key: 'report', name: '工作报告', tag: '正式', tagType: 'info' },
-  { key: 'story', name: '故事叙述', tag: '创意', tagType: 'success' },
-  { key: 'product', name: '产品文案', tag: '营销', tagType: 'warning' },
-  { key: 'academic', name: '学术风格', tag: '严谨', tagType: 'info' }
+  { key: 'article', name: '公众号文章', tag: '推荐', tagType: 'success', defaultTone: 'casual', defaultAudience: 'general' },
+  { key: 'social', name: '社交媒体', tag: '热门', tagType: 'danger', defaultTone: 'casual', defaultAudience: 'general' },
+  { key: 'email', name: '商务邮件', tag: '专业', tagType: 'primary', defaultTone: 'formal', defaultAudience: 'business' },
+  { key: 'essay', name: '散文随笔', tag: '文艺', tagType: 'warning', defaultTone: 'warm', defaultAudience: 'literary' },
+  { key: 'report', name: '工作报告', tag: '正式', tagType: 'info', defaultTone: 'formal', defaultAudience: 'professional' },
+  { key: 'story', name: '故事叙述', tag: '创意', tagType: 'success', defaultTone: 'warm', defaultAudience: 'general' },
+  { key: 'product', name: '产品文案', tag: '营销', tagType: 'warning', defaultTone: 'inspiring', defaultAudience: 'general' },
+  { key: 'academic', name: '学术风格', tag: '严谨', tagType: 'info', defaultTone: 'formal', defaultAudience: 'professional' }
 ]
+
+watch(selectedStyle, (newStyle) => {
+  const styleConfig = writingStyles.find(s => s.key === newStyle)
+  if (styleConfig) {
+    tone.value = styleConfig.defaultTone
+    audience.value = styleConfig.defaultAudience
+  }
+})
 
 const quickExamples = [
   '今天天气很好，适合出门',
