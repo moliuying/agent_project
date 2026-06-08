@@ -115,6 +115,11 @@ const routes: RouteRecordRaw[] = [
         path: '/word-ocr',
         name: 'WordOcr',
         component: () => import('@/views/WordOcr.vue')
+      },
+      {
+        path: '/english-conversation',
+        name: 'EnglishConversation',
+        component: () => import('@/views/EnglishConversation.vue')
       }
     ]
   }

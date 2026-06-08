@@ -13,6 +13,7 @@ import { IdiomChainModule } from './idiom-chain/idiom-chain.module';
 import { FormulaRecognitionModule } from './formula-recognition/formula-recognition.module';
 import { PictureWritingModule } from './picture-writing/picture-writing.module';
 import { WordOcrModule } from './word-ocr/word-ocr.module';
+import { EnglishConversationModule } from './english-conversation/english-conversation.module';
 import * as path from 'path';
 
 @Module({
@@ -35,6 +36,7 @@ import * as path from 'path';
     FormulaRecognitionModule,
     PictureWritingModule,
     WordOcrModule,
+    EnglishConversationModule,
   ],
 })
 export class AppModule {}

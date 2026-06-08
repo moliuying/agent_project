@@ -176,6 +176,15 @@
                 <p>OCR识别单词·音标·例句</p>
               </el-card>
             </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/english-conversation')" class="feature-card">
+                <el-icon :size="40" color="#722ed1">
+                  <ChatDotRound />
+                </el-icon>
+                <h3>英语口语对话</h3>
+                <p>AI 英语对话·场景练习·口语提升</p>
+              </el-card>
+            </el-col>
           </el-row>
         </div>
       </div>
