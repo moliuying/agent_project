@@ -7,6 +7,8 @@ export interface GenerateRequest {
   academicLevel: string;
   wordCount: string;
   citationStyle: string;
+  discipline: string;
+  paperType: string;
   customRequirements?: string;
 }
 
@@ -14,6 +16,8 @@ export interface GenerateResponse {
   result: string;
   sectionType: string;
   academicLevel: string;
+  discipline: string;
+  paperType: string;
   wordCount: number;
   outline: string[];
 }
@@ -26,6 +30,22 @@ interface SectionTemplate {
   citations: string[];
   transitions: string[];
   conclusions: string[];
+}
+
+interface DisciplineConfig {
+  name: string;
+  terminology: string[];
+  methodologyPhrases: string[];
+  analysisPhrases: string[];
+  structureHints: string[];
+  toneModifiers: string[];
+}
+
+interface PaperTypeConfig {
+  name: string;
+  focusKeywords: string[];
+  structurePreference: string;
+  emphasisPhrases: string[];
 }
 
 const ACADEMIC_LEVEL_CONFIG: Record<string, {
@@ -49,6 +69,174 @@ const CITATION_STYLES: Record<string, string> = {
   chicago: 'Chicago/Turabian',
   gb7714: 'GB/T 7714 (中国国家标准)',
   ieee: 'IEEE',
+};
+
+const DISCIPLINE_CONFIGS: Record<string, DisciplineConfig> = {
+  engineering: {
+    name: '理工科',
+    terminology: ['实验验证', '数值模拟', '理论推导', '算法设计', '系统实现', '性能评估', '参数优化', '误差分析'],
+    methodologyPhrases: [
+      '采用控制变量法进行系统实验，每组实验重复三次取平均值以减小随机误差。',
+      '运用有限元分析方法对研究对象进行数值模拟，网格划分精度设置为毫米级。',
+      '基于经典理论框架建立数学模型，通过严格的数学推导得出核心结论。',
+      '设计并实现原型系统，在标准测试集上进行对比实验以验证方法有效性。',
+    ],
+    analysisPhrases: [
+      '从实验结果可以看出，所提方法在准确率指标上较基线方法提升了约15%，具有统计学显著性差异（p<0.05）。',
+      '通过对参数敏感性的分析，发现变量A对系统性能的影响最为显著，相关系数达到0.87。',
+      '理论分析与实验结果高度吻合，验证了所建模型的正确性与有效性。',
+      '消融实验结果表明，各模块均对整体性能有正向贡献，其中核心模块的贡献度最大。',
+    ],
+    structureHints: ['理论分析', '方法设计', '实验验证', '结果讨论'],
+    toneModifiers: ['严谨', '客观', '可复现', '量化'],
+  },
+  humanities: {
+    name: '人文社科',
+    terminology: ['文本阐释', '话语分析', '历史脉络', '社会建构', '文化批判', '价值取向', '意识形态', '主体间性'],
+    methodologyPhrases: [
+      '采用文本细读法对原始文献进行深度阐释，兼顾作者意图与文本意义的开放性。',
+      '运用话语分析理论，揭示文本背后的权力关系与意识形态运作机制。',
+      '结合历史文献梳理与理论思辨，厘清该概念在不同历史语境中的演变轨迹。',
+      '通过多案例比较分析，提炼出具有普遍解释力的理论框架。',
+    ],
+    analysisPhrases: [
+      '从上述文本分析可见，该话语策略在构建社会共识的同时，也隐含着某种深层的权力运作。',
+      '历史地看，这一观念的形成并非偶然，而是特定社会历史条件与思想传统交汇的产物。',
+      '与西方同类理论相比，本土思想资源显示出独特的问题意识与理论品格，值得深入挖掘。',
+      '这种张力结构恰恰构成了该现象最富启发性的理论面向，值得学界进一步关注。',
+    ],
+    structureHints: ['概念溯源', '理论辨析', '文本阐释', '价值反思'],
+    toneModifiers: ['思辨', '阐释', '批判', '反思'],
+  },
+  medical: {
+    name: '医学',
+    terminology: ['临床研究', '随机对照试验', 'Meta分析', '流行病学调查', '病理机制', '预后因素', '不良反应', '循证医学'],
+    methodologyPhrases: [
+      '采用前瞻性随机对照研究设计，将研究对象按1:1比例随机分配至实验组和对照组。',
+      '按照纳入排除标准筛选研究对象，样本量估算基于主要结局指标的预期效应量。',
+      '运用系统性文献回顾与Meta分析方法，检索PubMed、Embase、Cochrane等数据库。',
+      '采用队列研究设计，随访周期为24个月，主要观察终点为不良事件发生率。',
+    ],
+    analysisPhrases: [
+      '实验组与对照组在基线特征上无统计学差异（P>0.05），具有可比性。',
+      '研究结果显示，干预组总有效率为86.7%，显著高于对照组的63.3%，差异有统计学意义（P<0.01）。',
+      '多因素Logistic回归分析表明，年龄、病程和合并症是影响预后的独立危险因素。',
+      '本研究的局限性在于样本量相对较小、随访时间有限，结论有待大样本多中心研究进一步验证。',
+    ],
+    structureHints: ['研究对象与方法', '观察指标', '统计学处理', '结果与讨论'],
+    toneModifiers: ['循证', '安全', '伦理', '临床意义'],
+  },
+  business: {
+    name: '经济管理',
+    terminology: ['实证研究', '面板数据', '回归分析', '稳健性检验', '中介效应', '调节变量', '异质性分析', '机制检验'],
+    methodologyPhrases: [
+      '选取2015-2023年A股上市公司为研究样本，数据来源于CSMAR和Wind数据库。',
+      '构建双向固定效应模型进行基准回归，同时控制行业和年份固定效应。',
+      '采用逐步回归法检验中介效应，依次验证自变量、中介变量和因变量之间的关系。',
+      '为缓解内生性问题，采用工具变量法和双重差分模型进行稳健性检验。',
+    ],
+    analysisPhrases: [
+      '基准回归结果显示，核心解释变量的回归系数在1%水平上显著为正，表明「{topic}」对被解释变量具有显著的正向促进作用。',
+      '机制检验表明，「{topic}」主要通过提升创新效率和优化资源配置两条路径作用于因变量。',
+      '异质性分析发现，该效应在国有企业和高科技企业中更为显著，存在明显的企业异质性。',
+      '经过替换变量、改变样本区间和采用工具变量等多种稳健性检验后，上述结论依然成立。',
+    ],
+    structureHints: ['理论分析与假设', '研究设计', '实证结果', '机制与异质性'],
+    toneModifiers: ['数据驱动', '因果识别', '政策启示', '实践价值'],
+  },
+  education: {
+    name: '教育学',
+    terminology: ['教学实验', '行动研究', '问卷调查', '访谈法', '教学干预', '学习效果', '核心素养', '教学模式'],
+    methodologyPhrases: [
+      '采用准实验研究设计，选取两个平行班分别作为实验班和对照班，实施一学期的教学干预。',
+      '运用混合研究方法，结合问卷调查、课堂观察和半结构化访谈等多种方式收集数据。',
+      '基于建构主义学习理论设计教学方案，以项目式学习为主要教学组织形式。',
+      '采用SPSS和NVivo软件分别对定量和定性数据进行统计分析与主题编码。',
+    ],
+    analysisPhrases: [
+      '独立样本t检验结果显示，实验班学生的后测成绩显著高于对照班（t=3.42, p<0.01），效应量Cohen\'s d=0.68，属于中等偏上效应。',
+      '访谈资料分析表明，学生普遍认为该教学模式提升了学习兴趣和自主学习能力。',
+      '从课堂观察记录来看，实验班学生的参与度和互动频次均明显高于对照班。',
+      '研究同时发现，该教学模式对不同学业水平学生的影响存在差异，对中等生的促进作用最为明显。',
+    ],
+    structureHints: ['教学研究设计', '干预方案', '效果评估', '教学建议'],
+    toneModifiers: ['教学实践', '学生发展', '可推广', '教学改进'],
+  },
+  general: {
+    name: '通用/综合',
+    terminology: ['理论分析', '实证研究', '文献综述', '案例分析', '系统研究', '综合评估'],
+    methodologyPhrases: [
+      '采用文献研究法与实证分析相结合的研究方法，对相关理论进行系统梳理。',
+      '通过多维度的分析框架，对研究对象进行全面深入的考察。',
+      '选取典型案例进行深入剖析，以揭示其内在规律与外在特征。',
+      '综合运用多种研究方法，确保研究结论的科学性与可靠性。',
+    ],
+    analysisPhrases: [
+      '研究结果表明，「{topic}」在实际应用中展现出显著的理论意义与实践价值。',
+      '从多维度的分析来看，「{topic}」呈现出复杂多元的特征，需要系统把握。',
+      '与现有研究相比，本文的发现进一步丰富和深化了对该问题的认识。',
+      '上述分析为理解「{topic}」的本质与规律提供了新的视角和证据。',
+    ],
+    structureHints: ['理论基础', '研究方法', '分析讨论', '结论建议'],
+    toneModifiers: ['系统', '全面', '深入'],
+  },
+};
+
+const PAPER_TYPE_CONFIGS: Record<string, PaperTypeConfig> = {
+  theoretical: {
+    name: '理论研究',
+    focusKeywords: ['理论建构', '概念辨析', '逻辑推演', '范式创新'],
+    structurePreference: '侧重概念界定、理论框架构建和逻辑论证',
+    emphasisPhrases: [
+      '本研究的核心贡献在于提出了新的理论分析框架，为后续研究提供了新的概念工具。',
+      '通过对现有理论的批判性反思，本文试图在理论层面实现一定的突破与创新。',
+    ],
+  },
+  empirical: {
+    name: '实证研究',
+    focusKeywords: ['数据收集', '假设检验', '统计分析', '经验证据'],
+    structurePreference: '侧重研究设计、数据分析和假设检验',
+    emphasisPhrases: [
+      '本文基于大样本实证数据，对研究假设进行了严格的统计检验。',
+      '实证结果为相关理论提供了来自经验层面的有力支持。',
+    ],
+  },
+  case: {
+    name: '案例研究',
+    focusKeywords: ['典型案例', '深度剖析', '过程追踪', '情境化分析'],
+    structurePreference: '侧重案例介绍、分析框架和案例讨论',
+    emphasisPhrases: [
+      '通过对典型案例的深度剖析，本文揭示了「{topic}」在具体情境下的运作机制。',
+      '案例研究的发现为理解复杂现象提供了丰富的细节和深刻的洞见。',
+    ],
+  },
+  review: {
+    name: '文献综述',
+    focusKeywords: ['系统梳理', '研究脉络', '前沿热点', '未来展望'],
+    structurePreference: '侧重文献梳理、脉络分析和研究展望',
+    emphasisPhrases: [
+      '本文系统梳理了该领域的研究脉络，指出现有研究的共识、争议和未来方向。',
+      '通过对国内外文献的全面回顾，本文试图描绘出该领域的知识图谱。',
+    ],
+  },
+  design: {
+    name: '设计开发',
+    focusKeywords: ['需求分析', '系统设计', '原型实现', '测试评估'],
+    structurePreference: '侧重设计思路、技术实现和效果验证',
+    emphasisPhrases: [
+      '本文完成了系统的需求分析、架构设计和原型实现，并通过测试验证了方案的可行性。',
+      '设计方案充分考虑了实用性、可扩展性和用户体验，具有良好的应用前景。',
+    ],
+  },
+  general: {
+    name: '综合研究',
+    focusKeywords: ['多视角', '综合分析', '全面研究'],
+    structurePreference: '兼顾理论与实证的综合研究',
+    emphasisPhrases: [
+      '本文从多个角度对「{topic}」进行了全面系统的研究。',
+      '综合理论分析与实证考察，本文得出以下主要结论。',
+    ],
+  },
 };
 
 const SECTION_TEMPLATES: Record<string, SectionTemplate> = {
@@ -312,13 +500,49 @@ export class ThesisWriterService {
 
   private applyAcademicLevel(text: string, level: string): string {
     let result = text;
-    const levelConfig = ACADEMIC_LEVEL_CONFIG[level];
     
     if (level === 'doctor' || level === 'journal') {
       result = result.replace(/重要/g, '至关重要');
       result = result.replace(/显著/g, '极为显著');
       result = result.replace(/分析/g, '系统分析');
       result = result.replace(/研究/g, '深入研究');
+    } else if (level === 'master') {
+      result = result.replace(/重要/g, '较为重要');
+      result = result.replace(/显著/g, '较为显著');
+    }
+    
+    return result;
+  }
+
+  private applyDisciplineAdaptation(text: string, discipline: string, sectionType: string): string {
+    let result = text;
+    const disciplineConfig = DISCIPLINE_CONFIGS[discipline] || DISCIPLINE_CONFIGS.general;
+    
+    if (sectionType === 'methodology' || sectionType === 'full') {
+      if (disciplineConfig.methodologyPhrases.length > 0 && Math.random() < 0.7) {
+        const phrase = this.getRandomItem(disciplineConfig.methodologyPhrases);
+        result = result + '\n\n' + phrase;
+      }
+    }
+    
+    if (sectionType === 'analysis' || sectionType === 'discussion' || sectionType === 'full') {
+      if (disciplineConfig.analysisPhrases.length > 0 && Math.random() < 0.6) {
+        const phrase = this.getRandomItem(disciplineConfig.analysisPhrases);
+        result = result + '\n\n' + phrase;
+      }
+    }
+    
+    return result;
+  }
+
+  private applyPaperTypeAdaptation(text: string, paperType: string, topic: string, researchDirection: string): string {
+    let result = text;
+    const paperTypeConfig = PAPER_TYPE_CONFIGS[paperType] || PAPER_TYPE_CONFIGS.general;
+    
+    if (paperTypeConfig.emphasisPhrases.length > 0) {
+      const emphasis = this.getRandomItem(paperTypeConfig.emphasisPhrases);
+      const filledEmphasis = this.fillTemplate(emphasis, topic, researchDirection, '');
+      result = result + '\n\n' + filledEmphasis;
     }
     
     return result;
@@ -326,12 +550,12 @@ export class ThesisWriterService {
 
   private addCustomRequirements(text: string, requirements?: string): string {
     if (!requirements || !requirements.trim()) return text;
-    const addition = `\n\n【补充说明：${requirements.trim()}\n\n`;
+    const addition = `\n\n【补充说明】${requirements.trim()}\n\n`;
     return text + addition;
   }
 
   async generate(request: GenerateRequest): Promise<GenerateResponse> {
-    const { topic, researchDirection, sectionType, academicLevel, wordCount, citationStyle, customRequirements } = request;
+    const { topic, researchDirection, sectionType, academicLevel, wordCount, citationStyle, discipline, paperType, customRequirements } = request;
 
     const trimmedTopic = topic.trim();
     const trimmedDirection = researchDirection.trim() || '相关学科';
@@ -340,6 +564,8 @@ export class ThesisWriterService {
     const lengthConfig = WORD_COUNT_CONFIG[wordCount] || WORD_COUNT_CONFIG.medium;
     const levelConfig = ACADEMIC_LEVEL_CONFIG[academicLevel] || ACADEMIC_LEVEL_CONFIG.bachelor;
     const citationName = CITATION_STYLES[citationStyle] || CITATION_STYLES.gb7714;
+    const disciplineConfig = DISCIPLINE_CONFIGS[discipline] || DISCIPLINE_CONFIGS.general;
+    const paperTypeConfig = PAPER_TYPE_CONFIGS[paperType] || PAPER_TYPE_CONFIGS.general;
 
     const paragraphs: string[] = [];
 
@@ -370,7 +596,10 @@ export class ThesisWriterService {
     });
 
     let resultText = paragraphs.join('\n\n');
+    
     resultText = this.applyAcademicLevel(resultText, academicLevel);
+    resultText = this.applyDisciplineAdaptation(resultText, discipline, sectionKey);
+    resultText = this.applyPaperTypeAdaptation(resultText, paperType, trimmedTopic, trimmedDirection);
     resultText = this.addCustomRequirements(resultText, customRequirements);
 
     const wordCountNum = resultText.replace(/\s/g, '').length;
@@ -391,6 +620,8 @@ export class ThesisWriterService {
       result: resultText,
       sectionType: sectionNameMap[sectionKey] || '完整论文',
       academicLevel: levelConfig.name,
+      discipline: disciplineConfig.name,
+      paperType: paperTypeConfig.name,
       wordCount: wordCountNum,
       outline,
     };

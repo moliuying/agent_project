@@ -12,6 +12,8 @@ export interface GenerateRequest {
   academicLevel: string
   wordCount: string
   citationStyle: string
+  discipline: string
+  paperType: string
   customRequirements?: string
 }
 
@@ -19,6 +21,8 @@ export interface GenerateResponse {
   result: string
   sectionType: string
   academicLevel: string
+  discipline: string
+  paperType: string
   wordCount: number
   outline: string[]
 }

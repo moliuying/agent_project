@@ -161,6 +161,62 @@
           <el-col :xs="24" :sm="12">
             <div class="option-item">
               <div class="option-label">
+                <span>
+                  <el-icon color="#f56c6c"><Star /></el-icon>
+                  学科领域
+                </span>
+                <el-tooltip content="不同学科论文格式和表达规范差异显著" placement="top">
+                  <el-icon class="help-icon"><QuestionFilled /></el-icon>
+                </el-tooltip>
+              </div>
+              <el-select v-model="discipline" placeholder="请选择学科领域" class="option-select">
+                <el-option
+                  v-for="d in disciplineOptions"
+                  :key="d.key"
+                  :label="d.name"
+                  :value="d.key"
+                >
+                  <div class="style-option">
+                    <span class="style-name">{{ d.name }}</span>
+                    <el-tag v-if="d.tagType" size="small" :type="d.tagType">{{ d.tag }}</el-tag>
+                    <span v-else class="style-tag">{{ d.tag }}</span>
+                  </div>
+                </el-option>
+              </el-select>
+            </div>
+          </el-col>
+          <el-col :xs="24" :sm="12">
+            <div class="option-item">
+              <div class="option-label">
+                <span>
+                  <el-icon color="#f56c6c"><Star /></el-icon>
+                  论文类型
+                </span>
+                <el-tooltip content="不同研究类型的写作重点和结构不同" placement="top">
+                  <el-icon class="help-icon"><QuestionFilled /></el-icon>
+                </el-tooltip>
+              </div>
+              <el-select v-model="paperType" placeholder="请选择论文类型" class="option-select">
+                <el-option
+                  v-for="p in paperTypeOptions"
+                  :key="p.key"
+                  :label="p.name"
+                  :value="p.key"
+                >
+                  <div class="style-option">
+                    <span class="style-name">{{ p.name }}</span>
+                    <el-tag v-if="p.tagType" size="small" :type="p.tagType">{{ p.tag }}</el-tag>
+                    <span v-else class="style-tag">{{ p.tag }}</span>
+                  </div>
+                </el-option>
+              </el-select>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16" class="options-grid">
+          <el-col :xs="24" :sm="12">
+            <div class="option-item">
+              <div class="option-label">
                 <span>目标字数</span>
               </div>
               <el-radio-group v-model="wordCount" class="length-group">
@@ -272,6 +328,8 @@
         <div class="output-meta">
           <el-tag size="small" type="info">{{ outputMeta.sectionType }}</el-tag>
           <el-tag size="small" type="warning">{{ outputMeta.academicLevel }}</el-tag>
+          <el-tag size="small" type="primary">{{ outputMeta.discipline }}</el-tag>
+          <el-tag size="small" type="success">{{ outputMeta.paperType }}</el-tag>
         </div>
         <div class="output-content">
           <div v-for="(para, idx) in outputParagraphs" :key="idx" class="output-paragraph">
@@ -296,6 +354,14 @@
           <div class="stat-item">
             <span class="stat-label">学术水平</span>
             <span class="stat-value">{{ outputMeta.academicLevel }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">学科领域</span>
+            <span class="stat-value">{{ outputMeta.discipline }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">论文类型</span>
+            <span class="stat-value">{{ outputMeta.paperType }}</span>
           </div>
         </div>
       </div>
@@ -339,6 +405,8 @@
           <div class="history-meta">
             <el-tag size="small">{{ item.sectionType }}</el-tag>
             <el-tag size="small" type="warning">{{ item.academicLevel }}</el-tag>
+            <el-tag size="small" type="primary">{{ item.discipline }}</el-tag>
+            <el-tag size="small" type="success">{{ item.paperType }}</el-tag>
             <span class="history-time">{{ formatTime(item.time) }}</span>
           </div>
           <div class="history-actions">
@@ -396,6 +464,8 @@ interface HistoryItem {
   outputPreview: string
   sectionType: string
   academicLevel: string
+  discipline: string
+  paperType: string
   wordCount: string
   citationStyle: string
   customRequirements: string
@@ -408,6 +478,8 @@ const topic = ref('')
 const researchDirection = ref('')
 const sectionType = ref('full')
 const academicLevel = ref('bachelor')
+const discipline = ref('general')
+const paperType = ref('general')
 const wordCount = ref('medium')
 const citationStyle = ref('gb7714')
 const customRequirements = ref('')
@@ -435,6 +507,24 @@ const sectionTypes = [
   { key: 'analysis', name: '实证分析', tag: '分析', tagType: 'success' },
   { key: 'discussion', name: '讨论', tag: '讨论', tagType: 'warning' },
   { key: 'conclusion', name: '结论与展望', tag: '总结', tagType: 'danger' }
+]
+
+const disciplineOptions = [
+  { key: 'engineering', name: '理工科', tag: '实验/量化', tagType: 'primary' },
+  { key: 'humanities', name: '人文社科', tag: '思辨/阐释', tagType: 'warning' },
+  { key: 'medical', name: '医学', tag: '临床/循证', tagType: 'danger' },
+  { key: 'business', name: '经济管理', tag: '实证/数据', tagType: 'success' },
+  { key: 'education', name: '教育学', tag: '教学/实践', tagType: 'info' },
+  { key: 'general', name: '通用/综合', tag: '综合', tagType: '' }
+]
+
+const paperTypeOptions = [
+  { key: 'theoretical', name: '理论研究', tag: '理论建构', tagType: 'primary' },
+  { key: 'empirical', name: '实证研究', tag: '假设检验', tagType: 'success' },
+  { key: 'case', name: '案例研究', tag: '深度剖析', tagType: 'warning' },
+  { key: 'review', name: '文献综述', tag: '系统梳理', tagType: 'info' },
+  { key: 'design', name: '设计开发', tag: '原型实现', tagType: 'danger' },
+  { key: 'general', name: '综合研究', tag: '综合', tagType: '' }
 ]
 
 const sectionOutlineMap: Record<string, string[]> = {
@@ -498,7 +588,12 @@ const loadHistoryFromStorage = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
-      history.value = JSON.parse(stored)
+      const rawList = JSON.parse(stored)
+      history.value = rawList.map((item: any) => ({
+        ...item,
+        discipline: item.discipline || '通用/综合',
+        paperType: item.paperType || '综合研究'
+      }))
     }
   } catch (e) {
     console.error('Failed to load history:', e)
@@ -518,6 +613,8 @@ const addToHistory = () => {
 
   const outputPreview = outputText.value.substring(0, 100) + (outputText.value.length > 100 ? '...' : '')
   const sectionName = sectionTypes.find(s => s.key === sectionType.value)?.name || sectionType.value
+  const disciplineName = disciplineOptions.find(d => d.key === discipline.value)?.name || discipline.value
+  const paperTypeName = paperTypeOptions.find(p => p.key === paperType.value)?.name || paperType.value
 
   history.value.push({
     topic: topic.value,
@@ -526,6 +623,8 @@ const addToHistory = () => {
     outputPreview,
     sectionType: sectionName,
     academicLevel: academicLevel.value,
+    discipline: disciplineName,
+    paperType: paperTypeName,
     wordCount: wordCount.value,
     citationStyle: citationStyle.value,
     customRequirements: customRequirements.value,
@@ -544,6 +643,14 @@ const generateContent = async () => {
     ElMessage.warning('请输入论文题目')
     return
   }
+  if (!discipline.value) {
+    ElMessage.warning('请选择学科领域')
+    return
+  }
+  if (!paperType.value) {
+    ElMessage.warning('请选择论文类型')
+    return
+  }
 
   isGenerating.value = true
   try {
@@ -554,6 +661,8 @@ const generateContent = async () => {
       academicLevel: academicLevel.value,
       wordCount: wordCount.value,
       citationStyle: citationStyle.value,
+      discipline: discipline.value,
+      paperType: paperType.value,
       customRequirements: customRequirements.value
     })
     outputText.value = data.result
@@ -613,6 +722,8 @@ const copyHistoryOutput = (item: HistoryItem) => {
 const clearAll = () => {
   topic.value = ''
   researchDirection.value = ''
+  discipline.value = 'general'
+  paperType.value = 'general'
   customRequirements.value = ''
   outputText.value = ''
   outputMeta.value = null
@@ -625,6 +736,8 @@ const loadHistoryItem = (item: HistoryItem) => {
   outputText.value = item.output
   sectionType.value = sectionTypes.find(s => s.name === item.sectionType)?.key || 'full'
   academicLevel.value = item.academicLevel
+  discipline.value = disciplineOptions.find(d => d.name === item.discipline)?.key || 'general'
+  paperType.value = paperTypeOptions.find(p => p.name === item.paperType)?.key || 'general'
   wordCount.value = item.wordCount
   citationStyle.value = item.citationStyle
   customRequirements.value = item.customRequirements
@@ -847,6 +960,14 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.style-tag {
+  font-size: 12px;
+  color: #909399;
+  background: #f4f4f5;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 .style-name {

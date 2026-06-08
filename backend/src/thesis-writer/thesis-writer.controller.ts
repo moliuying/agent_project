@@ -19,6 +19,12 @@ export class ThesisWriterController {
     if (body.customRequirements && body.customRequirements.trim().length > 500) {
       throw new HttpException('特殊要求过长，请控制在500字以内', HttpStatus.BAD_REQUEST);
     }
+    if (!body.discipline) {
+      throw new HttpException('请选择学科领域', HttpStatus.BAD_REQUEST);
+    }
+    if (!body.paperType) {
+      throw new HttpException('请选择论文类型', HttpStatus.BAD_REQUEST);
+    }
     try {
       return await this.thesisWriterService.generate(body);
     } catch (error) {
