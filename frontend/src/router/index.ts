@@ -95,6 +95,11 @@ const routes: RouteRecordRaw[] = [
         path: '/image-to-prompt',
         name: 'ImageToPrompt',
         component: () => import('@/views/ImageToPrompt.vue')
+      },
+      {
+        path: '/idiom-chain',
+        name: 'IdiomChain',
+        component: () => import('@/views/IdiomChain.vue')
       }
     ]
   }

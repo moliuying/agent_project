@@ -92,6 +92,15 @@
           </el-row>
           <el-row :gutter="20" style="margin-top: 20px">
             <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/idiom-chain')" class="feature-card">
+                <el-icon :size="40" color="#eb2f96">
+                  <ChatDotRound />
+                </el-icon>
+                <h3>成语接龙对战</h3>
+                <p>AI 智能接龙，挑战你的词汇量</p>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
               <el-card shadow="hover" @click="navigateTo('/ai-art-prompts')" class="feature-card">
                 <el-icon :size="40" color="#722ed1">
                   <MagicStick />

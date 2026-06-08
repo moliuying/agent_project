@@ -9,6 +9,7 @@ import { AiTextExpanderModule } from './ai-text-expander/ai-text-expander.module
 import { ThesisWriterModule } from './thesis-writer/thesis-writer.module';
 import { ExcelFormulaModule } from './excel-formula/excel-formula.module';
 import { ImageToPromptModule } from './image-to-prompt/image-to-prompt.module';
+import { IdiomChainModule } from './idiom-chain/idiom-chain.module';
 import * as path from 'path';
 
 @Module({
@@ -27,6 +28,7 @@ import * as path from 'path';
     ThesisWriterModule,
     ExcelFormulaModule,
     ImageToPromptModule,
+    IdiomChainModule,
   ],
 })
 export class AppModule {}
