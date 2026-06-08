@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ExcelFormulaService, type ExcelFormula, type FormulaCategory, VERSION_INFO, type ExcelVersion } from './excel-formula.service';
+import { ExcelFormulaService, type ExcelFormula, type FormulaCategory, VERSION_INFO, type ExcelVersion, WPS_SUPPORT_INFO, type WpsSupportLevel } from './excel-formula.service';
 
 @Controller('excel-formula')
 export class ExcelFormulaController {
@@ -16,6 +16,11 @@ export class ExcelFormulaController {
       id: key as ExcelVersion,
       ...info,
     }));
+  }
+
+  @Get('wps-support')
+  getWpsSupport() {
+    return this.excelFormulaService.getWpsSupportInfo();
   }
 
   @Get()

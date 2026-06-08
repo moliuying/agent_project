@@ -8,6 +8,14 @@ export type ExcelVersion =
   | '365+'
   | '2021+';
 
+export type WpsSupportLevel = 'full' | 'partial' | 'none';
+
+export const WPS_SUPPORT_INFO: Record<WpsSupportLevel, { label: string; tip: string; level: 'good' | 'warn' | 'bad' }> = {
+  'full': { label: 'WPS 完全支持', tip: '在 WPS 中可以正常使用，行为与 Excel 一致', level: 'good' },
+  'partial': { label: 'WPS 部分支持', tip: 'WPS 较新版本支持，旧版本可能不兼容或行为有差异，建议测试确认', level: 'warn' },
+  'none': { label: 'WPS 不支持', tip: 'WPS 暂不支持此函数，请使用下方提供的替代方案', level: 'bad' },
+};
+
 export const VERSION_INFO: Record<ExcelVersion, { label: string; tip: string; level: 'common' | 'low' | 'high' | 'newest' }> = {
   'all': { label: '所有版本', tip: 'Excel 2007 及以上版本均支持，兼容性最好', level: 'common' },
   '2010+': { label: 'Excel 2010+', tip: '需要 Excel 2010 及以上版本', level: 'low' },
@@ -29,6 +37,8 @@ export interface ExcelFormula {
   name: string;
   category: string;
   version: ExcelVersion;
+  wpsSupport: WpsSupportLevel;
+  wpsAlternative?: string;
   syntax: string;
   description: string;
   arguments: { name: string; description: string; required: boolean }[];
@@ -65,6 +75,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'math',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'SUM(number1, [number2], ...)',
     description: '返回所有参数的和',
     arguments: [
@@ -86,6 +97,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'math',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'SUMIF(range, criteria, [sum_range])',
     description: '对满足条件的单元格求和',
     arguments: [
@@ -108,6 +120,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'math',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'SUMIFS(sum_range, criteria_range1, criteria1, [criteria_range2, criteria2], ...)',
     description: '对同时满足多个条件的单元格求和',
     arguments: [
@@ -130,6 +143,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'statistical',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'AVERAGE(number1, [number2], ...)',
     description: '返回参数的算术平均值',
     arguments: [
@@ -150,6 +164,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'statistical',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'COUNT(value1, [value2], ...)',
     description: '计算区域中包含数字的单元格个数',
     arguments: [
@@ -170,6 +185,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'statistical',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'COUNTIF(range, criteria)',
     description: '计算区域中满足条件的单元格个数',
     arguments: [
@@ -192,6 +208,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'statistical',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'COUNTIFS(criteria_range1, criteria1, [criteria_range2, criteria2], ...)',
     description: '计算同时满足多个条件的单元格个数',
     arguments: [
@@ -213,6 +230,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'lookup',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])',
     description: '在表格首列查找指定值，返回对应行指定列的值',
     arguments: [
@@ -236,6 +254,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'lookup',
     version: '365+',
     compatibility: '需要 Excel 365 订阅版或 Excel 2021 及以上版本，旧版本不支持动态数组功能',
+    wpsSupport: 'partial',
+    wpsAlternative: 'WPS 2023及以上版本支持，旧版建议使用 VLOOKUP 或 INDEX+MATCH 组合替代',
     syntax: 'XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])',
     description: '更强大的查找函数（Excel 365/2021+），支持任意列查找和反向查找',
     arguments: [
@@ -262,6 +282,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'lookup',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'INDEX(return_range, MATCH(lookup_value, lookup_range, match_type))',
     description: '经典组合，比VLOOKUP更灵活，支持任意列查找和反向查找',
     arguments: [
@@ -285,6 +306,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'logical',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'IF(logical_test, [value_if_true], [value_if_false])',
     description: '判断条件是否成立，成立返回一个值，否则返回另一个值',
     arguments: [
@@ -307,6 +329,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'logical',
     version: '2019+',
     compatibility: '需要 Excel 2019 及以上版本，旧版本请用替代方案（参考 tips）',
+    wpsSupport: 'partial',
+    wpsAlternative: 'WPS 2021及以上版本支持，旧版建议使用嵌套 IF 函数替代',
     syntax: 'IFS(logical_test1, value_if_true1, [logical_test2, value_if_true2], ...)',
     description: '多条件判断，按顺序检查条件，返回第一个成立条件对应的值（Excel 2019+）',
     arguments: [
@@ -328,6 +352,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'logical',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'IFERROR(value, value_if_error)',
     description: '如果公式计算结果错误则返回指定值，否则返回公式结果',
     arguments: [
@@ -349,6 +374,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'logical',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'AND(logical1, [logical2], ...) 或 OR(logical1, [logical2], ...)',
     description: 'AND：所有条件都成立返回TRUE；OR：任一条件成立返回TRUE',
     arguments: [
@@ -370,6 +396,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'text',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'LEFT(text, [num_chars]) / RIGHT(text, [num_chars]) / MID(text, start_num, num_chars)',
     description: '从文本左侧/右侧/中间提取指定长度的字符',
     arguments: [
@@ -393,6 +420,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'text',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'LEN(text)',
     description: '返回文本字符串中的字符个数',
     arguments: [
@@ -412,6 +440,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'text',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'FIND(find_text, within_text, [start_num]) / SEARCH(find_text, within_text, [start_num])',
     description: '查找文本在另一个文本中的起始位置。FIND区分大小写，SEARCH不区分且支持通配符',
     arguments: [
@@ -434,6 +463,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'text',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'SUBSTITUTE(text, old_text, new_text, [instance_num])',
     description: '将文本中的指定字符串替换为新字符串',
     arguments: [
@@ -458,6 +488,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'text',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'TRIM(text)',
     description: '去除文本首尾的空格，并将文本中间的多个连续空格合并为一个',
     arguments: [
@@ -477,6 +508,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'text',
     version: '2019+',
     compatibility: '需要 Excel 2019 及以上版本，旧版本请用替代方案（参考 tips）',
+    wpsSupport: 'partial',
+    wpsAlternative: 'WPS 2021及以上版本支持 TEXTJOIN，旧版建议使用 & 运算符或 CONCATENATE 函数拼接',
     syntax: 'TEXTJOIN(delimiter, ignore_empty, text1, [text2], ...) / CONCAT(text1, [text2], ...)',
     description: '连接多个文本字符串。TEXTJOIN支持指定分隔符和忽略空值（Excel 2019+）',
     arguments: [
@@ -499,6 +532,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'date',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'TODAY() 或 NOW()',
     description: 'TODAY返回当前日期，NOW返回当前日期和时间',
     arguments: [],
@@ -517,6 +551,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'date',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'DATEDIF(start_date, end_date, unit)',
     description: '计算两个日期之间的间隔（年/月/日），隐藏函数但兼容性极好',
     arguments: [
@@ -540,6 +575,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'date',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'YEAR(date) / MONTH(date) / DAY(date)',
     description: '从日期中提取年、月、日',
     arguments: [
@@ -561,6 +597,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'date',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'EOMONTH(start_date, months)',
     description: '返回指定日期往前/往后N个月的月份最后一天日期',
     arguments: [
@@ -583,6 +620,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'date',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'WORKDAY(start_date, days, [holidays]) / NETWORKDAYS(start_date, end_date, [holidays])',
     description: 'WORKDAY：计算N个工作日后的日期；NETWORKDAYS：计算两个日期间的工作日天数',
     arguments: [
@@ -607,6 +645,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'math',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'ROUND(number, num_digits) / ROUNDUP(number, num_digits) / ROUNDDOWN(number, num_digits)',
     description: '按指定位数四舍五入/向上取整/向下取整',
     arguments: [
@@ -629,6 +668,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'statistical',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'MAX(number1, [number2], ...) / MIN(number1, [number2], ...)',
     description: '返回一组数值中的最大值/最小值',
     arguments: [
@@ -650,6 +690,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'statistical',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'RANK(number, ref, [order])',
     description: '返回一个数字在数字列表中的排名',
     arguments: [
@@ -671,6 +712,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'math',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'SUMPRODUCT(array1, [array2], [array3], ...)',
     description: '将多个数组对应元素相乘后求和，强大的多条件计算工具',
     arguments: [
@@ -692,6 +734,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'lookup',
     version: '365+',
     compatibility: '需要 Excel 365 订阅版或 Excel 2021 及以上版本，旧版本不支持动态数组功能',
+    wpsSupport: 'none',
+    wpsAlternative: 'WPS暂不支持动态数组FILTER函数。替代方案：1) 使用"数据→高级筛选"功能；2) 使用辅助列+IF+SMALL+INDEX数组公式',
     syntax: 'FILTER(array, include, [if_empty])',
     description: '根据条件筛选区域，返回符合条件的所有行（Excel 365/2021+，动态数组）',
     arguments: [
@@ -714,6 +758,8 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'lookup',
     version: '365+',
     compatibility: '需要 Excel 365 订阅版或 Excel 2021 及以上版本，旧版本不支持动态数组功能',
+    wpsSupport: 'none',
+    wpsAlternative: 'WPS暂不支持动态数组UNIQUE函数。替代方案：1) 使用"数据→删除重复值"功能；2) 使用"高级筛选→选择不重复的记录"',
     syntax: 'UNIQUE(array, [by_col], [exactly_once])',
     description: '返回区域中的唯一值列表（Excel 365/2021+，动态数组）',
     arguments: [
@@ -736,6 +782,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'financial',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'PMT(rate, nper, pv, [fv], [type])',
     description: '计算贷款的每期还款额（等额本息）',
     arguments: [
@@ -759,6 +806,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'lookup',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'OFFSET(reference, rows, cols, [height], [width])',
     description: '以指定引用为基点，偏移指定行数和列数，返回新的引用区域',
     arguments: [
@@ -783,6 +831,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'lookup',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'INDIRECT(ref_text, [a1])',
     description: '将文本字符串转换为实际的单元格引用，常用于跨表动态引用',
     arguments: [
@@ -804,6 +853,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'logical',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: '在条件格式→使用公式确定要设置格式的单元格中输入',
     description: '用于条件格式的常用公式模式，让单元格满足条件时自动变色',
     arguments: [],
@@ -823,6 +873,7 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
     category: 'lookup',
     version: 'all',
     compatibility: '所有版本通用，兼容性最好',
+    wpsSupport: 'full',
     syntax: 'CHOOSE(index_num, value1, [value2], ...)',
     description: '根据索引号从参数列表中选择一个值返回',
     arguments: [
@@ -842,6 +893,13 @@ const EXCEL_FORMULAS: ExcelFormula[] = [
 
 @Injectable()
 export class ExcelFormulaService {
+  getWpsSupportInfo() {
+    return Object.entries(WPS_SUPPORT_INFO).map(([key, info]) => ({
+      id: key as WpsSupportLevel,
+      ...info,
+    }));
+  }
+
   getAllCategories() {
     return Object.entries(CATEGORY_INFO).map(([key, info]) => ({
       id: key,

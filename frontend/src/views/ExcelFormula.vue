@@ -182,6 +182,24 @@
                     {{ getVersionInfo(formula.version)?.label || formula.version }}
                   </el-tag>
                 </el-tooltip>
+                <el-tooltip
+                  :content="getWpsInfo(formula.wpsSupport)?.tip || ''"
+                  placement="top"
+                  :disabled="!hasWpsIssue(formula.wpsSupport)"
+                >
+                  <el-tag
+                    :type="getWpsTagType(formula.wpsSupport)"
+                    :effect="getWpsTagEffect(formula.wpsSupport)"
+                    size="small"
+                    class="wps-tag"
+                    :class="{ 'wps-tag-warn': hasWpsIssue(formula.wpsSupport) }"
+                  >
+                    <el-icon v-if="hasWpsIssue(formula.wpsSupport)" :size="12">
+                      <WarningFilled />
+                    </el-icon>
+                    {{ getWpsInfo(formula.wpsSupport)?.label }}
+                  </el-tag>
+                </el-tooltip>
                 <span class="formula-name">{{ formula.name }}</span>
                 <span class="formula-desc">{{ formula.description }}</span>
               </div>
@@ -199,6 +217,40 @@
                 <template #icon>
                   <el-icon><WarningFilled /></el-icon>
                 </template>
+              </el-alert>
+
+              <el-alert
+                v-if="formula.wpsSupport === 'partial'"
+                :title="getWpsInfo(formula.wpsSupport)?.label"
+                type="warning"
+                show-icon
+                :closable="false"
+                class="wps-alert"
+              >
+                <template #icon>
+                  <el-icon><Warning /></el-icon>
+                </template>
+                <span>{{ getWpsInfo(formula.wpsSupport)?.tip }}</span>
+                <div v-if="formula.wpsAlternative" class="wps-alternative">
+                  <strong>WPS 替代方案：</strong>{{ formula.wpsAlternative }}
+                </div>
+              </el-alert>
+
+              <el-alert
+                v-if="formula.wpsSupport === 'none'"
+                :title="getWpsInfo(formula.wpsSupport)?.label"
+                type="error"
+                show-icon
+                :closable="false"
+                class="wps-alert wps-alert-error"
+              >
+                <template #icon>
+                  <el-icon><CircleCloseFilled /></el-icon>
+                </template>
+                <span>{{ getWpsInfo(formula.wpsSupport)?.tip }}</span>
+                <div v-if="formula.wpsAlternative" class="wps-alternative">
+                  <strong>WPS 替代方案：</strong>{{ formula.wpsAlternative }}
+                </div>
               </el-alert>
 
               <div class="detail-section">
@@ -307,6 +359,7 @@ import {
   CopyDocument,
   Warning,
   WarningFilled,
+  CircleCloseFilled,
   Star,
   Tickets,
   Operation,
@@ -316,12 +369,13 @@ import {
   EditPen
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { excelFormulaApi, type ExcelFormula, type FormulaCategory, type RecommendationResult, type VersionInfo, type ExcelVersion } from '@/api/excelFormula'
+import { excelFormulaApi, type ExcelFormula, type FormulaCategory, type RecommendationResult, type VersionInfo, type ExcelVersion, type WpsSupportInfo, type WpsSupportLevel } from '@/api/excelFormula'
 
 const searchQuery = ref('')
 const searching = ref(false)
 const categories = ref<FormulaCategory[]>([])
 const versions = ref<VersionInfo[]>([])
+const wpsSupportInfo = ref<WpsSupportInfo[]>([])
 const allFormulas = ref<ExcelFormula[]>([])
 const displayFormulas = ref<ExcelFormula[]>([])
 const activeCategory = ref<string>('')
@@ -409,6 +463,32 @@ const isNewFunction = (version: ExcelVersion): boolean => {
   return version === '2019+' || version === '365+' || version === '2021+'
 }
 
+const getWpsInfo = (level: WpsSupportLevel): WpsSupportInfo | undefined => {
+  return wpsSupportInfo.value.find(v => v.id === level)
+}
+
+const getWpsTagType = (level: WpsSupportLevel): any => {
+  const types: Record<WpsSupportLevel, any> = {
+    'full': 'success',
+    'partial': 'warning',
+    'none': 'danger'
+  }
+  return types[level] || 'info'
+}
+
+const getWpsTagEffect = (level: WpsSupportLevel): 'dark' | 'light' | 'plain' => {
+  const effects: Record<WpsSupportLevel, 'dark' | 'light' | 'plain'> = {
+    'full': 'plain',
+    'partial': 'light',
+    'none': 'dark'
+  }
+  return effects[level] || 'plain'
+}
+
+const hasWpsIssue = (level: WpsSupportLevel): boolean => {
+  return level === 'partial' || level === 'none'
+}
+
 const applyScenario = (scene: string) => {
   searchQuery.value = scene
   handleSearch()
@@ -493,13 +573,15 @@ const jumpToFormula = (formulaName: string) => {
 
 const loadInitialData = async () => {
   try {
-    const [catRes, verRes, allRes] = await Promise.all([
+    const [catRes, verRes, wpsRes, allRes] = await Promise.all([
       excelFormulaApi.getCategories(),
       excelFormulaApi.getVersions(),
+      excelFormulaApi.getWpsSupport(),
       excelFormulaApi.getAll()
     ])
     categories.value = catRes.data
     versions.value = verRes.data
+    wpsSupportInfo.value = wpsRes.data
     allFormulas.value = allRes.data
     displayFormulas.value = allRes.data
   } catch (error) {
@@ -877,5 +959,61 @@ onMounted(() => {
 .version-alert :deep(.el-alert__title) {
   font-size: 13px;
   font-weight: 500;
+}
+
+.wps-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 500;
+}
+
+.wps-tag-warn {
+  animation: pulse-wps 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-wps {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(230, 162, 60, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(230, 162, 60, 0);
+  }
+}
+
+.wps-alert {
+  margin-bottom: 16px;
+}
+
+.wps-alert-error {
+  background: linear-gradient(135deg, #fef0f0 0%, #fde2e2 100%);
+}
+
+.wps-alert :deep(.el-alert__title) {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.wps-alert :deep(.el-alert__description) {
+  font-size: 13px;
+  margin-top: 4px;
+  line-height: 1.6;
+}
+
+.wps-alternative {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.wps-alternative strong {
+  color: #c45656;
+  font-weight: 600;
+}
+
+.wps-alert-error .wps-alternative strong {
+  color: #a8071a;
 }
 </style>

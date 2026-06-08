@@ -7,11 +7,20 @@ const api = axios.create({
 
 export type ExcelVersion = 'all' | '2010+' | '2016+' | '2019+' | '365+' | '2021+'
 
+export type WpsSupportLevel = 'full' | 'partial' | 'none'
+
 export interface VersionInfo {
   id: ExcelVersion
   label: string
   tip: string
   level: 'common' | 'low' | 'high' | 'newest'
+}
+
+export interface WpsSupportInfo {
+  id: WpsSupportLevel
+  label: string
+  tip: string
+  level: 'good' | 'warn' | 'bad'
 }
 
 export interface FormulaExample {
@@ -26,6 +35,8 @@ export interface ExcelFormula {
   name: string
   category: string
   version: ExcelVersion
+  wpsSupport: WpsSupportLevel
+  wpsAlternative?: string
   syntax: string
   description: string
   arguments: { name: string; description: string; required: boolean }[]
@@ -53,6 +64,7 @@ export interface RecommendationResult {
 export const excelFormulaApi = {
   getCategories: () => api.get<FormulaCategory[]>('/excel-formula/categories'),
   getVersions: () => api.get<VersionInfo[]>('/excel-formula/versions'),
+  getWpsSupport: () => api.get<WpsSupportInfo[]>('/excel-formula/wps-support'),
   getAll: () => api.get<ExcelFormula[]>('/excel-formula'),
   getByCategory: (category: string) => api.get<ExcelFormula[]>(`/excel-formula/category/${category}`),
   search: (query: string) => api.get<ExcelFormula[]>('/excel-formula/search', { params: { q: query } }),
