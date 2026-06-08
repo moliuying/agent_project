@@ -90,6 +90,11 @@ const routes: RouteRecordRaw[] = [
         path: '/excel-formula',
         name: 'ExcelFormula',
         component: () => import('@/views/ExcelFormula.vue')
+      },
+      {
+        path: '/image-to-prompt',
+        name: 'ImageToPrompt',
+        component: () => import('@/views/ImageToPrompt.vue')
       }
     ]
   }

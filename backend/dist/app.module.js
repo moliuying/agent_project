@@ -17,6 +17,7 @@ const ip_lookup_module_1 = require("./ip-lookup/ip-lookup.module");
 const ai_text_expander_module_1 = require("./ai-text-expander/ai-text-expander.module");
 const thesis_writer_module_1 = require("./thesis-writer/thesis-writer.module");
 const excel_formula_module_1 = require("./excel-formula/excel-formula.module");
+const image_to_prompt_module_1 = require("./image-to-prompt/image-to-prompt.module");
 const path = require("path");
 let AppModule = class AppModule {
 };
@@ -36,6 +37,7 @@ AppModule = __decorate([
             ai_text_expander_module_1.AiTextExpanderModule,
             thesis_writer_module_1.ThesisWriterModule,
             excel_formula_module_1.ExcelFormulaModule,
+            image_to_prompt_module_1.ImageToPromptModule,
         ],
     })
 ], AppModule);
