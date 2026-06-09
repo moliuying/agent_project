@@ -31,6 +31,7 @@ export interface FoodItem {
   portion: string;
   portionGrams: number;
   portionUncertainty: number;
+  portionUncertaintyAsymmetry: 'symmetric' | 'underestimation_risk' | 'overestimation_risk';
   confidence: number;
   calories: number;
   caloriesMin: number;
@@ -46,6 +47,11 @@ export interface FoodItem {
   proteinPer100g: number;
   carbsPer100g: number;
   fatPer100g: number;
+  foodShape: 'solid_3d' | 'flat' | 'liquid' | 'irregular';
+  isHighDensity: boolean;
+  calorieDensity: number;
+  underestimationRisk: 'none' | 'low' | 'medium' | 'high' | 'critical';
+  portionPresetHints: string[];
 }
 
 export interface NutritionSummary {
@@ -61,6 +67,9 @@ export interface NutritionSummary {
   carbsRatio: number;
   fatRatio: number;
   estimationUncertainty: number;
+  hasHighUnderestimationRisk: boolean;
+  highRiskFoodCount: number;
+  dailyStatsReliability: 'reliable' | 'acceptable' | 'uncertain' | 'unreliable';
 }
 
 export interface DietAdvice {
@@ -98,6 +107,102 @@ const REFERENCE_UNCERTAINTY: Record<ReferenceObject, number> = {
   phone: 15,
   hand: 25,
   coin: 28,
+};
+
+interface CategoryConfig {
+  uncertaintyBonus: number;
+  foodShape: 'solid_3d' | 'flat' | 'liquid' | 'irregular';
+  defaultUnderestimationRisk: 'none' | 'low' | 'medium' | 'high' | 'critical';
+  isHighDensity: boolean;
+  commonPresets: string[];
+}
+
+const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
+  '主食': {
+    uncertaintyBonus: 5,
+    foodShape: 'flat',
+    defaultUnderestimationRisk: 'low',
+    isHighDensity: false,
+    commonPresets: ['半碗', '1碗', '1小饭碗', '1餐盘', '1小碗']
+  },
+  '肉类': {
+    uncertaintyBonus: 20,
+    foodShape: 'solid_3d',
+    defaultUnderestimationRisk: 'high',
+    isHighDensity: true,
+    commonPresets: ['扑克牌大小≈100g', '手掌大小≈150g', '半块鸡胸≈200g', '一整块鸡胸≈300g', '1块牛排≈250g']
+  },
+  '蛋类': {
+    uncertaintyBonus: 10,
+    foodShape: 'solid_3d',
+    defaultUnderestimationRisk: 'medium',
+    isHighDensity: false,
+    commonPresets: ['1个≈50g', '2个≈100g', '3个≈150g']
+  },
+  '乳制品': {
+    uncertaintyBonus: 8,
+    foodShape: 'liquid',
+    defaultUnderestimationRisk: 'low',
+    isHighDensity: false,
+    commonPresets: ['1杯≈250ml', '1小盒≈100g', '1大盒≈200g']
+  },
+  '蔬菜': {
+    uncertaintyBonus: 3,
+    foodShape: 'irregular',
+    defaultUnderestimationRisk: 'low',
+    isHighDensity: false,
+    commonPresets: ['1小碟≈100g', '1大盘≈200g', '1把≈80g']
+  },
+  '水果': {
+    uncertaintyBonus: 5,
+    foodShape: 'solid_3d',
+    defaultUnderestimationRisk: 'medium',
+    isHighDensity: false,
+    commonPresets: ['1个中等≈150g', '1小个≈100g', '1大盘≈300g']
+  },
+  '快餐': {
+    uncertaintyBonus: 15,
+    foodShape: 'solid_3d',
+    defaultUnderestimationRisk: 'high',
+    isHighDensity: true,
+    commonPresets: ['1块炸鸡≈120g', '1个汉堡≈200g', '1份薯条≈120g', '1小块披萨≈150g']
+  },
+  '饮料': {
+    uncertaintyBonus: 2,
+    foodShape: 'liquid',
+    defaultUnderestimationRisk: 'none',
+    isHighDensity: false,
+    commonPresets: ['1小杯≈200ml', '1中杯≈400ml', '1大杯≈600ml', '1罐≈330ml']
+  },
+  '甜点': {
+    uncertaintyBonus: 12,
+    foodShape: 'solid_3d',
+    defaultUnderestimationRisk: 'high',
+    isHighDensity: true,
+    commonPresets: ['1小块蛋糕≈80g', '1个冰淇淋球≈60g', '3块饼干≈30g', '1条巧克力≈50g']
+  },
+  '豆制品': {
+    uncertaintyBonus: 12,
+    foodShape: 'solid_3d',
+    defaultUnderestimationRisk: 'medium',
+    isHighDensity: false,
+    commonPresets: ['1块豆腐≈150g', '半块豆腐≈80g']
+  },
+  '坚果': {
+    uncertaintyBonus: 8,
+    foodShape: 'irregular',
+    defaultUnderestimationRisk: 'critical',
+    isHighDensity: true,
+    commonPresets: ['1小把≈15g', '1把≈30g', '1勺≈10g']
+  },
+};
+
+const DEFAULT_CATEGORY_CONFIG: CategoryConfig = {
+  uncertaintyBonus: 10,
+  foodShape: 'irregular',
+  defaultUnderestimationRisk: 'medium',
+  isHighDensity: false,
+  commonPresets: ['约100g', '约150g', '约200g']
 };
 
 type FoodDbEntry = {
@@ -267,14 +372,18 @@ export class FoodCalorieService {
     const confidencePenalty = Math.max(0, 100 - qualityScore) * 0.35;
     const baseUncertainty = REFERENCE_UNCERTAINTY[referenceObj];
     const qualityUncertaintyBonus = Math.max(0, 100 - qualityScore) * 0.25;
+    const angleForeshorteningRisk = qualityScore < 70 ? 0.15 : 0.05;
 
     return pickedFoods.map((food, idx) => {
+      const catConfig = CATEGORY_CONFIG[food.category] || DEFAULT_CATEGORY_CONFIG;
       const portion = this.pickOne(PORTION_SIZES, rand);
       const portionGrams = Math.floor(rand() * (portion.grams[1] - portion.grams[0])) + portion.grams[0];
       const gramFactor = portionGrams / 100;
       const baseConfidence = Math.floor(rand() * 15) + 85;
+
+      const categoryUncertainty = catConfig.uncertaintyBonus;
       const portionUncertainty = Math.round(
-        Math.min(60, baseUncertainty + qualityUncertaintyBonus + (rand() * 10 - 5))
+        Math.min(65, baseUncertainty + qualityUncertaintyBonus + categoryUncertainty + (rand() * 10 - 5))
       );
       const uncertaintyFactor = portionUncertainty / 100;
 
@@ -282,6 +391,24 @@ export class FoodCalorieService {
       const protein = Math.round(food.protein * gramFactor * 10) / 10;
       const carbs = Math.round(food.carbs * gramFactor * 10) / 10;
       const fat = Math.round(food.fat * gramFactor * 10) / 10;
+      const calorieDensity = food.calories;
+
+      let underestimationRisk = catConfig.defaultUnderestimationRisk;
+      if (catConfig.isHighDensity && portionUncertainty >= 35) {
+        underestimationRisk = 'critical';
+      } else if (catConfig.isHighDensity && portionUncertainty >= 25) {
+        underestimationRisk = 'high';
+      }
+
+      let minFactor = 1 - uncertaintyFactor;
+      let maxFactor = 1 + uncertaintyFactor;
+      const asymmetry: FoodItem['portionUncertaintyAsymmetry'] =
+        catConfig.foodShape === 'solid_3d' && qualityScore < 75 ? 'underestimation_risk' : 'symmetric';
+
+      if (asymmetry === 'underestimation_risk') {
+        minFactor = 1 - uncertaintyFactor * (1 + angleForeshorteningRisk);
+        maxFactor = 1 + uncertaintyFactor * (1 - angleForeshorteningRisk * 0.5);
+      }
 
       return {
         id: `food-${idx}`,
@@ -290,10 +417,11 @@ export class FoodCalorieService {
         portion: `${portion.label}（约 ${portionGrams}g）`,
         portionGrams,
         portionUncertainty,
-        confidence: Math.max(50, Math.floor(baseConfidence - confidencePenalty)),
+        portionUncertaintyAsymmetry: asymmetry,
+        confidence: Math.max(50, Math.floor(baseConfidence - confidencePenalty - (catConfig.foodShape === 'solid_3d' ? 8 : 0))),
         calories,
-        caloriesMin: Math.max(1, Math.round(calories * (1 - uncertaintyFactor))),
-        caloriesMax: Math.round(calories * (1 + uncertaintyFactor)),
+        caloriesMin: Math.max(1, Math.round(calories * minFactor)),
+        caloriesMax: Math.round(calories * maxFactor),
         protein,
         carbs,
         fat,
@@ -305,6 +433,11 @@ export class FoodCalorieService {
         proteinPer100g: food.protein,
         carbsPer100g: food.carbs,
         fatPer100g: food.fat,
+        foodShape: catConfig.foodShape,
+        isHighDensity: catConfig.isHighDensity || calorieDensity >= 250,
+        calorieDensity,
+        underestimationRisk,
+        portionPresetHints: catConfig.commonPresets,
       };
     });
   }
@@ -319,6 +452,19 @@ export class FoodCalorieService {
     const totalFiber = items.reduce((sum, i) => sum + (i.fiber || 0), 0);
     const totalSugar = items.reduce((sum, i) => sum + (i.sugar || 0), 0);
     const avgUncertainty = items.reduce((sum, i) => sum + i.portionUncertainty, 0) / (items.length || 1);
+    const highRiskFoods = items.filter(i =>
+      i.underestimationRisk === 'high' || i.underestimationRisk === 'critical'
+    );
+    const hasHighUnderestimationRisk = highRiskFoods.length > 0;
+
+    let reliability: NutritionSummary['dailyStatsReliability'] = 'reliable';
+    if (avgUncertainty >= 45 || highRiskFoods.length >= 2) {
+      reliability = 'unreliable';
+    } else if (avgUncertainty >= 30 || highRiskFoods.length >= 1) {
+      reliability = 'uncertain';
+    } else if (avgUncertainty >= 20) {
+      reliability = 'acceptable';
+    }
 
     const proteinKcal = totalProtein * 4;
     const carbsKcal = totalCarbs * 4;
@@ -338,6 +484,9 @@ export class FoodCalorieService {
       carbsRatio: Math.round((carbsKcal / totalKcal) * 100),
       fatRatio: Math.round((fatKcal / totalKcal) * 100),
       estimationUncertainty: Math.round(avgUncertainty),
+      hasHighUnderestimationRisk,
+      highRiskFoodCount: highRiskFoods.length,
+      dailyStatsReliability: reliability,
     };
   }
 
@@ -567,6 +716,34 @@ export class FoodCalorieService {
     } else if (refObj === 'none') {
       qualityWarnings.unshift(
         '当前未选择参照物，份量估算误差较大（±30%~40%）。建议选择下方参照物（餐盘/手机/手掌等）以提高准确度，或手动调整每种食物的份量。'
+      );
+    }
+
+    const solid3dFoods = foodItems.filter(f => f.foodShape === 'solid_3d');
+    if (solid3dFoods.length > 0 && qualityScore < 80) {
+      const names = solid3dFoods.map(f => f.name).join('、');
+      qualityWarnings.unshift(
+        `检测到「${names}」等立体固体食物，拍摄角度可能导致厚度被压缩，实际份量可能比估算值高出 30%~80%。强烈建议使用「厚度系数」滑块手动调整或选择参照物校准。`
+      );
+    }
+
+    if (nutritionSummary.hasHighUnderestimationRisk) {
+      const highRiskNames = foodItems
+        .filter(f => f.underestimationRisk === 'high' || f.underestimationRisk === 'critical')
+        .map(f => f.name)
+        .join('、');
+      qualityWarnings.unshift(
+        `⚠️ 「${highRiskNames}」属于高热量/高蛋白密度食物，份量低估将导致热量统计严重偏差。以鸡胸肉为例：100g 与 200g 的热量差超过 130 大卡，相当于多吃了 1 碗米饭。请务必手动确认份量！`
+      );
+    }
+
+    if (nutritionSummary.dailyStatsReliability === 'unreliable') {
+      qualityWarnings.unshift(
+        `🚨 本次识别整体可靠性较低，高误差食物达 ${nutritionSummary.highRiskFoodCount} 种，平均误差 ±${nutritionSummary.estimationUncertainty}%。当日累计热量统计可能偏差数百大卡，不建议作为严格饮食管理的依据。`
+      );
+    } else if (nutritionSummary.dailyStatsReliability === 'uncertain') {
+      qualityWarnings.unshift(
+        `本次识别存在一定不确定性，建议手动调整每种食物的份量滑块，以获得更可靠的热量统计结果。`
       );
     }
 

@@ -502,6 +502,20 @@
                     误差 ±{{ adjustedNutrition.estimationUncertainty }}%
                   </el-tag>
                 </div>
+                <div class="calories-reliability" v-if="resultReady && adjustedNutrition.dailyStatsReliability !== 'reliable'">
+                  <el-tag
+                    size="small"
+                    :type="RELIABILITY_STYLE[adjustedNutrition.dailyStatsReliability].type"
+                    effect="dark"
+                    class="reliability-tag"
+                  >
+                    <el-icon :size="12"><InfoFilled /></el-icon>
+                    {{ RELIABILITY_STYLE[adjustedNutrition.dailyStatsReliability].label }}
+                  </el-tag>
+                  <span class="reliability-hint" v-if="adjustedNutrition.dailyStatsReliability === 'unreliable' || adjustedNutrition.dailyStatsReliability === 'uncertain'">
+                    热量统计可能存在较大偏差，请手动确认份量
+                  </span>
+                </div>
                 <div class="calories-label">本餐总热量</div>
               </div>
             </div>
@@ -594,24 +608,70 @@
                 v-for="item in adjustedFoodItems"
                 :key="item.id"
                 class="food-item-card"
+                :class="{ 'food-item-high-risk': item.underestimationRisk === 'high' || item.underestimationRisk === 'critical' }"
               >
                 <div class="food-item-header">
                   <div class="food-name-row">
                     <span class="food-name">{{ item.name }}</span>
                     <el-tag size="small" class="food-category">{{ item.category }}</el-tag>
+                    <el-tooltip
+                      v-if="item.underestimationRisk !== 'none' && item.underestimationRisk !== 'low'"
+                      :content="item.portionUncertaintyAsymmetry === 'underestimation_risk' ? '拍摄角度可能导致厚度压缩，实际份量容易被低估' : '份量估算存在不确定性'"
+                      placement="top"
+                    >
+                      <el-tag
+                        size="small"
+                        :type="UNDERESTIMATION_RISK_STYLE[item.underestimationRisk].type"
+                        effect="dark"
+                        class="risk-tag"
+                      >
+                        <el-icon :size="12"><WarningFilled /></el-icon>
+                        {{ UNDERESTIMATION_RISK_STYLE[item.underestimationRisk].label }}
+                      </el-tag>
+                    </el-tooltip>
                   </div>
                   <el-tag size="small" type="success" class="confidence-tag">
                     {{ item.confidence }}%
                   </el-tag>
                 </div>
 
+                <el-alert
+                  v-if="item.underestimationRisk === 'critical' || item.underestimationRisk === 'high'"
+                  :type="item.underestimationRisk === 'critical' ? 'error' : 'warning'"
+                  :closable="false"
+                  show-icon
+                  class="food-risk-alert"
+                >
+                  <template #title>
+                    <strong>{{ item.underestimationRisk === 'critical' ? '严重低估风险' : '高度低估风险' }}</strong>
+                  </template>
+                  <span v-if="item.portionUncertaintyAsymmetry === 'underestimation_risk'">
+                    {{ item.name }} 属于立体块状食物，拍摄角度容易导致厚度视觉压缩。
+                    <b>实测 150g 可能被系统低估为 100g，热量差可达 60~100 大卡！</b>
+                    建议使用下方「厚度系数」或「常见份量预设」修正。
+                  </span>
+                  <span v-else>
+                    {{ item.name }} 热量密度较高，份量偏差对总热量影响显著，建议手动确认。
+                  </span>
+                </el-alert>
+
                 <div class="food-calories-row">
                   <div class="food-calories">
                     <el-icon :size="14" color="#f56c6c"><Flame /></el-icon>
                     <span class="food-calories-main">{{ item.adjustedCalories }} 大卡</span>
-                    <span class="food-calories-range">
+                    <span class="food-calories-range" :class="{ 'asymmetric-range': item.portionUncertaintyAsymmetry === 'underestimation_risk' }">
                       ({{ item.adjustedCaloriesMin }} ~ {{ item.adjustedCaloriesMax }})
                     </span>
+                    <el-tag
+                      v-if="item.portionUncertaintyAsymmetry === 'underestimation_risk'"
+                      size="small"
+                      type="danger"
+                      effect="plain"
+                      class="asymmetry-tag"
+                    >
+                      <el-icon :size="11"><TrendCharts /></el-icon>
+                      易低估
+                    </el-tag>
                   </div>
                   <el-tag
                     size="small"
@@ -642,6 +702,10 @@
                       :style="{ color: item.giIndex >= 70 ? '#f56c6c' : item.giIndex >= 55 ? '#e6a23c' : '#67c23a' }"
                     >{{ item.giIndex }}</span>
                   </div>
+                  <div class="food-macro" v-if="item.isHighDensity">
+                    <span class="food-macro-label">热量密度</span>
+                    <span class="food-macro-value" style="color:#f56c6c">{{ item.calorieDensity }} kcal/100g</span>
+                  </div>
                 </div>
 
                 <div class="portion-control-section">
@@ -655,13 +719,27 @@
                         v-for="preset in portionPresets"
                         :key="preset.value"
                         size="small"
-                        :type="item.adjustedGrams === Math.round(item.originalGrams * preset.value) ? 'primary' : 'default'"
+                        :type="Math.abs(item.adjustedGrams - Math.round(item.originalGrams * preset.value)) < 5 && Math.abs(item.thicknessFactor - 1) < 0.01 ? 'primary' : 'default'"
                         plain
                         @click="setPortionPreset(item.id, preset.value)"
                       >
                         {{ preset.label }}
                       </el-button>
                     </div>
+                  </div>
+
+                  <div class="portion-preset-hints" v-if="item.portionPresetHints && item.portionPresetHints.length > 0">
+                    <span class="preset-hint-label">常见份量：</span>
+                    <el-button
+                      v-for="hint in item.portionPresetHints.slice(0, 4)"
+                      :key="hint"
+                      size="small"
+                      type="success"
+                      plain
+                      @click="applyPresetHint(item.id, hint)"
+                    >
+                      {{ hint }}
+                    </el-button>
                   </div>
 
                   <div class="portion-slider-row">
@@ -678,15 +756,49 @@
                     <span class="portion-grams-label">g</span>
                   </div>
 
+                  <div
+                    v-if="item.foodShape === 'solid_3d'"
+                    class="thickness-control-section"
+                  >
+                    <div class="thickness-header">
+                      <span class="thickness-label">
+                        <el-icon :size="14" color="#e6a23c"><Box /></el-icon>
+                        厚度系数（补偿拍摄角度导致的厚度压缩）
+                      </span>
+                      <span class="thickness-value">× {{ item.thicknessFactor.toFixed(2) }}</span>
+                    </div>
+                    <div class="thickness-slider-row">
+                      <el-slider
+                        v-model="item.thicknessFactor"
+                        :min="0.5"
+                        :max="2.5"
+                        :step="0.05"
+                        :marks="{ 0.5: '薄', 1: '正常', 1.5: '较厚', 2: '很厚', 2.5: '极厚' }"
+                        class="thickness-slider"
+                        @change="updateFoodItemFromThickness(item.id)"
+                      />
+                    </div>
+                    <div class="thickness-hint">
+                      <el-tag size="small" type="info" effect="plain">看起来很薄？</el-tag>
+                      可能是拍摄角度导致的，可将厚度系数调至 1.3~1.8；
+                      <el-tag size="small" type="success" effect="plain">非常厚实？</el-tag>
+                      调至 1.8~2.5
+                    </div>
+                    <div class="effective-weight">
+                      实际估算重量：<b>{{ Math.round(item.adjustedGrams * item.thicknessFactor) }}g</b>
+                      （重量 × 厚度系数）
+                    </div>
+                  </div>
+
                   <div class="portion-compare-row">
-                    <span class="portion-original" v-if="Math.abs(item.adjustedGrams - item.originalGrams) > 5">
-                      AI 估算：{{ item.originalGrams }}g
+                    <span class="portion-original" v-if="Math.abs(item.adjustedGrams - item.originalGrams) > 5 || Math.abs(item.thicknessFactor - 1) > 0.01">
+                      AI 原始估算：{{ item.originalGrams }}g
                       <el-tag
                         size="small"
-                        :type="item.adjustedGrams > item.originalGrams ? 'warning' : 'success'"
+                        :type="(item.adjustedGrams * item.thicknessFactor) > item.originalGrams ? 'warning' : 'success'"
                         effect="plain"
                       >
-                        {{ item.adjustedGrams > item.originalGrams ? '+' : '' }}{{ item.adjustedGrams - item.originalGrams }}g
+                        {{ (item.adjustedGrams * item.thicknessFactor) > item.originalGrams ? '+' : '' }}{{ Math.round(item.adjustedGrams * item.thicknessFactor - item.originalGrams) }}g
                       </el-tag>
                     </span>
                     <span class="portion-per-100g">
@@ -912,7 +1024,8 @@ import {
   Iphone,
   Hand,
   Coin,
-  InfoFilled
+  InfoFilled,
+  Box
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
@@ -1027,6 +1140,22 @@ interface AdjustedFoodItem extends FoodItem {
   adjustedProtein: number
   adjustedCarbs: number
   adjustedFat: number
+  thicknessFactor: number
+}
+
+const UNDERESTIMATION_RISK_STYLE: Record<string, { label: string; type: 'success' | 'info' | 'warning' | 'danger'; color: string }> = {
+  none: { label: '低估风险低', type: 'success', color: '#67c23a' },
+  low: { label: '低估风险较低', type: 'info', color: '#909399' },
+  medium: { label: '有低估风险', type: 'warning', color: '#e6a23c' },
+  high: { label: '低估风险高', type: 'warning', color: '#f56c6c' },
+  critical: { label: '严重低估风险', type: 'danger', color: '#f56c6c' }
+}
+
+const RELIABILITY_STYLE: Record<string, { label: string; type: 'success' | 'info' | 'warning' | 'danger'; color: string }> = {
+  reliable: { label: '数据可靠', type: 'success', color: '#67c23a' },
+  acceptable: { label: '基本可信', type: 'info', color: '#165DFF' },
+  uncertain: { label: '存在偏差', type: 'warning', color: '#e6a23c' },
+  unreliable: { label: '仅供参考', type: 'danger', color: '#f56c6c' }
 }
 
 const adjustedFoodItems = ref<AdjustedFoodItem[]>([])
@@ -1034,25 +1163,27 @@ const adjustedFoodItems = ref<AdjustedFoodItem[]>([])
 const initAdjustedFoodItems = (items: FoodItem[]): AdjustedFoodItem[] => {
   return items.map(item => {
     const gramFactor = item.portionGrams / 100
+    const uncertaintyFactor = item.portionUncertainty / 100
     return {
       ...item,
       adjustedGrams: item.portionGrams,
       originalGrams: item.portionGrams,
+      thicknessFactor: 1,
       adjustedCalories: item.calories,
       adjustedCaloriesMin: item.caloriesMin,
       adjustedCaloriesMax: item.caloriesMax,
       adjustedProtein: Math.round(item.protein * 10) / 10,
       adjustedCarbs: Math.round(item.carbs * 10) / 10,
-      adjustedFat: Math.round(item.fat * 10) / 10,
-      _gramFactor: gramFactor
+      adjustedFat: Math.round(item.fat * 10) / 10
     }
   }) as AdjustedFoodItem[]
 }
 
-const adjustedNutrition = computed<NutritionSummary & { totalCaloriesMin: number; totalCaloriesMax: number }>(() => {
+const adjustedNutrition = computed<NutritionSummary>(() => {
   if (!recognitionResult.value && adjustedFoodItems.value.length === 0) {
     return {
-      totalCalories: 0, totalCaloriesMin: 0, totalCaloriesMax: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0, totalFiber: 0, totalSugar: 0, proteinRatio: 0, carbsRatio: 0, fatRatio: 0, estimationUncertainty: 0
+      totalCalories: 0, totalCaloriesMin: 0, totalCaloriesMax: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0, totalFiber: 0, totalSugar: 0, proteinRatio: 0, carbsRatio: 0, fatRatio: 0, estimationUncertainty: 0,
+      hasHighUnderestimationRisk: false, highRiskFoodCount: 0, dailyStatsReliability: 'reliable'
     }
   }
   const items = adjustedFoodItems.value
@@ -1067,6 +1198,16 @@ const adjustedNutrition = computed<NutritionSummary & { totalCaloriesMin: number
   const avgUncertainty = items.length > 0
     ? items.reduce((s, i) => s + i.portionUncertainty, 0) / items.length
     : (recognitionResult.value?.nutritionSummary.estimationUncertainty || 25)
+  const highRiskFoods = items.filter(i => i.underestimationRisk === 'high' || i.underestimationRisk === 'critical')
+
+  let reliability: NutritionSummary['dailyStatsReliability'] = 'reliable'
+  if (avgUncertainty >= 45 || highRiskFoods.length >= 2) {
+    reliability = 'unreliable'
+  } else if (avgUncertainty >= 30 || highRiskFoods.length >= 1) {
+    reliability = 'uncertain'
+  } else if (avgUncertainty >= 20) {
+    reliability = 'acceptable'
+  }
 
   const proteinKcal = totalProtein * 4
   const carbsKcal = totalCarbs * 4
@@ -1085,14 +1226,16 @@ const adjustedNutrition = computed<NutritionSummary & { totalCaloriesMin: number
     proteinRatio: Math.round((proteinKcal / totalKcal) * 100),
     carbsRatio: Math.round((carbsKcal / totalKcal) * 100),
     fatRatio: Math.round((fatKcal / totalKcal) * 100),
-    estimationUncertainty: Math.round(avgUncertainty)
+    estimationUncertainty: Math.round(avgUncertainty),
+    hasHighUnderestimationRisk: highRiskFoods.length > 0,
+    highRiskFoodCount: highRiskFoods.length,
+    dailyStatsReliability: reliability
   }
 })
 
-const updateFoodItemFromGrams = (id: string) => {
-  const item = adjustedFoodItems.value.find(i => i.id === id)
-  if (!item) return
-  const gramFactor = item.adjustedGrams / 100
+const recalcFoodItemNutrition = (item: AdjustedFoodItem) => {
+  const effectiveGrams = item.adjustedGrams * item.thicknessFactor
+  const gramFactor = effectiveGrams / 100
   const uncertaintyFactor = item.portionUncertainty / 100
   item.adjustedCalories = Math.round(item.caloriesPer100g * gramFactor)
   item.adjustedProtein = Math.round(item.proteinPer100g * gramFactor * 10) / 10
@@ -1102,15 +1245,32 @@ const updateFoodItemFromGrams = (id: string) => {
   item.adjustedCaloriesMax = Math.round(item.adjustedCalories * (1 + uncertaintyFactor))
 }
 
-const setPortionPreset = (id: string, multiplier: number) => {
+const updateFoodItemFromGrams = (id: string) => {
   const item = adjustedFoodItems.value.find(i => i.id === id)
   if (!item) return
-  item.adjustedGrams = Math.round(item.originalGrams * multiplier)
-  updateFoodItemFromGrams(id)
+  recalcFoodItemNutrition(item)
 }
 
-const watchFoodPortionChange = (id: string) => {
-  updateFoodItemFromGrams(id)
+const updateFoodItemFromThickness = (id: string) => {
+  const item = adjustedFoodItems.value.find(i => i.id === id)
+  if (!item) return
+  recalcFoodItemNutrition(item)
+}
+
+const parsePresetGrams = (hint: string): number | null => {
+  const match = hint.match(/(\d+)\s*g/)
+  return match ? parseInt(match[1], 10) : null
+}
+
+const applyPresetHint = (id: string, hint: string) => {
+  const item = adjustedFoodItems.value.find(i => i.id === id)
+  if (!item) return
+  const grams = parsePresetGrams(hint)
+  if (grams) {
+    item.adjustedGrams = grams
+    recalcFoodItemNutrition(item)
+    ElMessage.success(`已应用预设：${hint}`)
+  }
 }
 
 const loadHistory = () => {
@@ -2245,5 +2405,125 @@ const recognizeFood = async () => {
 
 .disclaimer-alert :deep(.el-alert__content) {
   width: 100%;
+}
+
+.risk-tag {
+  margin-left: 6px;
+}
+
+.food-item-card.food-item-high-risk {
+  border-color: #fbc4c4;
+  background: linear-gradient(to bottom, #fef0f0, #ffffff);
+}
+
+.food-risk-alert {
+  margin: 8px 0 14px;
+}
+
+.food-risk-alert :deep(.el-alert__content) {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.asymmetric-range {
+  color: #f56c6c;
+  font-weight: 500;
+}
+
+.asymmetry-tag {
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+.portion-preset-hints {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.preset-hint-label {
+  font-size: 12px;
+  color: #909399;
+  flex-shrink: 0;
+}
+
+.thickness-control-section {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed #e4e7ed;
+}
+
+.thickness-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.thickness-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #606266;
+}
+
+.thickness-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e6a23c;
+}
+
+.thickness-slider {
+  margin: 4px 0;
+}
+
+.thickness-hint {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+  line-height: 1.6;
+}
+
+.thickness-hint :deep(.el-tag) {
+  margin-right: 4px;
+}
+
+.effective-weight {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #fdf6ec;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #906b0f;
+}
+
+.effective-weight b {
+  color: #b88230;
+  font-size: 15px;
+  margin: 0 4px;
+}
+
+.calories-reliability {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  flex-wrap: wrap;
+}
+
+.reliability-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reliability-hint {
+  font-size: 12px;
+  color: #f56c6c;
+  font-weight: 500;
 }
 </style>

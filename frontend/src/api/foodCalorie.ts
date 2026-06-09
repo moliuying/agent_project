@@ -35,6 +35,7 @@ export interface FoodItem {
   portion: string
   portionGrams: number
   portionUncertainty: number
+  portionUncertaintyAsymmetry: 'symmetric' | 'underestimation_risk' | 'overestimation_risk'
   confidence: number
   calories: number
   caloriesMin: number
@@ -50,6 +51,11 @@ export interface FoodItem {
   proteinPer100g: number
   carbsPer100g: number
   fatPer100g: number
+  foodShape: 'solid_3d' | 'flat' | 'liquid' | 'irregular'
+  isHighDensity: boolean
+  calorieDensity: number
+  underestimationRisk: 'none' | 'low' | 'medium' | 'high' | 'critical'
+  portionPresetHints: string[]
 }
 
 export interface NutritionSummary {
@@ -65,6 +71,9 @@ export interface NutritionSummary {
   carbsRatio: number
   fatRatio: number
   estimationUncertainty: number
+  hasHighUnderestimationRisk: boolean
+  highRiskFoodCount: number
+  dailyStatsReliability: 'reliable' | 'acceptable' | 'uncertain' | 'unreliable'
 }
 
 export interface DietAdvice {
