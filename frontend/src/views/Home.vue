@@ -223,6 +223,15 @@
                 <p>AI智能问答·百科知识·趣味冷知识</p>
               </el-card>
             </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/dinosaur-qa')" class="feature-card">
+                <el-icon :size="40" color="#165DFF">
+                  <Reading />
+                </el-icon>
+                <h3>恐龙知识问答</h3>
+                <p>AI古生物专家·科普学习·亲子教育</p>
+              </el-card>
+            </el-col>
           </el-row>
         </div>
       </div>

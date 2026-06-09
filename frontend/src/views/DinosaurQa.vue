@@ -1,0 +1,699 @@
+<template>
+  <div class="dinosaur-qa">
+    <el-card class="intro-card">
+      <template #header>
+        <div class="card-header">
+          <el-icon :size="22" color="#13c2c2"><Reading /></el-icon>
+          <span>恐龙知识问答</span>
+          <el-tag type="success" size="small" effect="dark" class="header-tag">
+            <el-icon style="margin-right: 4px;"><Cpu /></el-icon>
+            AI 古生物专家
+          </el-tag>
+        </div>
+      </template>
+      <div class="intro-content">
+        <div class="intro-icon">🦕</div>
+        <h2>探索史前世界的奥秘</h2>
+        <p>输入关于恐龙的问题，AI 古生物专家将为你提供专业准确且通俗易懂的解答。适用于科普学习、亲子教育、知识竞赛准备等场景。</p>
+        <el-row :gutter="16" class="feature-row">
+          <el-col :xs="12" :sm="6">
+            <div class="feature-item">
+              <div class="fi-icon">🔬</div>
+              <h4>专业知识</h4>
+              <p>基于古生物学研究成果</p>
+            </div>
+          </el-col>
+          <el-col :xs="12" :sm="6">
+            <div class="feature-item">
+              <div class="fi-icon">📖</div>
+              <h4>通俗易懂</h4>
+              <p>适合各年龄段阅读</p>
+            </div>
+          </el-col>
+          <el-col :xs="12" :sm="6">
+            <div class="feature-item">
+              <div class="fi-icon">👨‍👩‍👧</div>
+              <h4>亲子教育</h4>
+              <p>激发孩子探索兴趣</p>
+            </div>
+          </el-col>
+          <el-col :xs="12" :sm="6">
+            <div class="feature-item">
+              <div class="fi-icon">🏆</div>
+              <h4>知识竞赛</h4>
+              <p>快速积累恐龙知识</p>
+            </div>
+          </el-col>
+        </el-row>
+      </div>
+    </el-card>
+
+    <el-card class="chat-card" v-loading="loading">
+      <template #header>
+        <div class="chat-header">
+          <div class="chat-title">
+            <el-icon :size="20" color="#165DFF"><ChatDotRound /></el-icon>
+            <span>对话区</span>
+            <el-tag size="small" type="info">第 {{ messages.length > 0 ? Math.ceil(messages.length / 2) : 0 }} 轮</el-tag>
+          </div>
+          <div class="chat-actions">
+            <el-button size="small" @click="clearChat">
+              <el-icon><Delete /></el-icon>
+              清空对话
+            </el-button>
+          </div>
+        </div>
+      </template>
+
+      <div v-if="suggestedQuestions.length > 0 && messages.length === 0" class="suggested-section">
+        <div class="suggested-title">
+          <el-icon><Bulb /></el-icon>
+          <span>试试这些问题：</span>
+        </div>
+        <div class="suggested-buttons">
+          <el-tag
+            v-for="q in suggestedQuestions"
+            :key="q"
+            class="suggested-tag"
+            effect="plain"
+            type="info"
+            @click="askQuestion(q)"
+          >
+            {{ q }}
+          </el-tag>
+        </div>
+      </div>
+
+      <div class="chat-container" ref="chatContainerRef">
+        <div
+          v-for="msg in messages"
+          :key="msg.id"
+          class="chat-item"
+          :class="msg.role"
+        >
+          <div class="avatar">
+            <el-avatar :size="40" :class="msg.role">
+              <el-icon v-if="msg.role === 'ai'" :size="22"><Cpu /></el-icon>
+              <el-icon v-else :size="22"><User /></el-icon>
+            </el-avatar>
+          </div>
+          <div class="bubble-wrapper">
+            <div class="bubble">
+              <div class="bubble-content" v-html="formatAnswer(msg.content)"></div>
+            </div>
+            <div class="related-section" v-if="msg.relatedDinosaurs && msg.relatedDinosaurs.length > 0">
+              <div class="related-title">
+                <el-icon><Link /></el-icon>
+                <span>相关恐龙</span>
+              </div>
+              <div class="related-list">
+                <el-card
+                  v-for="dino in msg.relatedDinosaurs"
+                  :key="dino.name"
+                  class="related-dino-card"
+                  shadow="hover"
+                  @click="askQuestion(`介绍一下${dino.name}`)"
+                >
+                  <div class="dino-card-header">
+                    <span class="dino-name">{{ dino.name }}</span>
+                    <el-tag size="small" :type="getDietTagType(dino.diet)">
+                      {{ dino.diet }}
+                    </el-tag>
+                  </div>
+                  <div class="dino-name-en">{{ dino.nameEn }}</div>
+                  <div class="dino-meta">
+                    <span>🕐 {{ dino.period.split('（')[0] }}</span>
+                    <span>📍 {{ dino.location.split('（')[0] }}</span>
+                  </div>
+                  <div class="dino-size">
+                    <span>📏 {{ dino.length }}</span>
+                    <span>⚖️ {{ dino.weight }}</span>
+                  </div>
+                </el-card>
+              </div>
+            </div>
+            <div class="related-facts" v-if="msg.relatedFacts && msg.relatedFacts.length > 0">
+              <div class="facts-title">
+                <el-icon><Star /></el-icon>
+                <span>趣味知识</span>
+              </div>
+              <div class="facts-list">
+                <div v-for="(fact, idx) in msg.relatedFacts" :key="idx" class="fact-item">
+                  <el-icon color="#f59e0b"><Collection /></el-icon>
+                  <span>{{ fact.content }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
+          </div>
+        </div>
+
+        <div v-if="thinking" class="chat-item ai">
+          <div class="avatar">
+            <el-avatar :size="40" class="ai">
+              <el-icon :size="22"><Cpu /></el-icon>
+            </el-avatar>
+          </div>
+          <div class="bubble-wrapper">
+            <div class="bubble">
+              <div class="thinking-dots">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-section">
+        <el-input
+          v-model="userInput"
+          type="textarea"
+          :rows="2"
+          placeholder="输入你想问的恐龙问题，如：霸王龙真的视力很差吗？"
+          maxlength="200"
+          show-word-limit
+          resize="none"
+          @keydown.enter.exact.prevent="submitQuestion"
+        />
+        <el-button type="primary" size="large" @click="submitQuestion" :disabled="submitDisabled">
+          <el-icon><Promotion /></el-icon>
+          发送
+        </el-button>
+      </div>
+    </el-card>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, nextTick, onMounted } from 'vue'
+import {
+  Reading,
+  Cpu,
+  ChatDotRound,
+  Delete,
+  Bulb,
+  User,
+  Promotion,
+  Link,
+  Star,
+  Collection,
+} from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { dinosaurQaApi, type QaMessage, type DinosaurInfo } from '@/api/dinosaurQa'
+
+const loading = ref(false)
+const thinking = ref(false)
+const userInput = ref('')
+const messages = ref<QaMessage[]>([])
+const suggestedQuestions = ref<string[]>([])
+const chatContainerRef = ref<HTMLElement | null>(null)
+
+const submitDisabled = computed(() => {
+  return thinking.value || !userInput.value.trim()
+})
+
+const scrollToBottom = async () => {
+  await nextTick()
+  if (chatContainerRef.value) {
+    chatContainerRef.value.scrollTop = chatContainerRef.value.scrollHeight
+  }
+}
+
+const formatTime = (timestamp: number) => {
+  const date = new Date(timestamp)
+  return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+}
+
+const formatAnswer = (text: string) => {
+  let result = text
+  result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  result = result.replace(/\n/g, '<br>')
+  result = result.replace(/• /g, '&nbsp;&nbsp;• ')
+  return result
+}
+
+const getDietTagType = (diet: string): 'success' | 'warning' | 'info' => {
+  switch (diet) {
+    case '肉食': return 'danger' as any
+    case '植食': return 'success'
+    case '杂食': return 'warning'
+    default: return 'info'
+  }
+}
+
+const loadSuggestedQuestions = async () => {
+  try {
+    const res = await dinosaurQaApi.getSuggestedQuestions()
+    suggestedQuestions.value = res.data
+  } catch (e) {
+    suggestedQuestions.value = [
+      '霸王龙真的视力很差吗？',
+      '翼龙算恐龙吗？',
+      '恐龙为什么灭绝了？',
+    ]
+  }
+}
+
+const askQuestion = async (question: string) => {
+  userInput.value = question
+  await nextTick()
+  submitQuestion()
+}
+
+const submitQuestion = async () => {
+  const question = userInput.value.trim()
+  if (!question) {
+    ElMessage.warning('请输入问题')
+    return
+  }
+
+  const userMsg: QaMessage = {
+    id: Date.now(),
+    role: 'user',
+    content: question,
+    timestamp: Date.now(),
+  }
+  messages.value.push(userMsg)
+  userInput.value = ''
+  thinking.value = true
+  await scrollToBottom()
+
+  try {
+    const res = await dinosaurQaApi.ask(question)
+    const aiMsg: QaMessage = {
+      id: Date.now() + 1,
+      role: 'ai',
+      content: res.data.answer,
+      timestamp: Date.now(),
+      relatedDinosaurs: res.data.relatedDinosaurs,
+      relatedFacts: res.data.relatedFacts,
+    }
+    messages.value.push(aiMsg)
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || '获取回答失败，请重试')
+  } finally {
+    thinking.value = false
+    await scrollToBottom()
+  }
+}
+
+const clearChat = () => {
+  messages.value = []
+}
+
+onMounted(() => {
+  loadSuggestedQuestions()
+})
+</script>
+
+<style scoped>
+.dinosaur-qa {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.intro-card {
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #e6fffb 0%, #e6f7ff 50%, #f0f5ff 100%);
+  border: none;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.header-tag {
+  margin-left: 10px;
+}
+
+.intro-content {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.intro-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.intro-content h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #303133;
+}
+
+.intro-content > p {
+  color: #606266;
+  font-size: 14px;
+  max-width: 600px;
+  margin: 0 auto 24px;
+  line-height: 1.6;
+}
+
+.feature-row {
+  margin-top: 20px;
+}
+
+.feature-item {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.fi-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.feature-item h4 {
+  font-size: 15px;
+  margin-bottom: 4px;
+  color: #303133;
+}
+
+.feature-item p {
+  font-size: 12px;
+  color: #909399;
+  margin: 0;
+}
+
+.chat-card {
+  margin-bottom: 24px;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.chat-title .el-tag {
+  margin-left: 6px;
+  font-weight: normal;
+}
+
+.chat-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.suggested-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #f5f7fa 100%);
+  border-radius: 10px;
+}
+
+.suggested-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.suggested-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.suggested-tag {
+  cursor: pointer;
+  padding: 6px 14px;
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.suggested-tag:hover {
+  background: #165DFF;
+  color: #fff;
+  border-color: #165DFF;
+  transform: translateY(-1px);
+}
+
+.chat-container {
+  max-height: 550px;
+  overflow-y: auto;
+  padding: 16px;
+  background: #fafbfc;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  min-height: 200px;
+}
+
+.chat-item {
+  display: flex;
+  margin-bottom: 24px;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.chat-item:last-child {
+  margin-bottom: 0;
+}
+
+.chat-item.ai {
+  flex-direction: row;
+}
+
+.chat-item.user {
+  flex-direction: row-reverse;
+}
+
+.chat-item.user .bubble-wrapper {
+  align-items: flex-end;
+}
+
+.avatar .el-avatar {
+  flex-shrink: 0;
+}
+
+.avatar .el-avatar.ai {
+  background: linear-gradient(135deg, #13c2c2 0%, #165DFF 100%);
+}
+
+.avatar .el-avatar.user {
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+}
+
+.bubble-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 78%;
+  flex: 1;
+}
+
+.bubble {
+  padding: 14px 18px;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  line-height: 1.7;
+}
+
+.chat-item.ai .bubble {
+  background: #fff;
+  border: 1px solid #ebeef5;
+}
+
+.chat-item.user .bubble {
+  background: linear-gradient(135deg, #165DFF 0%, #4080ff 100%);
+  color: #fff;
+}
+
+.chat-item.user .bubble-content {
+  color: #fff;
+}
+
+.bubble-content {
+  font-size: 14px;
+  color: #303133;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.bubble-content strong {
+  color: #165DFF;
+  font-weight: 700;
+}
+
+.chat-item.user .bubble-content strong {
+  color: #ffe066;
+}
+
+.related-section {
+  width: 100%;
+}
+
+.related-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+
+.related-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.related-dino-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.related-dino-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(22, 93, 255, 0.15);
+}
+
+.related-dino-card :deep(.el-card__body) {
+  padding: 12px;
+}
+
+.dino-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.dino-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #303133;
+}
+
+.dino-name-en {
+  font-size: 12px;
+  color: #909399;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.dino-meta,
+.dino-size {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #606266;
+  line-height: 1.8;
+}
+
+.related-facts {
+  width: 100%;
+  background: linear-gradient(135deg, #fffbe6 0%, #fff7e6 100%);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.facts-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #b88230;
+  margin-bottom: 8px;
+}
+
+.facts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: #8c6d1f;
+  line-height: 1.6;
+}
+
+.fact-item .el-icon {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.message-time {
+  font-size: 11px;
+  color: #c0c4cc;
+  padding: 0 4px;
+}
+
+.thinking-dots {
+  display: flex;
+  gap: 6px;
+  padding: 6px 4px;
+}
+
+.thinking-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c0c4cc;
+  animation: thinking 1.4s ease-in-out infinite both;
+}
+
+.thinking-dots span:nth-child(1) { animation-delay: -0.32s; }
+.thinking-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes thinking {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.input-section {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.input-section :deep(.el-textarea__inner) {
+  font-size: 14px;
+  line-height: 1.6;
+}
+</style>

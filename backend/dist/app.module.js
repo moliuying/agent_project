@@ -21,6 +21,13 @@ const image_to_prompt_module_1 = require("./image-to-prompt/image-to-prompt.modu
 const idiom_chain_module_1 = require("./idiom-chain/idiom-chain.module");
 const formula_recognition_module_1 = require("./formula-recognition/formula-recognition.module");
 const picture_writing_module_1 = require("./picture-writing/picture-writing.module");
+const word_ocr_module_1 = require("./word-ocr/word-ocr.module");
+const english_conversation_module_1 = require("./english-conversation/english-conversation.module");
+const poetry_recommendation_module_1 = require("./poetry-recommendation/poetry-recommendation.module");
+const scene_english_module_1 = require("./scene-english/scene-english.module");
+const outfit_recognition_module_1 = require("./outfit-recognition/outfit-recognition.module");
+const world_record_module_1 = require("./world-record/world-record.module");
+const dinosaur_qa_module_1 = require("./dinosaur-qa/dinosaur-qa.module");
 const path = require("path");
 let AppModule = class AppModule {
 };
@@ -44,6 +51,13 @@ AppModule = __decorate([
             idiom_chain_module_1.IdiomChainModule,
             formula_recognition_module_1.FormulaRecognitionModule,
             picture_writing_module_1.PictureWritingModule,
+            word_ocr_module_1.WordOcrModule,
+            english_conversation_module_1.EnglishConversationModule,
+            poetry_recommendation_module_1.PoetryRecommendationModule,
+            scene_english_module_1.SceneEnglishModule,
+            outfit_recognition_module_1.OutfitRecognitionModule,
+            world_record_module_1.WorldRecordModule,
+            dinosaur_qa_module_1.DinosaurQaModule,
         ],
     })
 ], AppModule);

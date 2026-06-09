@@ -140,6 +140,11 @@ const routes: RouteRecordRaw[] = [
         path: '/world-record',
         name: 'WorldRecord',
         component: () => import('@/views/WorldRecord.vue')
+      },
+      {
+        path: '/dinosaur-qa',
+        name: 'DinosaurQa',
+        component: () => import('@/views/DinosaurQa.vue')
       }
     ]
   }
