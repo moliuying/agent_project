@@ -155,6 +155,11 @@ const routes: RouteRecordRaw[] = [
         path: '/number-divination',
         name: 'NumberDivination',
         component: () => import('@/views/NumberDivination.vue')
+      },
+      {
+        path: '/literature-qa',
+        name: 'LiteratureQa',
+        component: () => import('@/views/LiteratureQa.vue')
       }
     ]
   }

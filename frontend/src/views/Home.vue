@@ -252,6 +252,15 @@
                 <p>输入1-1314数字·获得心灵启示</p>
               </el-card>
             </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/literature-qa')" class="feature-card">
+                <el-icon :size="40" color="#eb2f96">
+                  <Reading />
+                </el-icon>
+                <h3>文学作品问答</h3>
+                <p>文学解读·读书会讨论·阅读笔记</p>
+              </el-card>
+            </el-col>
           </el-row>
         </div>
       </div>

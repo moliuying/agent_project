@@ -20,6 +20,7 @@ import { OutfitRecognitionModule } from './outfit-recognition/outfit-recognition
 import { WorldRecordModule } from './world-record/world-record.module';
 import { DinosaurQaModule } from './dinosaur-qa/dinosaur-qa.module';
 import { FoodCalorieModule } from './food-calorie/food-calorie.module';
+import { LiteratureQaModule } from './literature-qa/literature-qa.module';
 import * as path from 'path';
 
 @Module({
@@ -49,6 +50,7 @@ import * as path from 'path';
     WorldRecordModule,
     DinosaurQaModule,
     FoodCalorieModule,
+    LiteratureQaModule,
   ],
 })
 export class AppModule {}
