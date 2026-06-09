@@ -1,42 +1,70 @@
 <template>
   <div class="number-divination">
-    <el-card class="guide-card">
+    <el-card class="quick-card" v-if="!isRevealing && !result">
       <template #header>
-        <div class="card-header">
-          <el-icon :size="20" color="#722ed1">
-            <InfoFilled />
+        <div class="card-header quick-header">
+          <el-icon :size="20" color="#eb2f96">
+            <Lightning />
           </el-icon>
-          <span>如何使用</span>
-          <el-tag size="small" type="warning" effect="light" class="header-tag">
-            新手必读 · 30秒上手
+          <span>快速体验</span>
+          <el-tag size="small" type="danger" effect="light" class="header-tag">
+            点一下，直接出结果
           </el-tag>
         </div>
       </template>
-      <el-steps :active="0" finish-status="wait" simple class="guide-steps">
-        <el-step title="1. 静心" description="深呼吸三次，让心情平静下来" />
-        <el-step title="2. 默念" description="在心中默念你的问题或困惑" />
-        <el-step title="3. 选号" description="凭直觉选择一个数字（下方有多种方式）" />
-        <el-step title="4. 启示" description="点击「开始占卜」，接收属于你的答案" />
-      </el-steps>
-      <el-alert type="info" :closable="false" class="philosophy-alert" show-icon>
-        <template #title>
-          <strong>关于数字的意义</strong>
-        </template>
-        <p class="philosophy-text">
-          1-1314 之间的每一个数字都有独特的能量。你不必纠结"选对选错"——<strong>凭直觉选的那个数字，就是此刻与你心灵共振的答案</strong>。
-          无论是生日、纪念日、幸运数字，还是随手输入的数字，都是宇宙与你对话的方式。
-        </p>
-      </el-alert>
+
+      <div class="quick-grid">
+        <div class="quick-item quick-today" @click="quickDivine('today')">
+          <div class="quick-badge">每日更新</div>
+          <div class="quick-icon">📅</div>
+          <div class="quick-title">今日灵数</div>
+          <div class="quick-number">{{ todayNumber }}</div>
+          <div class="quick-action">点我直接占卜 →</div>
+        </div>
+
+        <div class="quick-item quick-random" @click="quickDivine('random')">
+          <div class="quick-badge">零思考</div>
+          <div class="quick-icon">🎲</div>
+          <div class="quick-title">随便给我一个</div>
+          <div class="quick-number">?</div>
+          <div class="quick-action">听天由命 →</div>
+        </div>
+
+        <div class="quick-item quick-mood" @click="scrollToMood">
+          <div class="quick-badge">最懂你</div>
+          <div class="quick-icon">💭</div>
+          <div class="quick-title">按心情选</div>
+          <div class="quick-number">8种</div>
+          <div class="quick-action">选择心情 ↓</div>
+        </div>
+      </div>
+
+      <el-divider content-position="center">
+        <span class="divider-text">或选一个幸运数字</span>
+      </el-divider>
+
+      <div class="quick-numbers">
+        <div
+          v-for="num in popularNumbers"
+          :key="num.value"
+          class="quick-num-btn"
+          :class="num.type"
+          @click="quickDivine(num.value)"
+        >
+          <span class="q-num">{{ num.value }}</span>
+          <span class="q-label">{{ num.label }}</span>
+        </div>
+      </div>
     </el-card>
 
-    <el-card class="picker-card">
+    <el-card class="picker-card" v-if="!isRevealing && !result">
       <template #header>
         <div class="card-header">
-          <el-icon :size="20" color="#eb2f96">
+          <el-icon :size="20" color="#722ed1">
             <MagicStick />
           </el-icon>
-          <span>选择你的数字</span>
-          <span class="picker-subtitle">6 种选号方式，选一个最有感觉的</span>
+          <span>更多选号方式</span>
+          <span class="picker-subtitle">想认真选一个？这里有 6 种方式</span>
         </div>
       </template>
 
@@ -49,18 +77,18 @@
             </span>
           </template>
           <div class="mood-section">
-            <p class="section-tip">选择最符合你此刻心情的选项，系统会为你生成对应的灵数</p>
+            <p class="section-tip">点击最符合你此刻心情的卡片，<strong>立即开始占卜</strong></p>
             <div class="mood-grid">
               <div
                 v-for="mood in moodOptions"
                 :key="mood.key"
                 class="mood-card"
-                :class="{ active: selectedMood === mood.key }"
                 @click="pickByMood(mood)"
               >
                 <div class="mood-emoji">{{ mood.emoji }}</div>
                 <div class="mood-label">{{ mood.label }}</div>
-                <div class="mood-number">{{ mood.number }}</div>
+                <div class="mood-number">#{{ mood.number }}</div>
+                <div class="mood-hint">点我占卜</div>
               </div>
             </div>
           </div>
@@ -79,8 +107,8 @@
               <div class="today-number">{{ todayNumber }}</div>
               <div class="today-label">今日专属灵数</div>
               <div class="today-desc">根据今日日期计算，代表这一天的宇宙能量</div>
-              <el-button type="primary" :icon="MagicStick" @click="selectTodayNumber">
-                使用今日灵数
+              <el-button type="primary" size="large" :icon="MagicStick" @click="quickDivine('today')">
+                ✨ 用这个数，立即占卜
               </el-button>
             </div>
             <div class="today-tip">
@@ -98,7 +126,7 @@
             </span>
           </template>
           <div class="birthday-section">
-            <p class="section-tip">输入你的出生日期，计算你的生命灵数</p>
+            <p class="section-tip">输入你的出生日期，计算你的生命灵数，<strong>一键占卜</strong></p>
             <el-form :inline="true" class="birthday-form">
               <el-form-item label="出生日期">
                 <el-date-picker
@@ -112,8 +140,8 @@
                 />
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" :icon="MagicStick" @click="pickByBirthday" :disabled="!birthday">
-                  计算生命灵数
+                <el-button type="primary" :icon="MagicStick" @click="pickByBirthdayAndDivine" :disabled="!birthday">
+                  计算生命灵数并占卜
                 </el-button>
               </el-form-item>
             </el-form>
@@ -121,9 +149,6 @@
               <div class="birthday-number">{{ birthdayNumber }}</div>
               <div class="birthday-label">你的生命灵数</div>
               <div class="birthday-meaning">{{ birthdayMeaning }}</div>
-              <el-button type="primary" plain :icon="Check" @click="selectBirthdayNumber">
-                就用这个数字
-              </el-button>
             </div>
           </div>
         </el-tab-pane>
@@ -136,18 +161,19 @@
             </span>
           </template>
           <div class="special-section">
-            <p class="section-tip">这些数字在文化中有特殊含义，选一个与你有缘的</p>
+            <p class="section-tip">这些数字在文化中有特殊含义，<strong>点击任意卡片直接占卜</strong></p>
             <div class="special-grid">
               <div
                 v-for="num in specialNumberOptions"
                 :key="num.value"
                 class="special-card"
                 :class="num.type"
-                @click="selectQuickNumber(num.value)"
+                @click="quickDivine(num.value)"
               >
                 <div class="special-number">{{ num.value }}</div>
                 <div class="special-label">{{ num.label }}</div>
                 <div class="special-desc">{{ num.desc }}</div>
+                <div class="special-action">点击占卜 →</div>
               </div>
             </div>
           </div>
@@ -169,8 +195,8 @@
                 随机也是一种缘分，每一个数字都值得认真对待。
               </div>
               <div class="random-actions">
-                <el-button size="large" type="primary" :icon="Dice" @click="randomNumber">
-                  随机选一个数字
+                <el-button size="large" type="primary" :icon="Dice" @click="quickDivine('random')">
+                  ✨ 随机一个，直接占卜
                 </el-button>
               </div>
             </div>
@@ -185,7 +211,7 @@
             </span>
           </template>
           <div class="manual-section">
-            <p class="section-tip">直接输入你心中的数字（1-1314之间），可以是纪念日、幸运数字，或任何你想到的数</p>
+            <p class="section-tip">输入你心中的数字（1-1314之间），可以是纪念日、幸运数字，或任何你想到的数</p>
             <div class="manual-input-wrapper">
               <el-input-number
                 v-model="inputNumber"
@@ -197,39 +223,47 @@
                 class="manual-input"
                 @keyup.enter="startDivination"
               />
-              <div class="manual-hint">
-                <el-icon><QuestionFilled /></el-icon>
-                <span>没有想法？试试其他选号方式标签页</span>
+              <div class="manual-action">
+                <el-button
+                  size="large"
+                  type="primary"
+                  :icon="MagicStick"
+                  :disabled="!inputNumber"
+                  @click="startDivination"
+                >
+                  开始占卜
+                </el-button>
               </div>
             </div>
           </div>
         </el-tab-pane>
       </el-tabs>
+    </el-card>
 
-      <div class="selected-display" v-if="inputNumber">
-        <div class="selected-icon">✨</div>
-        <div class="selected-info">
-          <div class="selected-label">你选择的数字</div>
-          <div class="selected-number">{{ inputNumber }}</div>
+    <el-card class="guide-card" v-if="!isRevealing && !result">
+      <template #header>
+        <div class="card-header">
+          <el-icon :size="20" color="#165DFF">
+            <InfoFilled />
+          </el-icon>
+          <span>关于数字占卜</span>
         </div>
-        <div class="selected-action">
-          <el-button size="small" text @click="clearSelection">重新选择</el-button>
-        </div>
-      </div>
-
-      <div class="action-buttons">
-        <el-button
-          type="primary"
-          size="large"
-          :icon="MagicStick"
-          @click="startDivination"
-          :loading="isRevealing"
-          :disabled="!inputNumber"
-          class="divine-button"
-        >
-          {{ isRevealing ? '启示降临中...' : '✨ 开始占卜' }}
-        </el-button>
-      </div>
+      </template>
+      <el-steps :active="0" finish-status="wait" simple class="guide-steps">
+        <el-step title="1. 静心" description="深呼吸三次，让心情平静下来" />
+        <el-step title="2. 默念" description="在心中默念你的问题或困惑" />
+        <el-step title="3. 选号" description="凭直觉点一个数字（随便选也准）" />
+        <el-step title="4. 启示" description="接收属于你的答案" />
+      </el-steps>
+      <el-alert type="info" :closable="false" class="philosophy-alert" show-icon>
+        <template #title>
+          <strong>不必纠结选对选错</strong>
+        </template>
+        <p class="philosophy-text">
+          1-1314 之间的每一个数字都有独特的能量。<strong>凭直觉选的那个数字，就是此刻与你心灵共振的答案</strong>。
+          无论是生日、纪念日、幸运数字，还是随手点的数字，都是宇宙与你对话的方式。
+        </p>
+      </el-alert>
     </el-card>
 
     <el-card class="result-card" v-if="isRevealing || result">
@@ -304,13 +338,16 @@
               <el-button size="small" :icon="CopyDocument" @click="copyResult">
                 复制启示
               </el-button>
+              <el-button size="small" type="primary" :icon="Refresh" @click="resetDivination">
+                再占一次
+              </el-button>
             </div>
           </div>
         </div>
       </div>
     </el-card>
 
-    <el-card class="history-card" v-if="history.length > 0">
+    <el-card class="history-card" v-if="history.length > 0 && !isRevealing && !result">
       <template #header>
         <div class="card-header">
           <el-icon :size="20" color="#165DFF">
@@ -370,8 +407,7 @@ import {
   Calendar,
   Cake,
   Edit,
-  Check,
-  QuestionFilled
+  Lightning
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
@@ -407,6 +443,12 @@ interface SpecialOption {
   type: 'love' | 'fortune' | 'mystery' | 'life'
 }
 
+interface PopularNumber {
+  value: number
+  label: string
+  type: 'love' | 'fortune' | 'mystery' | 'life'
+}
+
 const STORAGE_KEY = 'number_divination_history'
 
 const inputNumber = ref<number | null>(null)
@@ -429,6 +471,15 @@ const moodOptions: MoodOption[] = [
   { key: 'tired', emoji: '😮‍💨', label: '身心疲惫', number: 365 },
   { key: 'hopeful', emoji: '🌟', label: '充满期待', number: 999 },
   { key: 'grateful', emoji: '🙏', label: '感恩平静', number: 88 }
+]
+
+const popularNumbers: PopularNumber[] = [
+  { value: 520, label: '我爱你', type: 'love' },
+  { value: 1314, label: '一生一世', type: 'love' },
+  { value: 666, label: '顺风顺水', type: 'fortune' },
+  { value: 888, label: '财源广进', type: 'fortune' },
+  { value: 7, label: '神秘之数', type: 'mystery' },
+  { value: 999, label: '天长地久', type: 'life' }
 ]
 
 const specialNumberOptions: SpecialOption[] = specialNumbers.map(s => {
@@ -489,43 +540,43 @@ const displayHistory = computed(() => {
   return history.value.slice().reverse().slice(0, 10)
 })
 
+const quickDivine = (source: number | 'today' | 'random') => {
+  if (source === 'today') {
+    inputNumber.value = todayNumber.value
+  } else if (source === 'random') {
+    inputNumber.value = Math.floor(Math.random() * 1314) + 1
+    ElMessage.success(`宇宙为你选择了数字 ${inputNumber.value} ✨`)
+  } else {
+    inputNumber.value = source
+    const found = specialNumbers.find(s => s.number === source)
+    if (found) {
+      ElMessage.success(`灵数 ${source}：${found.title}`)
+    }
+  }
+  setTimeout(() => startDivination(), 100)
+}
+
+const scrollToMood = () => {
+  activePickerTab.value = 'mood'
+  ElMessage.info('请在下方选择你此刻的心情')
+}
+
 const pickByMood = (mood: MoodOption) => {
   selectedMood.value = mood.key
   inputNumber.value = mood.number
-  ElMessage.success(`心情「${mood.label}」对应灵数 ${mood.number}，已自动填入`)
+  ElMessage.success(`心情「${mood.label}」对应 #${mood.number}，正在占卜...`)
+  setTimeout(() => startDivination(), 150)
 }
 
-const selectTodayNumber = () => {
-  inputNumber.value = todayNumber.value
-  ElMessage.success(`今日灵数 ${todayNumber.value}，已自动填入`)
-}
-
-const pickByBirthday = () => {
+const pickByBirthdayAndDivine = () => {
   if (!birthday.value) return
   const parts = birthday.value.split('-').map(p => parseInt(p, 10))
   let sum = parts.reduce((a, b) => a + b, 0)
   while (sum > 1314) sum = Math.floor(sum / 9) + (sum % 9)
   birthdayNumber.value = Math.max(1, sum % 1314 || 1)
-}
-
-const selectBirthdayNumber = () => {
-  if (birthdayNumber.value) {
-    inputNumber.value = birthdayNumber.value
-    ElMessage.success(`生命灵数 ${birthdayNumber.value}，已自动填入`)
-  }
-}
-
-const selectQuickNumber = (num: number) => {
-  inputNumber.value = num
-  const found = specialNumbers.find(s => s.number === num)
-  if (found) {
-    ElMessage.success(`已选择特殊灵数 ${num}：${found.title}`)
-  }
-}
-
-const randomNumber = () => {
-  inputNumber.value = Math.floor(Math.random() * 1314) + 1
-  ElMessage.success(`宇宙为你选择了数字 ${inputNumber.value} ✨`)
+  inputNumber.value = birthdayNumber.value
+  ElMessage.success(`你的生命灵数是 ${birthdayNumber.value}，正在占卜...`)
+  setTimeout(() => startDivination(), 300)
 }
 
 const clearSelection = () => {
@@ -572,6 +623,9 @@ const resetDivination = () => {
   result.value = null
   numberProps.value = null
   isRevealing.value = false
+  inputNumber.value = null
+  birthdayNumber.value = null
+  selectedMood.value = null
 }
 
 const copyResult = async () => {
@@ -639,11 +693,16 @@ onMounted(() => {
   margin: 0 auto;
 }
 
+.quick-card,
 .guide-card,
 .picker-card,
 .result-card,
 .history-card {
   margin-bottom: 24px;
+}
+
+.quick-header {
+  color: #eb2f96;
 }
 
 .card-header {
@@ -664,6 +723,157 @@ onMounted(() => {
   font-size: 13px;
   font-weight: normal;
   color: #909399;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.quick-item {
+  position: relative;
+  padding: 24px 16px;
+  border-radius: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.quick-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.quick-item:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.quick-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.quick-today {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: white;
+}
+.quick-today .quick-badge { color: #0369a1; }
+.quick-today:hover { box-shadow: 0 10px 30px rgba(14, 165, 233, 0.35); }
+
+.quick-random {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+}
+.quick-random .quick-badge { color: #5b21b6; }
+.quick-random:hover { box-shadow: 0 10px 30px rgba(139, 92, 246, 0.35); }
+
+.quick-mood {
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  color: white;
+}
+.quick-mood .quick-badge { color: #9d174d; }
+.quick-mood:hover { box-shadow: 0 10px 30px rgba(236, 72, 153, 0.35); }
+
+.quick-icon {
+  font-size: 40px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.quick-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.quick-number {
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 8px;
+  opacity: 0.95;
+  font-family: 'Georgia', serif;
+}
+
+.quick-action {
+  font-size: 13px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.divider-text {
+  color: #909399;
+  font-size: 13px;
+  padding: 0 8px;
+}
+
+.quick-numbers {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+.quick-num-btn {
+  padding: 14px 8px;
+  text-align: center;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.quick-num-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.quick-num-btn.love {
+  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+  border-color: #fecdd3;
+}
+.quick-num-btn.love:hover { border-color: #fb7185; }
+
+.quick-num-btn.fortune {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #fde68a;
+}
+.quick-num-btn.fortune:hover { border-color: #f59e0b; }
+
+.quick-num-btn.mystery {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border-color: #ddd6fe;
+}
+.quick-num-btn.mystery:hover { border-color: #8b5cf6; }
+
+.quick-num-btn.life {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #a7f3d0;
+}
+.quick-num-btn.life:hover { border-color: #10b981; }
+
+.q-num {
+  display: block;
+  font-size: 26px;
+  font-weight: bold;
+  line-height: 1;
+  margin-bottom: 4px;
+  color: #1f2937;
+}
+
+.q-label {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .guide-steps {
@@ -706,31 +916,31 @@ onMounted(() => {
 }
 
 .mood-card {
-  padding: 20px 12px;
+  padding: 18px 12px;
   text-align: center;
   background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 100%);
   border: 2px solid transparent;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.25s;
+  position: relative;
 }
 
 .mood-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   border-color: #e9d5ff;
+  background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
 }
 
-.mood-card.active {
-  border-color: #722ed1;
-  background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
-  box-shadow: 0 4px 16px rgba(114, 46, 209, 0.15);
+.mood-card:active {
+  transform: translateY(-1px) scale(0.97);
 }
 
 .mood-emoji {
   font-size: 40px;
   line-height: 1;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .mood-label {
@@ -741,9 +951,18 @@ onMounted(() => {
 }
 
 .mood-number {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: bold;
   color: #722ed1;
+  margin-bottom: 6px;
+  opacity: 0.7;
+}
+
+.mood-hint {
+  font-size: 11px;
+  color: #eb2f96;
+  font-weight: 600;
+  opacity: 0.85;
 }
 
 .today-section {
@@ -854,13 +1073,14 @@ onMounted(() => {
 }
 
 .special-card {
-  padding: 20px 14px;
+  padding: 18px 14px;
   text-align: center;
   background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 100%);
   border: 2px solid transparent;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.25s;
+  position: relative;
 }
 
 .special-card:hover {
@@ -905,10 +1125,10 @@ onMounted(() => {
 }
 
 .special-number {
-  font-size: 32px;
+  font-size: 30px;
   font-weight: bold;
   line-height: 1;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: #1f2937;
 }
 
@@ -916,13 +1136,20 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 600;
   color: #303133;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .special-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: #6b7280;
-  line-height: 1.5;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.special-action {
+  font-size: 11px;
+  color: #eb2f96;
+  font-weight: 600;
 }
 
 .random-section {
@@ -968,7 +1195,7 @@ onMounted(() => {
 }
 
 .manual-input {
-  max-width: 320px;
+  max-width: 280px;
 }
 
 .manual-input :deep(.el-input__inner) {
@@ -979,64 +1206,8 @@ onMounted(() => {
   color: #722ed1;
 }
 
-.manual-hint {
-  margin-top: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #909399;
-}
-
-.selected-display {
-  margin-top: 20px;
-  padding: 16px 20px;
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border: 1px solid #bbf7d0;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  animation: fadeInUp 0.4s ease-out;
-}
-
-.selected-icon {
-  font-size: 36px;
-}
-
-.selected-info {
-  flex: 1;
-}
-
-.selected-label {
-  font-size: 13px;
-  color: #166534;
-  margin-bottom: 2px;
-}
-
-.selected-number {
-  font-size: 36px;
-  font-weight: bold;
-  color: #15803d;
-  line-height: 1;
-}
-
-.action-buttons {
-  display: flex;
-  justify-content: center;
-  margin-top: 24px;
-}
-
-.divine-button {
-  width: 260px;
-  height: 56px;
-  font-size: 18px;
-  background: linear-gradient(135deg, #eb2f96 0%, #722ed1 100%);
-  border: none;
-}
-
-.divine-button:hover {
-  background: linear-gradient(135deg, #f53f9f 0%, #853de1 100%);
+.manual-action {
+  margin-top: 16px;
 }
 
 .reveal-container {
@@ -1264,18 +1435,12 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 @keyframes revealPulse {
@@ -1305,23 +1470,19 @@ onMounted(() => {
 }
 
 @keyframes bounceIn {
-  0% {
-    transform: scale(0.3);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  70% {
-    transform: scale(0.95);
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.1); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 @media (max-width: 640px) {
+  .quick-grid {
+    grid-template-columns: 1fr;
+  }
+  .quick-numbers {
+    grid-template-columns: repeat(3, 1fr);
+  }
   .mood-grid {
     grid-template-columns: repeat(2, 1fr);
   }
