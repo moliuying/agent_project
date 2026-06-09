@@ -5,11 +5,24 @@ const api = axios.create({
   timeout: 60000
 })
 
+export interface ImageQualityHints {
+  sharpness: number
+  brightness: number
+  brightnessStatus: 'normal' | 'dark' | 'overexposed'
+  contrast: number
+  isScreenshot?: boolean
+  multiPanelDetected?: boolean
+  textDensity?: number
+  hasUiElements?: boolean
+  resolutionScore?: number
+}
+
 export interface OutfitRecognitionRequest {
   imageBase64: string
   sceneType?: 'daily' | 'work' | 'date' | 'party' | 'travel' | 'sport'
   userGender?: 'male' | 'female' | 'unisex'
   extraNote?: string
+  qualityHints?: ImageQualityHints
 }
 
 export interface ClothingItem {
@@ -59,6 +72,8 @@ export interface OutfitRecognitionResponse {
   similarStyles: SimilarStyle[]
   stylingTips: string[]
   shoppingTips: string[]
+  overallConfidence: number
+  qualityWarnings: string[]
 }
 
 export const outfitRecognitionApi = {

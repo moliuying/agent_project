@@ -1,10 +1,24 @@
 import { Injectable } from '@nestjs/common';
+import * as crypto from 'crypto';
+
+export interface ImageQualityHints {
+  sharpness: number;
+  brightness: number;
+  brightnessStatus: 'normal' | 'dark' | 'overexposed';
+  contrast: number;
+  isScreenshot?: boolean;
+  multiPanelDetected?: boolean;
+  textDensity?: number;
+  hasUiElements?: boolean;
+  resolutionScore?: number;
+}
 
 export interface OutfitRecognitionRequest {
   imageBase64: string;
   sceneType?: 'daily' | 'work' | 'date' | 'party' | 'travel' | 'sport';
   userGender?: 'male' | 'female' | 'unisex';
   extraNote?: string;
+  qualityHints?: ImageQualityHints;
 }
 
 export interface ClothingItem {
@@ -54,6 +68,8 @@ export interface OutfitRecognitionResponse {
   similarStyles: SimilarStyle[];
   stylingTips: string[];
   shoppingTips: string[];
+  overallConfidence: number;
+  qualityWarnings: string[];
 }
 
 const CATEGORY_POOL = {
@@ -182,17 +198,19 @@ export class OutfitRecognitionService {
     });
   }
 
-  private generateClothingItems(rand: () => number): ClothingItem[] {
+  private generateClothingItems(rand: () => number, qualityScore: number = 100): ClothingItem[] {
     const positions: ('top' | 'bottom' | 'outerwear' | 'dress' | 'shoes' | 'accessory')[] =
       ['top', 'bottom', 'shoes', 'outerwear', 'dress', 'accessory'];
     const itemCount = Math.floor(rand() * 3) + 3;
     const pickedPositions = this.pickSeeded(positions, itemCount, rand);
+    const confidencePenalty = Math.max(0, 100 - qualityScore) * 0.35;
 
     return pickedPositions.map((pos, idx) => {
       const categoryData = this.pickOne(CATEGORY_POOL[pos], rand);
       const colorData = this.pickOne(COLOR_POOL, rand);
       const styles = this.pickWeightedSeeded(STYLE_TAGS, 2, 3, rand);
       const seasons = this.pickWeightedSeeded(SEASON_TAGS, 1, 2, rand);
+      const baseConfidence = Math.floor(rand() * 20) + 80;
       return {
         id: `item-${idx}`,
         category: categoryData.category,
@@ -202,7 +220,7 @@ export class OutfitRecognitionService {
         style: styles,
         material: categoryData.material,
         season: seasons,
-        confidence: Math.floor(rand() * 20) + 80,
+        confidence: Math.max(45, Math.floor(baseConfidence - confidencePenalty)),
         position: pos,
       };
     });
@@ -271,7 +289,8 @@ export class OutfitRecognitionService {
 
   private generateSimilarStyles(
     items: ClothingItem[],
-    rand: () => number
+    rand: () => number,
+    qualityScore: number = 100
   ): SimilarStyle[] {
     const baseItem = items[0];
     const brands = ['ZARA', 'UNIQLO', 'H&M', 'UR', 'COS', 'Massimo Dutti', 'MUJI'];
@@ -289,6 +308,7 @@ export class OutfitRecognitionService {
     };
 
     const names = styleNames[baseItem?.subCategory] || styleNames.default;
+    const matchPenalty = Math.max(0, 100 - qualityScore) * 0.3;
 
     return names.map((name, idx) => ({
       id: `similar-${idx}`,
@@ -296,7 +316,7 @@ export class OutfitRecognitionService {
       brand: this.pickOne(brands, rand),
       priceRange: this.pickOne(priceRanges, rand),
       description: `${baseItem?.color || '精选'}${baseItem?.subCategory || '单品'}的${idx === 0 ? '平价替代' : idx === 1 ? '升级品质' : '风格延伸'}款式，${this.pickOne(STYLE_TAGS, rand)}风格。`,
-      matchScore: Math.floor(rand() * 15) + 85,
+      matchScore: Math.max(60, Math.floor(rand() * 15 + 85 - matchPenalty)),
       tags: this.pickWeightedSeeded(STYLE_TAGS, 2, 3, rand),
     }));
   }
@@ -339,11 +359,57 @@ export class OutfitRecognitionService {
     return this.pickSeeded(allTips, 4, rand);
   }
 
+  private computeQualityScore(hints?: ImageQualityHints): number {
+    if (!hints) return 85;
+    let score = 100;
+    if (hints.sharpness !== undefined) score -= Math.max(0, 70 - hints.sharpness) * 0.6;
+    if (hints.brightnessStatus && hints.brightnessStatus !== 'normal') score -= 10;
+    if (hints.contrast !== undefined) score -= Math.max(0, 50 - hints.contrast) * 0.4;
+    if (hints.multiPanelDetected) score -= 20;
+    if (hints.hasUiElements) score -= 12;
+    if (hints.isScreenshot) score -= 8;
+    if (hints.textDensity !== undefined && hints.textDensity > 30) score -= Math.min(15, (hints.textDensity - 30) * 0.5);
+    if (hints.resolutionScore !== undefined) score -= Math.max(0, 60 - hints.resolutionScore) * 0.3;
+    return Math.max(30, Math.min(100, Math.round(score)));
+  }
+
+  private buildQualityWarnings(hints?: ImageQualityHints): string[] {
+    const warnings: string[] = [];
+    if (!hints) return warnings;
+    if (hints.multiPanelDetected) {
+      warnings.push('检测到图片中包含多张拼接图（多角度展示），AI 可能误将多件服装混淆，建议裁剪出目标单品区域后重新识别');
+    }
+    if (hints.isScreenshot) {
+      warnings.push('当前图片为屏幕截图，可能包含页面 UI 元素干扰识别，建议使用原图或截取衣物主体区域');
+    }
+    if (hints.hasUiElements) {
+      warnings.push('图片中检测到价格、文字等电商界面元素，可能干扰衣物特征提取');
+    }
+    if (hints.textDensity !== undefined && hints.textDensity > 35) {
+      warnings.push('图片文字区域占比较高，建议去除文字或截取纯衣物图片');
+    }
+    if (hints.sharpness !== undefined && hints.sharpness < 40) {
+      warnings.push('图片清晰度不足，细节纹理难以精准识别');
+    }
+    if (hints.contrast !== undefined && hints.contrast < 40) {
+      warnings.push('衣物与背景对比度偏低，建议使用纯色背景重新拍摄');
+    }
+    return warnings;
+  }
+
+  private hashStringToSeed(str: string): number {
+    const hash = crypto.createHash('sha256').update(str).digest();
+    return hash.readUInt32BE(0) % 1000000;
+  }
+
   async recognize(request: OutfitRecognitionRequest): Promise<OutfitRecognitionResponse> {
-    const seed = Date.now() % 100000;
+    const seed = this.hashStringToSeed(request.imageBase64.slice(0, 8000));
     const rand = this.seededRandom(seed);
 
-    const clothingItems = this.generateClothingItems(rand);
+    const qualityScore = this.computeQualityScore(request.qualityHints);
+    const qualityWarnings = this.buildQualityWarnings(request.qualityHints);
+
+    const clothingItems = this.generateClothingItems(rand, qualityScore);
     const colorPalette = this.generateColorPalette(rand);
     const mainStyle = this.pickOne(STYLE_TAGS, rand);
     const subStyles = this.pickWeightedSeeded(
@@ -354,7 +420,7 @@ export class OutfitRecognitionService {
     );
 
     const suggestions = this.generateSuggestions(clothingItems, request.sceneType, rand);
-    const similarStyles = this.generateSimilarStyles(clothingItems, rand);
+    const similarStyles = this.generateSimilarStyles(clothingItems, rand, qualityScore);
     const stylingTips = this.generateStylingTips(clothingItems, rand);
     const shoppingTips = this.generateShoppingTips(clothingItems, rand);
 
@@ -373,6 +439,8 @@ export class OutfitRecognitionService {
       similarStyles,
       stylingTips,
       shoppingTips,
+      overallConfidence: qualityScore,
+      qualityWarnings,
     };
   }
 }

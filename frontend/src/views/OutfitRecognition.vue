@@ -77,6 +77,10 @@
                   <el-icon><Camera /></el-icon>
                   重新拍照
                 </el-button>
+                <el-button type="warning" size="small" @click.stop="openCropModal">
+                  <el-icon><Crop /></el-icon>
+                  裁剪单品
+                </el-button>
               </div>
             </div>
           </div>
@@ -201,6 +205,89 @@
                   :stroke-width="8"
                 />
               </div>
+            </div>
+
+            <div v-if="compositionAnalysisReady" class="composition-section">
+              <el-divider content-position="left">
+                <span class="divider-label">
+                  <el-icon :size="14"><Grid /></el-icon>
+                  构图分析
+                </span>
+              </el-divider>
+              <div class="composition-metrics">
+                <div class="composition-item">
+                  <el-icon :size="16" :color="compositionData.isScreenshot ? '#f56c6c' : '#67c23a'">
+                    <component :is="compositionData.isScreenshot ? WarningFilled : CircleCheckFilled" />
+                  </el-icon>
+                  <span class="composition-label">截图检测</span>
+                  <el-tag
+                    size="small"
+                    :type="compositionData.isScreenshot ? 'danger' : 'success'"
+                    effect="plain"
+                  >{{ compositionData.isScreenshot ? '疑似截图' : '原图拍摄' }}</el-tag>
+                </div>
+                <div class="composition-item">
+                  <el-icon :size="16" :color="compositionData.multiPanelDetected ? '#f56c6c' : '#67c23a'">
+                    <component :is="compositionData.multiPanelDetected ? WarningFilled : CircleCheckFilled" />
+                  </el-icon>
+                  <span class="composition-label">多图拼接</span>
+                  <el-tag
+                    size="small"
+                    :type="compositionData.multiPanelDetected ? 'danger' : 'success'"
+                    effect="plain"
+                  >{{ compositionData.multiPanelDetected ? '检测到拼接' : '单图' }}</el-tag>
+                </div>
+                <div class="composition-item">
+                  <el-icon :size="16" :color="compositionData.textDensity > 30 ? '#e6a23c' : '#67c23a'">
+                    <component :is="compositionData.textDensity > 30 ? WarningFilled : CircleCheckFilled" />
+                  </el-icon>
+                  <span class="composition-label">文字密度</span>
+                  <el-tag
+                    size="small"
+                    :type="compositionData.textDensity > 30 ? 'warning' : 'success'"
+                    effect="plain"
+                  >{{ compositionData.textDensity > 30 ? '文字较多' : '正常' }}（{{ compositionData.textDensity }}%）</el-tag>
+                </div>
+                <div class="composition-item">
+                  <el-icon :size="16" :color="compositionData.hasUiElements ? '#e6a23c' : '#67c23a'">
+                    <component :is="compositionData.hasUiElements ? WarningFilled : CircleCheckFilled" />
+                  </el-icon>
+                  <span class="composition-label">UI 元素</span>
+                  <el-tag
+                    size="small"
+                    :type="compositionData.hasUiElements ? 'warning' : 'success'"
+                    effect="plain"
+                  >{{ compositionData.hasUiElements ? '检测到界面元素' : '无干扰' }}</el-tag>
+                </div>
+              </div>
+
+              <el-alert
+                v-if="compositionWarnings.length > 0"
+                type="error"
+                :closable="false"
+                show-icon
+                class="composition-warning"
+              >
+                <template #title>
+                  <span class="composition-warning-title">
+                    <el-icon :size="16"><CircleCloseFilled /></el-icon>
+                    识别结果可能不稳定
+                  </span>
+                </template>
+                <ul class="composition-warning-list">
+                  <li v-for="(w, idx) in compositionWarnings" :key="idx">{{ w }}</li>
+                </ul>
+                <div class="composition-warning-actions">
+                  <el-button type="primary" size="small" @click="openCropModal">
+                    <el-icon><Crop /></el-icon>
+                    框选单品区域
+                  </el-button>
+                  <el-button type="warning" size="small" @click="triggerFileInput">
+                    <el-icon><Upload /></el-icon>
+                    重新上传原图
+                  </el-button>
+                </div>
+              </el-alert>
             </div>
           </div>
         </el-card>
@@ -381,6 +468,51 @@
 
       <el-col :span="24" :lg="12">
         <template v-if="recognitionResult">
+          <el-card class="confidence-card">
+            <div class="confidence-header">
+              <div class="confidence-left">
+                <el-icon :size="24" :color="confidenceColor">
+                  <component :is="confidenceIcon" />
+                </el-icon>
+                <div class="confidence-text">
+                  <div class="confidence-label">识别置信度</div>
+                  <div class="confidence-value" :style="{ color: confidenceColor }">
+                    {{ recognitionResult.overallConfidence }}%
+                  </div>
+                </div>
+              </div>
+              <el-progress
+                type="dashboard"
+                :percentage="recognitionResult.overallConfidence"
+                :color="confidenceColor"
+                :width="90"
+                :stroke-width="8"
+              />
+            </div>
+            <el-alert
+              v-if="recognitionResult.overallConfidence < 70"
+              :type="recognitionResult.overallConfidence < 50 ? 'error' : 'warning'"
+              :closable="false"
+              show-icon
+              class="confidence-alert"
+            >
+              <template #title>
+                <span>
+                  {{ recognitionResult.overallConfidence < 50 ? '置信度较低，建议重新上传更清晰的单品图片以获得更准确的结果' : '置信度一般，可考虑重新拍摄或裁剪图片以提升识别准确度' }}
+                </span>
+              </template>
+            </el-alert>
+            <el-alert
+              v-for="(w, idx) in recognitionResult.qualityWarnings"
+              :key="'rw'+idx"
+              type="warning"
+              :closable="false"
+              show-icon
+              class="confidence-alert"
+              :title="w"
+            />
+          </el-card>
+
           <el-card class="style-analysis-card">
             <template #header>
               <div class="card-header small">
@@ -675,11 +807,63 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <el-dialog
+      v-model="showCropModal"
+      title="框选单品区域 · 提升识别准确率"
+      width="680px"
+      :close-on-click-modal="false"
+      class="crop-dialog"
+    >
+      <div class="crop-instruction">
+        <el-icon :size="16" color="#e6a23c"><WarningFilled /></el-icon>
+        <span>拖动并调整下方矩形框，精确框选你要识别的衣物主体（排除文字、价格、其他角度图片等干扰元素）</span>
+      </div>
+      <div
+        class="crop-container"
+        ref="cropContainerRef"
+        @mousedown="startCropDrag"
+        @mousemove="onCropDrag"
+        @mouseup="endCropDrag"
+        @mouseleave="endCropDrag"
+      >
+        <img :src="cropImageSrc" alt="裁剪图片" class="crop-image" ref="cropImageRef" />
+        <div
+          v-if="cropRect.width > 0 && cropRect.height > 0"
+          class="crop-selection"
+          :style="cropRectStyle"
+          @mousedown.stop="startResize"
+        >
+          <div class="crop-handle nw" data-dir="nw"></div>
+          <div class="crop-handle ne" data-dir="ne"></div>
+          <div class="crop-handle sw" data-dir="sw"></div>
+          <div class="crop-handle se" data-dir="se"></div>
+          <div class="crop-handle n" data-dir="n"></div>
+          <div class="crop-handle s" data-dir="s"></div>
+          <div class="crop-handle e" data-dir="e"></div>
+          <div class="crop-handle w" data-dir="w"></div>
+        </div>
+      </div>
+      <div class="crop-hint-row">
+        <el-tag size="small" type="info">提示：双击图片可快速全选；调整四角手柄可精确裁剪</el-tag>
+        <el-button size="small" plain @click="resetCropRect">
+          <el-icon><Refresh /></el-icon>
+          重置选区
+        </el-button>
+      </div>
+      <template #footer>
+        <el-button @click="showCropModal = false">取消</el-button>
+        <el-button type="primary" @click="applyCrop">
+          <el-icon><Check /></el-icon>
+          确认裁剪并重新分析
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, nextTick, computed } from 'vue'
 import {
   CameraFilled,
   Camera,
@@ -713,12 +897,15 @@ import {
   Check,
   CircleCheckFilled,
   CircleCloseFilled,
-  Monitor
+  Monitor,
+  Crop,
+  Grid
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
   outfitRecognitionApi,
-  type OutfitRecognitionResponse
+  type OutfitRecognitionResponse,
+  type ImageQualityHints
 } from '@/api/outfitRecognition'
 
 const HISTORY_KEY = 'outfit_recognition_history'
@@ -768,6 +955,56 @@ const imageQuality = reactive({
   contrast: 0
 })
 const qualityWarnings = ref<string[]>([])
+
+const compositionAnalysisReady = ref(false)
+const compositionData = reactive({
+  isScreenshot: false,
+  multiPanelDetected: false,
+  textDensity: 0,
+  hasUiElements: false
+})
+const compositionWarnings = ref<string[]>([])
+
+const showCropModal = ref(false)
+const cropImageSrc = ref('')
+const cropContainerRef = ref<HTMLDivElement | null>(null)
+const cropImageRef = ref<HTMLImageElement | null>(null)
+const cropRect = reactive({ x: 0, y: 0, width: 0, height: 0 })
+const cropImageNaturalSize = reactive({ width: 0, height: 0 })
+const cropDragState = reactive({
+  active: false,
+  mode: 'create' as 'create' | 'move' | 'resize',
+  startX: 0,
+  startY: 0,
+  origX: 0,
+  origY: 0,
+  origW: 0,
+  origH: 0,
+  resizeDir: ''
+})
+
+const confidenceColor = computed(() => {
+  if (!recognitionResult.value) return '#909399'
+  const c = recognitionResult.value.overallConfidence
+  if (c >= 80) return '#67c23a'
+  if (c >= 60) return '#e6a23c'
+  return '#f56c6c'
+})
+
+const confidenceIcon = computed(() => {
+  if (!recognitionResult.value) return WarningFilled
+  const c = recognitionResult.value.overallConfidence
+  if (c >= 80) return CircleCheckFilled
+  if (c >= 60) return WarningFilled
+  return CircleCloseFilled
+})
+
+const cropRectStyle = computed(() => ({
+  left: cropRect.x + 'px',
+  top: cropRect.y + 'px',
+  width: cropRect.width + 'px',
+  height: cropRect.height + 'px'
+}))
 
 let mediaStream: MediaStream | null = null
 
@@ -1018,6 +1255,274 @@ const ignoreQualityWarning = () => {
   ElMessage.info('已忽略质量提示，将继续识别')
 }
 
+const analyzeImageComposition = (
+  imageData: ImageData,
+  width: number,
+  height: number,
+  originalWidth: number,
+  originalHeight: number
+) => {
+  const pixels = imageData.data
+  const grayPixels: number[] = []
+  for (let i = 0; i < pixels.length; i += 4) {
+    grayPixels.push(0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2])
+  }
+
+  let hSplitCount = 0
+  const hThreshold = Math.min(12, Math.floor(height * 0.06))
+  for (let y = 1; y < height - 1; y++) {
+    let rowUniform = true
+    let firstVal = grayPixels[y * width]
+    for (let x = 1; x < width; x++) {
+      if (Math.abs(grayPixels[y * width + x] - firstVal) > 8) {
+        rowUniform = false
+        break
+      }
+    }
+    if (rowUniform && firstVal < 250 && firstVal > 5) {
+      let neighborUniform = true
+      for (let dy = -1; dy <= 1; dy += 2) {
+        let ny = y + dy
+        if (ny < 0 || ny >= height) continue
+        let nFirstVal = grayPixels[ny * width]
+        for (let x = 1; x < width; x++) {
+          if (Math.abs(grayPixels[ny * width + x] - nFirstVal) > 8) {
+            neighborUniform = false
+            break
+          }
+        }
+      }
+      if (neighborUniform) hSplitCount++
+    }
+  }
+
+  let vSplitCount = 0
+  const vThreshold = Math.min(12, Math.floor(width * 0.06))
+  for (let x = 1; x < width - 1; x++) {
+    let colUniform = true
+    let firstVal = grayPixels[x]
+    for (let y = 1; y < height; y++) {
+      if (Math.abs(grayPixels[y * width + x] - firstVal) > 8) {
+        colUniform = false
+        break
+      }
+    }
+    if (colUniform && firstVal < 250 && firstVal > 5) {
+      let neighborUniform = true
+      for (let dx = -1; dx <= 1; dx += 2) {
+        let nx = x + dx
+        if (nx < 0 || nx >= width) continue
+        let nFirstVal = grayPixels[nx]
+        for (let y = 1; y < height; y++) {
+          if (Math.abs(grayPixels[y * width + nx] - nFirstVal) > 8) {
+            neighborUniform = false
+            break
+          }
+        }
+      }
+      if (neighborUniform) vSplitCount++
+    }
+  }
+
+  compositionData.multiPanelDetected = (hSplitCount >= hThreshold || vSplitCount >= vThreshold)
+
+  let edgeCount = 0
+  const textEdgeThreshold = 30
+  for (let y = 2; y < height - 2; y++) {
+    for (let x = 2; x < width - 2; x++) {
+      const idx = y * width + x
+      const gx = Math.abs(grayPixels[idx + 1] - grayPixels[idx - 1])
+      const gy = Math.abs(grayPixels[idx + width] - grayPixels[idx - width])
+      if (gx + gy > 50) edgeCount++
+    }
+  }
+  const smallEdgeDensity = edgeCount / (width * height) * 100
+  compositionData.textDensity = Math.round(smallEdgeDensity * 2.5)
+
+  let cornerWhite = 0
+  const cornerSize = Math.min(8, Math.floor(Math.min(width, height) * 0.08))
+  for (let y = 0; y < cornerSize; y++) {
+    for (let x = 0; x < cornerSize; x++) {
+      if (grayPixels[y * width + x] > 240) cornerWhite++
+    }
+  }
+  const cornerRatio = cornerWhite / (cornerSize * cornerSize)
+  const aspectRatio = originalWidth / originalHeight
+  const hasTopBottomBars = (aspectRatio > 1.8 && cornerRatio > 0.7) ||
+    (aspectRatio < 0.6 && cornerRatio > 0.7)
+
+  compositionData.isScreenshot = (
+    hasTopBottomBars ||
+    (compositionData.textDensity > 35 && compositionData.multiPanelDetected) ||
+    (aspectRatio > 2.0 || aspectRatio < 0.5)
+  )
+
+  compositionData.hasUiElements = (
+    compositionData.textDensity > 40 ||
+    (compositionData.isScreenshot && compositionData.textDensity > 20)
+  )
+
+  const warnings: string[] = []
+  if (compositionData.multiPanelDetected) {
+    warnings.push('图片中检测到多角度拼接图，建议使用「裁剪单品」功能只框选要识别的那件衣服')
+  }
+  if (compositionData.isScreenshot) {
+    warnings.push('疑似网购详情页截图，包含价格、文字、UI 元素，建议使用服装原图或裁剪主体区域')
+  }
+  if (compositionData.textDensity > 35) {
+    warnings.push(`文字区域占比较高（约 ${compositionData.textDensity}%），建议裁剪去除文字后再识别`)
+  }
+  compositionWarnings.value = warnings
+  compositionAnalysisReady.value = true
+}
+
+const openCropModal = async () => {
+  if (!imagePreview.value) {
+    ElMessage.warning('请先上传图片')
+    return
+  }
+  cropImageSrc.value = imagePreview.value
+  showCropModal.value = true
+  await nextTick()
+  resetCropRect()
+}
+
+const resetCropRect = async () => {
+  await nextTick()
+  const imgEl = cropImageRef.value
+  const containerEl = cropContainerRef.value
+  if (!imgEl || !containerEl) return
+  cropImageNaturalSize.width = imgEl.naturalWidth
+  cropImageNaturalSize.height = imgEl.naturalHeight
+  const dispW = imgEl.clientWidth
+  const dispH = imgEl.clientHeight
+  cropRect.x = Math.floor(dispW * 0.1)
+  cropRect.y = Math.floor(dispH * 0.1)
+  cropRect.width = Math.floor(dispW * 0.8)
+  cropRect.height = Math.floor(dispH * 0.8)
+}
+
+const startCropDrag = (e: MouseEvent) => {
+  if (!cropContainerRef.value) return
+  const rect = cropContainerRef.value.getBoundingClientRect()
+  cropDragState.active = true
+  cropDragState.mode = 'create'
+  cropDragState.startX = e.clientX - rect.left
+  cropDragState.startY = e.clientY - rect.top
+  cropRect.x = cropDragState.startX
+  cropRect.y = cropDragState.startY
+  cropRect.width = 0
+  cropRect.height = 0
+}
+
+const onCropDrag = (e: MouseEvent) => {
+  if (!cropDragState.active || !cropContainerRef.value) return
+  const rect = cropContainerRef.value.getBoundingClientRect()
+  const curX = Math.max(0, Math.min(rect.width, e.clientX - rect.left))
+  const curY = Math.max(0, Math.min(rect.height, e.clientY - rect.top))
+
+  if (cropDragState.mode === 'create') {
+    cropRect.x = Math.min(cropDragState.startX, curX)
+    cropRect.y = Math.min(cropDragState.startY, curY)
+    cropRect.width = Math.abs(curX - cropDragState.startX)
+    cropRect.height = Math.abs(curY - cropDragState.startY)
+  } else if (cropDragState.mode === 'move') {
+    const dx = curX - cropDragState.startX
+    const dy = curY - cropDragState.startY
+    let newX = cropDragState.origX + dx
+    let newY = cropDragState.origY + dy
+    newX = Math.max(0, Math.min(rect.width - cropRect.width, newX))
+    newY = Math.max(0, Math.min(rect.height - cropRect.height, newY))
+    cropRect.x = newX
+    cropRect.y = newY
+  } else if (cropDragState.mode === 'resize') {
+    const dir = cropDragState.resizeDir
+    let x = cropDragState.origX
+    let y = cropDragState.origY
+    let w = cropDragState.origW
+    let h = cropDragState.origH
+    const dx = curX - cropDragState.startX
+    const dy = curY - cropDragState.startY
+    if (dir.includes('e')) w = Math.max(20, cropDragState.origW + dx)
+    if (dir.includes('s')) h = Math.max(20, cropDragState.origH + dy)
+    if (dir.includes('w')) {
+      const newW = Math.max(20, cropDragState.origW - dx)
+      x = cropDragState.origX + (cropDragState.origW - newW)
+      w = newW
+    }
+    if (dir.includes('n')) {
+      const newH = Math.max(20, cropDragState.origH - dy)
+      y = cropDragState.origY + (cropDragState.origH - newH)
+      h = newH
+    }
+    x = Math.max(0, x)
+    y = Math.max(0, y)
+    if (x + w > rect.width) w = rect.width - x
+    if (y + h > rect.height) h = rect.height - y
+    cropRect.x = x
+    cropRect.y = y
+    cropRect.width = w
+    cropRect.height = h
+  }
+}
+
+const endCropDrag = () => {
+  cropDragState.active = false
+}
+
+const startResize = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  const dir = target.dataset.dir || ''
+  if (!dir) {
+    cropDragState.mode = 'move'
+  } else {
+    cropDragState.mode = 'resize'
+    cropDragState.resizeDir = dir
+  }
+  if (!cropContainerRef.value) return
+  const rect = cropContainerRef.value.getBoundingClientRect()
+  cropDragState.active = true
+  cropDragState.startX = e.clientX - rect.left
+  cropDragState.startY = e.clientY - rect.top
+  cropDragState.origX = cropRect.x
+  cropDragState.origY = cropRect.y
+  cropDragState.origW = cropRect.width
+  cropDragState.origH = cropRect.height
+  e.stopPropagation()
+}
+
+const applyCrop = () => {
+  if (cropRect.width < 20 || cropRect.height < 20) {
+    ElMessage.warning('请框选有效区域')
+    return
+  }
+  const imgEl = cropImageRef.value
+  if (!imgEl) return
+  const scaleX = imgEl.naturalWidth / imgEl.clientWidth
+  const scaleY = imgEl.naturalHeight / imgEl.clientHeight
+  const sx = cropRect.x * scaleX
+  const sy = cropRect.y * scaleY
+  const sw = cropRect.width * scaleX
+  const sh = cropRect.height * scaleY
+
+  const canvas = document.createElement('canvas')
+  canvas.width = sw
+  canvas.height = sh
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(imgEl, sx, sy, sw, sh, 0, 0, sw, sh)
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
+  imagePreview.value = dataUrl
+  imageBase64.value = dataUrl.split(',')[1] || dataUrl
+  recognitionResult.value = null
+  resultReady.value = false
+  qualityAnalysisReady.value = false
+  compositionAnalysisReady.value = false
+  qualityIgnored.value = false
+  showCropModal.value = false
+  analyzeImageWithCanvas(dataUrl)
+  ElMessage.success('裁剪完成，已重新分析图片质量')
+}
+
 const analyzeImageWithCanvas = (dataUrl: string) => {
   const img = new Image()
   img.crossOrigin = 'anonymous'
@@ -1035,6 +1540,16 @@ const analyzeImageWithCanvas = (dataUrl: string) => {
       qualityCtx.drawImage(img, 0, 0, qualityCanvas.width, qualityCanvas.height)
       const qualityImageData = qualityCtx.getImageData(0, 0, qualityCanvas.width, qualityCanvas.height)
       analyzeImageQuality(qualityImageData, qualityCanvas.width, qualityCanvas.height, originalWidth, originalHeight)
+
+      const compCanvas = document.createElement('canvas')
+      const compCtx = compCanvas.getContext('2d')!
+      const compSize = 350
+      const compScale = Math.min(compSize / originalWidth, compSize / originalHeight)
+      compCanvas.width = Math.floor(originalWidth * compScale)
+      compCanvas.height = Math.floor(originalHeight * compScale)
+      compCtx.drawImage(img, 0, 0, compCanvas.width, compCanvas.height)
+      const compImageData = compCtx.getImageData(0, 0, compCanvas.width, compCanvas.height)
+      analyzeImageComposition(compImageData, compCanvas.width, compCanvas.height, originalWidth, originalHeight)
 
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d')!
@@ -1108,6 +1623,12 @@ const removeImage = () => {
   imageQuality.brightness = 0
   imageQuality.brightnessStatus = 'normal'
   imageQuality.contrast = 0
+  compositionAnalysisReady.value = false
+  compositionWarnings.value = []
+  compositionData.isScreenshot = false
+  compositionData.multiPanelDetected = false
+  compositionData.textDensity = 0
+  compositionData.hasUiElements = false
   stopCamera()
   if (fileInputRef.value) {
     fileInputRef.value.value = ''
@@ -1132,11 +1653,22 @@ const recognizeOutfit = async () => {
   isRecognizing.value = true
 
   try {
+    const qualityHints: ImageQualityHints = {
+      isScreenshot: compositionData.isScreenshot,
+      multiPanelDetected: compositionData.multiPanelDetected,
+      textDensity: compositionData.textDensity,
+      hasUiElements: compositionData.hasUiElements,
+      sharpness: imageQuality.sharpness,
+      brightness: imageQuality.brightness,
+      contrast: imageQuality.contrast
+    }
+
     const response = await outfitRecognitionApi.recognize({
       imageBase64: imageBase64.value,
       sceneType: form.sceneType,
       userGender: form.userGender,
-      extraNote: form.extraNote || undefined
+      extraNote: form.extraNote || undefined,
+      qualityHints
     })
 
     recognitionResult.value = response.data
@@ -1889,5 +2421,261 @@ const recognizeOutfit = async () => {
   font-size: 13px;
   font-weight: 500;
   color: #303133;
+}
+
+.confidence-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.confidence-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.confidence-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.confidence-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e40af;
+  margin-bottom: 2px;
+}
+
+.confidence-subtitle {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.confidence-score-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.confidence-ring {
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+}
+
+.confidence-ring-bg {
+  fill: none;
+  stroke: #e2e8f0;
+  stroke-width: 12;
+}
+
+.confidence-ring-fg {
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.confidence-ring-text {
+  font-size: 28px;
+  font-weight: 700;
+  fill: #1e293b;
+  dominant-baseline: middle;
+  text-anchor: middle;
+}
+
+.confidence-ring-label {
+  font-size: 11px;
+  fill: #94a3b8;
+  dominant-baseline: middle;
+  text-anchor: middle;
+}
+
+.confidence-details {
+  flex: 1;
+}
+
+.confidence-warnings {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(186, 230, 253, 0.6);
+}
+
+.confidence-warning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+  padding: 4px 0;
+}
+
+.confidence-warning-item :deep(.el-icon) {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.composition-section {
+  background: #fef7f0;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.composition-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #c2410c;
+  margin-bottom: 12px;
+}
+
+.composition-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.composition-metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.composition-metric-label {
+  font-size: 12px;
+  color: #9a3412;
+}
+
+.composition-metric-value {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.composition-warnings {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(254, 215, 170, 0.6);
+}
+
+.composition-warning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  color: #9a3412;
+  padding: 4px 0;
+}
+
+.crop-btn {
+  margin-left: 8px;
+}
+
+:deep(.crop-dialog) .el-dialog__body {
+  padding: 16px;
+}
+
+.crop-tip {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.crop-image-container {
+  position: relative;
+  background: #000;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 350px;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.crop-image {
+  max-width: 100%;
+  max-height: 500px;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.crop-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.crop-mask {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.crop-rect {
+  position: absolute;
+  border: 2px solid #409eff;
+  box-sizing: content-box;
+  cursor: move;
+  pointer-events: auto;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+}
+
+.crop-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border: 2px solid #409eff;
+  border-radius: 50%;
+  z-index: 10;
+}
+
+.crop-handle.nw { top: -7px; left: -7px; cursor: nw-resize; }
+.crop-handle.n  { top: -7px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+.crop-handle.ne { top: -7px; right: -7px; cursor: ne-resize; }
+.crop-handle.e  { top: 50%; right: -7px; transform: translateY(-50%); cursor: e-resize; }
+.crop-handle.se { bottom: -7px; right: -7px; cursor: se-resize; }
+.crop-handle.s  { bottom: -7px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+.crop-handle.sw { bottom: -7px; left: -7px; cursor: sw-resize; }
+.crop-handle.w  { top: 50%; left: -7px; transform: translateY(-50%); cursor: w-resize; }
+
+.crop-footer {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.crop-footer-info {
+  font-size: 12px;
+  color: #94a3b8;
 }
 </style>
