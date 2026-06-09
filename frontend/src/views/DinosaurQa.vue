@@ -45,6 +45,31 @@
             </div>
           </el-col>
         </el-row>
+
+        <div class="credibility-intro">
+          <div class="ci-title">
+            <el-icon color="#409eff"><DataAnalysis /></el-icon>
+            <span>知识可信度分级体系</span>
+          </div>
+          <div class="ci-tags">
+            <el-tooltip content="已被绝大多数古生物学家认可的确定性结论" placement="top">
+              <el-tag type="success" effect="dark" size="small">学术共识</el-tag>
+            </el-tooltip>
+            <el-tooltip content="多数研究者支持，但仍存在少量不同意见" placement="top">
+              <el-tag type="primary" effect="dark" size="small">主流观点</el-tag>
+            </el-tooltip>
+            <el-tooltip content="学界存在明显分歧，尚无定论" placement="top">
+              <el-tag type="warning" effect="dark" size="small">存在争议</el-tag>
+            </el-tooltip>
+            <el-tooltip content="基于有限证据提出的研究假说，有待进一步验证" placement="top">
+              <el-tag type="danger" effect="dark" size="small">研究假说</el-tag>
+            </el-tooltip>
+          </div>
+          <div class="ci-note">
+            <el-icon color="#e6a23c"><Warning /></el-icon>
+            <span>古生物学领域持续发展，每条知识均标注最后更新日期、研究来源引用与注意事项，供您参考甄别。</span>
+          </div>
+        </div>
       </div>
     </el-card>
 
@@ -116,9 +141,21 @@
                 >
                   <div class="dino-card-header">
                     <span class="dino-name">{{ dino.name }}</span>
-                    <el-tag size="small" :type="getDietTagType(dino.diet)">
-                      {{ dino.diet }}
-                    </el-tag>
+                    <div class="dino-tags">
+                      <el-tag size="small" :type="getDietTagType(dino.diet)">
+                        {{ dino.diet }}
+                      </el-tag>
+                      <el-tooltip :content="getConfidenceDescription(dino.confidence)" placement="top">
+                        <el-tag
+                          size="small"
+                          effect="plain"
+                          :type="getConfidenceTagType(dino.confidence)"
+                          class="dino-confidence-tag"
+                        >
+                          {{ getConfidenceLabel(dino.confidence) }}
+                        </el-tag>
+                      </el-tooltip>
+                    </div>
                   </div>
                   <div class="dino-name-en">{{ dino.nameEn }}</div>
                   <div class="dino-meta">
@@ -142,6 +179,66 @@
                   <el-icon color="#f59e0b"><Collection /></el-icon>
                   <span>{{ fact.content }}</span>
                 </div>
+              </div>
+            </div>
+            <div class="credibility-section" v-if="msg.credibility && msg.role === 'ai'">
+              <div class="credibility-header">
+                <div class="credibility-title">
+                  <el-icon color="#409eff"><DataAnalysis /></el-icon>
+                  <span>知识可信度说明</span>
+                </div>
+                <el-tooltip :content="getConfidenceDescription(msg.credibility.confidence)" placement="top">
+                  <el-tag
+                    size="small"
+                    effect="dark"
+                    :type="getConfidenceTagType(msg.credibility.confidence)"
+                    class="confidence-tag"
+                  >
+                    <el-icon style="margin-right: 3px;"><DataAnalysis /></el-icon>
+                    {{ getConfidenceLabel(msg.credibility.confidence) }}
+                  </el-tag>
+                </el-tooltip>
+              </div>
+
+              <div class="credibility-meta">
+                <span class="meta-item">
+                  <el-icon><Clock /></el-icon>
+                  最后更新：{{ msg.credibility.lastUpdated }}
+                </span>
+              </div>
+
+              <div v-if="msg.credibility.citations && msg.credibility.citations.length > 0" class="citations-section">
+                <div class="citations-title">
+                  <el-icon><Document /></el-icon>
+                  <span>研究来源引用</span>
+                </div>
+                <div class="citations-list">
+                  <div v-for="(cite, idx) in msg.credibility.citations" :key="idx" class="citation-item">
+                    <span class="citation-year">[{{ cite.year }}]</span>
+                    <span v-if="cite.researcher" class="citation-researcher">{{ cite.researcher }}</span>
+                    <span v-if="cite.institution" class="citation-institution">（{{ cite.institution }}）</span>
+                    <span v-if="cite.study" class="citation-study">：{{ cite.study }}</span>
+                    <span v-if="cite.note" class="citation-note"> · {{ cite.note }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="msg.credibility.caveats && msg.credibility.caveats.length > 0" class="caveats-section">
+                <div class="caveats-title">
+                  <el-icon color="#e6a23c"><Warning /></el-icon>
+                  <span>注意事项</span>
+                </div>
+                <div class="caveats-list">
+                  <div v-for="(caveat, idx) in msg.credibility.caveats" :key="idx" class="caveat-item">
+                    <el-icon color="#e6a23c"><Warning /></el-icon>
+                    <span>{{ caveat }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="disclaimer">
+                <el-icon color="#909399"><InfoFilled /></el-icon>
+                <span>古生物学领域知识持续更新，以上内容仅供参考，引用前请核实最新研究成果。</span>
               </div>
             </div>
             <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
@@ -197,9 +294,22 @@ import {
   Link,
   Star,
   Collection,
+  DataAnalysis,
+  Document,
+  Warning,
+  Clock,
+  InfoFilled,
 } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
-import { dinosaurQaApi, type QaMessage, type DinosaurInfo } from '@/api/dinosaurQa'
+import { ElMessage, ElTooltip } from 'element-plus'
+import {
+  dinosaurQaApi,
+  type QaMessage,
+  type DinosaurInfo,
+  type KnowledgeConfidence,
+  CONFIDENCE_LABEL,
+  CONFIDENCE_COLOR,
+  CONFIDENCE_DESCRIPTION,
+} from '@/api/dinosaurQa'
 
 const loading = ref(false)
 const thinking = ref(false)
@@ -239,6 +349,28 @@ const getDietTagType = (diet: string): 'success' | 'warning' | 'info' => {
     case '杂食': return 'warning'
     default: return 'info'
   }
+}
+
+const getConfidenceTagType = (confidence: KnowledgeConfidence): 'success' | 'primary' | 'warning' | 'danger' => {
+  switch (confidence) {
+    case 'consensus': return 'success'
+    case 'mainstream': return 'primary'
+    case 'controversial': return 'warning'
+    case 'hypothesis': return 'danger'
+    default: return 'info' as any
+  }
+}
+
+const getConfidenceLabel = (c?: KnowledgeConfidence) => {
+  return c ? CONFIDENCE_LABEL[c] : ''
+}
+
+const getConfidenceColor = (c?: KnowledgeConfidence) => {
+  return c ? CONFIDENCE_COLOR[c] : '#909399'
+}
+
+const getConfidenceDescription = (c?: KnowledgeConfidence) => {
+  return c ? CONFIDENCE_DESCRIPTION[c] : ''
 }
 
 const loadSuggestedQuestions = async () => {
@@ -287,6 +419,7 @@ const submitQuestion = async () => {
       timestamp: Date.now(),
       relatedDinosaurs: res.data.relatedDinosaurs,
       relatedFacts: res.data.relatedFacts,
+      credibility: res.data.credibility,
     }
     messages.value.push(aiMsg)
   } catch (e: any) {
@@ -695,5 +828,193 @@ onMounted(() => {
 .input-section :deep(.el-textarea__inner) {
   font-size: 14px;
   line-height: 1.6;
+}
+
+.credibility-intro {
+  margin-top: 24px;
+  padding: 16px 20px;
+  background: #fff;
+  border-radius: 12px;
+  text-align: left;
+  border: 1px solid #e4e7ed;
+}
+
+.ci-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #303133;
+  margin-bottom: 12px;
+}
+
+.ci-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ci-tags .el-tag {
+  cursor: help;
+}
+
+.ci-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  color: #8c6d1f;
+  line-height: 1.6;
+  background: #fffbe6;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.credibility-section {
+  width: 100%;
+  background: linear-gradient(135deg, #ecf5ff 0%, #f0f9ff 100%);
+  border-radius: 10px;
+  padding: 14px 16px;
+  border: 1px solid #d9ecff;
+}
+
+.credibility-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.credibility-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #409eff;
+}
+
+.confidence-tag {
+  cursor: help;
+}
+
+.credibility-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #c6e2ff;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #606266;
+}
+
+.citations-section {
+  margin-bottom: 12px;
+}
+
+.citations-title,
+.caveats-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.citations-list,
+.caveats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.citation-item {
+  font-size: 12px;
+  color: #606266;
+  line-height: 1.6;
+  padding-left: 4px;
+}
+
+.citation-year {
+  color: #409eff;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.citation-researcher {
+  color: #303133;
+  font-weight: 500;
+}
+
+.citation-institution {
+  color: #909399;
+  font-size: 11px;
+}
+
+.citation-study {
+  color: #606266;
+}
+
+.citation-note {
+  color: #e6a23c;
+  font-style: italic;
+}
+
+.caveats-section {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #fffbe6;
+  border-radius: 6px;
+}
+
+.caveat-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  color: #8c6d1f;
+  line-height: 1.6;
+}
+
+.caveat-item .el-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  color: #909399;
+  line-height: 1.6;
+  padding-top: 10px;
+  border-top: 1px dashed #c6e2ff;
+}
+
+.disclaimer .el-icon {
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.dino-tags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dino-confidence-tag {
+  cursor: help;
 }
 </style>

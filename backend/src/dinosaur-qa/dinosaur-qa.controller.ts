@@ -3,6 +3,7 @@ import {
   DinosaurQaService,
   DinosaurInfo,
   DinosaurFact,
+  CredibilityInfo,
 } from './dinosaur-qa.service';
 
 interface AskRequest {
@@ -13,6 +14,7 @@ interface AskResponse {
   answer: string;
   relatedDinosaurs: DinosaurInfo[];
   relatedFacts: DinosaurFact[];
+  credibility?: CredibilityInfo;
 }
 
 @Controller('dinosaur-qa')
