@@ -68,6 +68,7 @@ export interface DinosaurInfo {
   confidence: KnowledgeConfidence
   lastUpdated: string
   citations: ResearchCitation[]
+  caveats?: string[]
 }
 
 export interface AskResponse {

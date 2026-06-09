@@ -77,6 +77,7 @@ export interface DinosaurInfo {
   confidence: KnowledgeConfidence;
   lastUpdated: string;
   citations: ResearchCitation[];
+  caveats?: string[];
 }
 
 interface KnowledgeEntry {
@@ -123,6 +124,10 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
       { year: '2006', researcher: 'K.A. Stevens', institution: '俄勒冈大学', study: '霸王龙视觉敏锐度模型研究' },
       { year: '2008', researcher: 'D.T. Ksepka 等', study: '暴龙类嗅觉系统化石分析' },
     ],
+    caveats: [
+      '体型数据（体长、体重、身高）均为基于现有化石的估算值，不同研究方法结果可能存在±10%-20%差异',
+      '随着新化石发现和估算方法改进，体型数据可能随时更新，竞赛/考试使用前请核实最新权威资料',
+    ],
   },
   {
     name: '三角龙',
@@ -153,6 +158,10 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
     citations: [
       { year: '2009', researcher: 'A.A. Farke 等', study: '角龙类颈盾功能形态学分析' },
       { year: '2012', researcher: 'S. Sampson 等', study: '角龙类社会行为研究' },
+    ],
+    caveats: [
+      '体型数据（体长、体重、身高）均为基于现有化石的估算值，不同研究方法结果可能存在±10%-20%差异',
+      '随着新化石发现和估算方法改进，体型数据可能随时更新，竞赛/考试使用前请核实最新权威资料',
     ],
   },
   {
@@ -185,6 +194,10 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
     citations: [
       { year: '2016', researcher: 'D.M. Henderson', study: '蜥脚类恐龙浮力与水生习性再评估', note: '纠正了腕龙水生的传统观点' },
       { year: '2019', researcher: 'J.A. Whitlock 等', study: '莫里森组蜥脚类食性分析' },
+    ],
+    caveats: [
+      '大型蜥脚类恐龙多为碎片化石，体型估算（体长、体重、身高）误差范围可达±20%以上',
+      '随着新化石发现和估算方法改进，体型数据可能随时更新，竞赛/考试使用前请核实最新权威资料',
     ],
   },
   {
@@ -219,6 +232,10 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
       { year: '1971', researcher: '波兰-蒙古联合考察队', study: '"搏斗中的恐龙"化石（Velociraptor vs Protoceratops）' },
       { year: '1969', researcher: 'J.H. Ostrom', study: '恐爪龙（Deinonychus）描述，重新定义驰龙科' },
     ],
+    caveats: [
+      '体型数据（体长、体重、身高）均为基于现有化石的估算值，不同研究方法结果可能存在±10%-20%差异',
+      '随着新化石发现和估算方法改进，体型数据可能随时更新，竞赛/考试使用前请核实最新权威资料',
+    ],
   },
   {
     name: '剑龙',
@@ -252,6 +269,10 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
       { year: '2005', researcher: 'K. Carpenter 等', study: '剑龙骨板形态与功能再分析', note: '骨板功能仍存在多种假说' },
       { year: '2018', researcher: 'E. Hoffman 等', study: '剑龙尾部攻击痕迹的化石证据' },
     ],
+    caveats: [
+      '体型数据（体长、体重、身高）均为基于现有化石的估算值，不同研究方法结果可能存在±10%-20%差异',
+      '随着新化石发现和估算方法改进，体型数据可能随时更新，竞赛/考试使用前请核实最新权威资料',
+    ],
   },
   {
     name: '梁龙',
@@ -283,6 +304,10 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
     citations: [
       { year: '1997', researcher: 'P.J. Currie 等', study: '蜥脚类尾巴动力学分析' },
       { year: '1878', researcher: 'O.C. Marsh', study: '梁龙命名与描述' },
+    ],
+    caveats: [
+      '大型蜥脚类恐龙多为碎片化石，体型估算（体长、体重、身高）误差范围可达±20%以上',
+      '随着新化石发现和估算方法改进，体型数据可能随时更新，竞赛/考试使用前请核实最新权威资料',
     ],
   },
   {
@@ -317,6 +342,10 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
       { year: '2010', researcher: 'D.M. Unwin', study: '翼龙演化与古生物学综合研究' },
       { year: '2022', researcher: 'K. Padian 等', study: '风神翼龙生态位再评估' },
     ],
+    caveats: [
+      '翼龙类物种体型差异极大（从麻雀到小型飞机），所列数据为概括范围，具体物种差异巨大',
+      '随着新化石发现，翼龙体型数据可能随时更新，竞赛/考试使用前请核实最新权威资料',
+    ],
   },
   {
     name: '始祖鸟',
@@ -348,6 +377,10 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
       { year: '1861', researcher: 'H. von Meyer', study: '始祖鸟首次描述与命名' },
       { year: '2011', researcher: 'G. Mayr 等', study: '始祖鸟羽毛与体色复原研究' },
       { year: '2018', researcher: 'M. Kundrát 等', study: '始祖鸟脑颅扫描与飞行能力分析' },
+    ],
+    caveats: [
+      '体型数据（体长、体重）均为基于现有化石的估算值，不同研究方法结果可能存在±10%-20%差异',
+      '随着新化石发现和估算方法改进，体型数据可能随时更新，竞赛/考试使用前请核实最新权威资料',
     ],
   },
   {
@@ -382,6 +415,11 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
       { year: '2020', researcher: 'N. Ibrahim 等', study: '棘龙尾部形态与水生推进功能', note: '该结论仍存在激烈学术争议' },
       { year: '2023', researcher: 'K. Padian 等', study: '棘龙生态位质疑，认为更可能为近岸而非全水生' },
     ],
+    caveats: [
+      '棘龙体型数据（体长、体重）目前存在较大争议，不同研究估算差异可达30%以上',
+      '随着2014年和2020年新化石的发现，棘龙的体型估算和整体形象已多次大幅更新',
+      '竞赛/考试使用前请务必核实最新权威研究结论，避免使用过时数据',
+    ],
   },
   {
     name: '甲龙',
@@ -413,6 +451,10 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
     citations: [
       { year: '2008', researcher: 'V. Arbour 等', study: '甲龙科尾锤生物力学分析' },
       { year: '1908', researcher: 'B. Brown', study: '甲龙属命名与描述' },
+    ],
+    caveats: [
+      '体型数据（体长、体重、身高）均为基于现有化石的估算值，不同研究方法结果可能存在±10%-20%差异',
+      '随着新化石发现和估算方法改进，体型数据可能随时更新，竞赛/考试使用前请核实最新权威资料',
     ],
   },
   {
@@ -446,6 +488,10 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
       { year: '1997', researcher: 'D.B. Weishampel 等', study: '鸭嘴龙类冠饰声学功能研究' },
       { year: '2001', researcher: 'J.C. Horner 等', study: '鸭嘴龙类生长发育与冠饰二态性' },
     ],
+    caveats: [
+      '体型数据（体长、体重、身高）均为基于现有化石的估算值，不同研究方法结果可能存在±10%-20%差异',
+      '随着新化石发现和估算方法改进，体型数据可能随时更新，竞赛/考试使用前请核实最新权威资料',
+    ],
   },
   {
     name: '恐爪龙',
@@ -477,6 +523,10 @@ const DINOSAUR_DATABASE: DinosaurInfo[] = [
     citations: [
       { year: '1969', researcher: 'J.H. Ostrom', study: '恐爪龙描述与恐龙温血性假说', note: '引发"恐龙文艺复兴"的里程碑研究' },
       { year: '2006', researcher: 'J.O. Maxwell 等', study: '恐爪龙群体捕猎化石证据分析' },
+    ],
+    caveats: [
+      '体型数据（体长、体重、身高）均为基于现有化石的估算值，不同研究方法结果可能存在±10%-20%差异',
+      '随着新化石发现和估算方法改进，体型数据可能随时更新，竞赛/考试使用前请核实最新权威资料',
     ],
   },
 ];
@@ -567,8 +617,10 @@ const COMMON_QUESTIONS: KnowledgeEntry[] = [
       { year: '2023', researcher: 'P.M. Otero 等', study: '蜥脚类恐龙体型估算方法比较研究', note: '指出不同估算方法结果差异可达 20%+，需谨慎解读' },
     ],
     caveats: [
-      '大型蜥脚类恐龙多为碎片化石，体型估算存在较大误差范围',
-      '"最大恐龙"的称号常随新化石发现而变化',
+      '⚠️ 大型蜥脚类恐龙多为碎片化石，不同研究方法的体型估算结果差异可达 20%-50%',
+      '⚠️ "最大恐龙"的称号几乎每年都可能因新化石发现或重新研究而改变',
+      '⚠️ 特别提醒：竞赛、考试中请使用教材或组委会指定的最新权威资料，切勿直接引用本系统数据',
+      '建议参考：最新的古生物学学术综述或权威教材（如《The Dinosauria》最新版）',
     ],
   },
   {
@@ -581,6 +633,10 @@ const COMMON_QUESTIONS: KnowledgeEntry[] = [
     citations: [
       { year: '2008', researcher: 'X. Xu 等', study: '近鸟龙（Anchiornis）描述——已知最小的非鸟类恐龙之一' },
       { year: '2000', researcher: 'Z. Zhou 等', study: '小盗龙（Microraptor）四翼恐龙描述' },
+    ],
+    caveats: [
+      '⚠️ 小型恐龙化石稀少且易碎，"最小恐龙"的记录常随新发现而更新',
+      '⚠️ 竞赛、考试中请使用教材或组委会指定的最新权威资料，切勿直接引用本系统数据',
     ],
   },
   {
@@ -872,6 +928,7 @@ export class DinosaurQaService {
         confidence: dino.confidence,
         lastUpdated: dino.lastUpdated,
         citations: dino.citations,
+        caveats: dino.caveats,
       };
 
       return {

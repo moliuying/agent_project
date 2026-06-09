@@ -163,8 +163,17 @@
                     <span>📍 {{ dino.location.split('（')[0] }}</span>
                   </div>
                   <div class="dino-size">
-                    <span>📏 {{ dino.length }}</span>
-                    <span>⚖️ {{ dino.weight }}</span>
+                    <el-tooltip content="体型数据为基于现有化石的估算值，可能随新化石发现而更新，竞赛/考试使用前请核实最新资料" placement="top">
+                      <span class="dino-size-item">📏 {{ dino.length }} <span class="estimate-badge">估算</span></span>
+                    </el-tooltip>
+                    <el-tooltip content="体型数据为基于现有化石的估算值，可能随新化石发现而更新，竞赛/考试使用前请核实最新资料" placement="top">
+                      <span class="dino-size-item">⚖️ {{ dino.weight }} <span class="estimate-badge">估算</span></span>
+                    </el-tooltip>
+                  </div>
+                  <div v-if="dino.height" class="dino-size">
+                    <el-tooltip content="体型数据为基于现有化石的估算值，可能随新化石发现而更新，竞赛/考试使用前请核实最新资料" placement="top">
+                      <span class="dino-size-item">📐 {{ dino.height }} <span class="estimate-badge">估算</span></span>
+                    </el-tooltip>
                   </div>
                 </el-card>
               </div>
@@ -198,6 +207,14 @@
                     {{ getConfidenceLabel(msg.credibility.confidence) }}
                   </el-tag>
                 </el-tooltip>
+              </div>
+
+              <div class="competition-warning">
+                <el-icon color="#ef4444" :size="16"><Warning /></el-icon>
+                <div class="cw-content">
+                  <strong>竞赛/考试使用特别提示：</strong>
+                  本工具提供的恐龙数据（尤其是体型数据）基于现有化石的估算值，古生物学领域持续有新发现，数据可能随时更新。<strong>竞赛、考试中请以教材、组委会指定资料或最新学术文献为准，切勿直接引用本系统数据。</strong>
+                </div>
               </div>
 
               <div class="credibility-meta">
@@ -1016,5 +1033,60 @@ onMounted(() => {
 
 .dino-confidence-tag {
   cursor: help;
+}
+
+.dino-size {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.dino-size-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #606266;
+  line-height: 1.8;
+  cursor: help;
+}
+
+.estimate-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 0 4px;
+  background: #fdf6ec;
+  color: #e6a23c;
+  border-radius: 3px;
+  line-height: 1.4;
+  border: 1px solid #f5dab1;
+  font-weight: 500;
+}
+
+.competition-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.competition-warning .el-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.cw-content {
+  font-size: 12px;
+  color: #7f1d1d;
+  line-height: 1.7;
+}
+
+.cw-content strong {
+  color: #b91c1c;
+  font-weight: 700;
 }
 </style>
