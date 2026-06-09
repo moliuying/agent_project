@@ -384,6 +384,15 @@
 
       <el-col :span="24" :lg="12">
         <template v-if="recognitionResult">
+          <el-alert
+            v-if="recognitionResult.highRiskWarning"
+            type="error"
+            :closable="false"
+            show-icon
+            class="high-risk-alert"
+            :title="recognitionResult.highRiskWarning"
+          />
+
           <el-card class="confidence-card">
             <div class="confidence-header">
               <div class="confidence-left">
@@ -394,6 +403,14 @@
                   <div class="confidence-label">识别置信度</div>
                   <div class="confidence-value" :style="{ color: confidenceColor }">
                     {{ recognitionResult.overallConfidence }}%
+                    <el-tag
+                      size="small"
+                      :type="confidenceLevelConfig[recognitionResult.primaryObject.confidenceExplanation.level].type"
+                      effect="dark"
+                      style="margin-left: 8px"
+                    >
+                      {{ recognitionResult.primaryObject.confidenceExplanation.levelLabel }}
+                    </el-tag>
                   </div>
                 </div>
               </div>
@@ -405,6 +422,61 @@
                 :stroke-width="8"
               />
             </div>
+
+            <div class="confidence-breakdown">
+              <div class="breakdown-title">
+                <el-icon :size="14" color="#606266"><DataAnalysis /></el-icon>
+                <span>置信度构成分析</span>
+              </div>
+              <div class="breakdown-list">
+                <div class="breakdown-item">
+                  <span class="breakdown-label">视觉匹配度</span>
+                  <el-progress
+                    :percentage="recognitionResult.primaryObject.confidenceExplanation.breakdown.visualMatch"
+                    :color="#409eff"
+                    :stroke-width="6"
+                  />
+                </div>
+                <div class="breakdown-item">
+                  <span class="breakdown-label">特征匹配度</span>
+                  <el-progress
+                    :percentage="recognitionResult.primaryObject.confidenceExplanation.breakdown.featureMatch"
+                    :color="#67c23a"
+                    :stroke-width="6"
+                  />
+                </div>
+                <div class="breakdown-item">
+                  <span class="breakdown-label">上下文匹配</span>
+                  <el-progress
+                    :percentage="recognitionResult.primaryObject.confidenceExplanation.breakdown.contextMatch"
+                    :color="#e6a23c"
+                    :stroke-width="6"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="confidence-reasons">
+              <div class="reasons-title">
+                <el-icon :size="14" color="#606266"><InfoFilled /></el-icon>
+                <span>置信度说明</span>
+              </div>
+              <ul class="reasons-list">
+                <li v-for="(r, idx) in recognitionResult.primaryObject.confidenceExplanation.reasons" :key="idx">
+                  {{ r }}
+                </li>
+              </ul>
+            </div>
+
+            <el-alert
+              v-if="recognitionResult.primaryObject.confidenceExplanation.recommendation"
+              type="info"
+              :closable="false"
+              show-icon
+              class="recommendation-alert"
+              :title="recognitionResult.primaryObject.confidenceExplanation.recommendation"
+            />
+
             <el-alert
               v-if="recognitionResult.overallConfidence < 70"
               :type="recognitionResult.overallConfidence < 50 ? 'error' : 'warning'"
@@ -512,6 +584,22 @@
               </ul>
             </div>
 
+            <div
+              v-if="recognitionResult.primaryObject.distinguishingFeatures && recognitionResult.primaryObject.distinguishingFeatures.length > 0"
+              class="distinguishing-section"
+            >
+              <h4 class="section-title">
+                <el-icon :size="16" color="#f56c6c"><WarningFilled /></el-icon>
+                显著鉴别特征（区分相似物种的关键）
+              </h4>
+              <ul class="distinguishing-list">
+                <li v-for="(feat, idx) in recognitionResult.primaryObject.distinguishingFeatures" :key="idx">
+                  <el-icon color="#f56c6c"><View /></el-icon>
+                  {{ feat }}
+                </li>
+              </ul>
+            </div>
+
             <div class="funfacts-section">
               <h4 class="section-title">
                 <el-icon :size="16" color="#13c2c2"><MagicStick /></el-icon>
@@ -526,6 +614,139 @@
                 class="funfact-alert"
                 :title="fact"
               />
+            </div>
+
+            <div
+              v-if="recognitionResult.primaryObject.safetyInfo"
+              class="safety-section"
+            >
+              <h4 class="section-title">
+                <el-icon :size="16" :color="safetyLevelConfig[recognitionResult.primaryObject.safetyInfo.level].color"><WarningFilled /></el-icon>
+                安全警示
+                <el-tag
+                  size="small"
+                  :type="safetyLevelConfig[recognitionResult.primaryObject.safetyInfo.level].type"
+                  effect="dark"
+                  style="margin-left: 8px"
+                >
+                  {{ recognitionResult.primaryObject.safetyInfo.levelLabel }}
+                </el-tag>
+                <el-tag
+                  size="small"
+                  :type="recognitionResult.primaryObject.safetyInfo.edibility === 'toxic' ? 'danger' : recognitionResult.primaryObject.safetyInfo.edibility === 'edible' ? 'success' : recognitionResult.primaryObject.safetyInfo.edibility === 'medicinal' ? 'warning' : 'info'"
+                  style="margin-left: 6px"
+                >
+                  {{ recognitionResult.primaryObject.safetyInfo.edibilityLabel }}
+                </el-tag>
+              </h4>
+
+              <el-alert
+                v-for="(w, idx) in recognitionResult.primaryObject.safetyInfo.warnings"
+                :key="'sw'+idx"
+                :type="recognitionResult.primaryObject.safetyInfo.level === 'danger' ? 'error' : recognitionResult.primaryObject.safetyInfo.level === 'caution' ? 'warning' : 'info'"
+                :closable="false"
+                show-icon
+                class="safety-warning-alert"
+                :title="w"
+              />
+
+              <div v-if="recognitionResult.primaryObject.safetyInfo.precautions && recognitionResult.primaryObject.safetyInfo.precautions.length > 0" class="precautions-section">
+                <div class="precautions-title">
+                  <el-icon :size="14" color="#606266"><CircleCheckFilled /></el-icon>
+                  <span>防范措施</span>
+                </div>
+                <ul class="precautions-list">
+                  <li v-for="(p, idx) in recognitionResult.primaryObject.safetyInfo.precautions" :key="idx">
+                    {{ p }}
+                  </li>
+                </ul>
+              </div>
+
+              <el-alert
+                v-if="recognitionResult.primaryObject.safetyInfo.emergencyAdvice"
+                type="error"
+                :closable="false"
+                show-icon
+                class="emergency-alert"
+              >
+                <template #title>
+                  <span class="emergency-title">
+                    <el-icon :size="16"><FirstAidKit /></el-icon>
+                    紧急处理
+                  </span>
+                </template>
+                {{ recognitionResult.primaryObject.safetyInfo.emergencyAdvice }}
+              </el-alert>
+            </div>
+
+            <div
+              v-if="recognitionResult.primaryObject.confusableSpecies && recognitionResult.primaryObject.confusableSpecies.length > 0"
+              class="confusable-section"
+            >
+              <h4 class="section-title">
+                <el-icon :size="16" color="#f56c6c"><WarningFilled /></el-icon>
+                易混淆物种对比（切勿混淆！）
+                <el-tag size="small" type="danger" effect="light" style="margin-left: 8px">
+                  {{ recognitionResult.primaryObject.confusableSpecies.length }} 种相似物种
+                </el-tag>
+              </h4>
+
+              <div class="confusable-list">
+                <div
+                  v-for="cs in recognitionResult.primaryObject.confusableSpecies"
+                  :key="cs.id"
+                  class="confusable-item"
+                  :class="{ 'confusable-danger': cs.isToxic }"
+                >
+                  <div class="confusable-header">
+                    <div class="confusable-name-row">
+                      <span class="confusable-name">{{ cs.name }}</span>
+                      <span class="confusable-english">{{ cs.englishName }}</span>
+                      <el-tag
+                        v-if="cs.isToxic"
+                        size="small"
+                        type="danger"
+                        effect="dark"
+                      >
+                        ⚠️ 有毒/危险
+                      </el-tag>
+                      <el-tag
+                        v-else
+                        size="small"
+                        type="success"
+                        effect="light"
+                      >
+                        无毒/安全
+                      </el-tag>
+                    </div>
+                    <div class="confusable-similarity">
+                      <el-tag
+                        size="small"
+                        :type="cs.similarity >= 85 ? 'danger' : cs.similarity >= 70 ? 'warning' : 'info'"
+                      >
+                        相似度 {{ cs.similarity }}% · {{ cs.similarityLabel }}
+                      </el-tag>
+                    </div>
+                  </div>
+
+                  <div class="confusable-difference">
+                    <div class="diff-label">
+                      <el-icon :size="14" color="#409eff"><ZoomIn /></el-icon>
+                      关键区别：
+                    </div>
+                    <p class="diff-text">{{ cs.keyDifference }}</p>
+                  </div>
+
+                  <el-alert
+                    v-if="cs.dangerDescription"
+                    :type="cs.dangerLevel === 'danger' ? 'error' : cs.dangerLevel === 'caution' ? 'warning' : 'info'"
+                    :closable="false"
+                    show-icon
+                    class="confusable-danger-alert"
+                    :title="cs.dangerDescription"
+                  />
+                </div>
+              </div>
             </div>
 
             <div class="related-section">
@@ -584,6 +805,22 @@
             <p class="scene-description">{{ recognitionResult.sceneDescription }}</p>
             <p class="recognition-time">识别时间：{{ formatTimestamp(recognitionResult.recognitionTimestamp) }}</p>
           </el-card>
+
+          <el-alert
+            v-if="recognitionResult.safetyDisclaimer"
+            type="warning"
+            :closable="false"
+            show-icon
+            class="disclaimer-alert"
+          >
+            <template #title>
+              <span class="disclaimer-title">
+                <el-icon :size="16"><WarningFilled /></el-icon>
+                免责声明 · 使用须知
+              </span>
+            </template>
+            {{ recognitionResult.safetyDisclaimer }}
+          </el-alert>
         </template>
 
         <el-card v-else class="empty-result-card">
@@ -686,13 +923,18 @@ import {
   Flower,
   Bell,
   KnifeFork,
-  OfficeBuilding
+  OfficeBuilding,
+  InfoFilled,
+  FirstAidKit,
+  ZoomIn
 } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   objectRecognitionApi,
   type ObjectRecognitionResponse,
-  type ImageQualityHints
+  type ImageQualityHints,
+  type SafetyLevel,
+  type ConfidenceLevel
 } from '@/api/objectRecognition'
 
 const HISTORY_KEY = 'object_recognition_history'
@@ -760,6 +1002,21 @@ const confidenceIcon = computed(() => {
   if (c >= 60) return WarningFilled
   return CircleCloseFilled
 })
+
+const safetyLevelConfig: Record<SafetyLevel, { label: string; color: string; type: 'success' | 'warning' | 'danger' | 'info' }> = {
+  safe: { label: '安全', color: '#67c23a', type: 'success' },
+  caution: { label: '需谨慎', color: '#e6a23c', type: 'warning' },
+  danger: { label: '危险', color: '#f56c6c', type: 'danger' },
+  unknown: { label: '未知', color: '#909399', type: 'info' }
+}
+
+const confidenceLevelConfig: Record<ConfidenceLevel, { label: string; color: string; type: 'success' | 'primary' | 'warning' | 'danger' | 'info' }> = {
+  very_high: { label: '极高', color: '#67c23a', type: 'success' },
+  high: { label: '较高', color: '#409eff', type: 'primary' },
+  medium: { label: '中等', color: '#e6a23c', type: 'warning' },
+  low: { label: '较低', color: '#f56c6c', type: 'danger' },
+  very_low: { label: '极低', color: '#909399', type: 'info' }
+}
 
 let mediaStream: MediaStream | null = null
 
@@ -1236,6 +1493,31 @@ const recognizeObject = async () => {
       result: JSON.parse(JSON.stringify(response.data))
     })
     saveHistory()
+
+    if (response.data.highRiskWarning) {
+      try {
+        await ElMessageBox.alert(
+          response.data.highRiskWarning + '\n\n请务必仔细查看页面中的「安全警示」和「易混淆物种对比」板块，切勿仅凭识别结果做出食用、药用等决定。',
+          '⚠️ 安全警示',
+          {
+            confirmButtonText: '我已知晓，查看详情',
+            type: 'error',
+            dangerouslyUseHTMLString: true
+          }
+        )
+      } catch (e) {}
+    } else if (response.data.hasSafetyRisk) {
+      try {
+        await ElMessageBox.alert(
+          '识别结果涉及可能存在安全风险的物体（如野生植物、动物、菌类等）。\n\n⚠️ 本应用的识别结果仅供参考和科普学习，不作为食用、药用、鉴别野生动物或专业鉴定的依据。请勿根据识别结果随意采摘、食用野生动植物或进行其他可能危及安全的行为。\n\n请查看下方「安全警示」板块获取详细信息。',
+          '安全提示',
+          {
+            confirmButtonText: '我已知晓',
+            type: 'warning'
+          }
+        )
+      } catch (e) {}
+    }
 
     ElMessage.success(`识别成功！已识别为「${response.data.primaryObject.name}」`)
   } catch (error: any) {
@@ -1913,6 +2195,304 @@ const recognizeObject = async () => {
 
 .example-item span {
   font-size: 13px;
+  color: #606266;
+}
+
+.high-risk-alert {
+  margin-bottom: 20px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.high-risk-alert :deep(.el-alert__title) {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.confidence-breakdown {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.breakdown-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 10px;
+}
+
+.breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.breakdown-label {
+  font-size: 13px;
+  color: #606266;
+  min-width: 80px;
+}
+
+.breakdown-item :deep(.el-progress) {
+  flex: 1;
+}
+
+.confidence-reasons {
+  margin-top: 14px;
+}
+
+.reasons-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.reasons-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.reasons-list li {
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  background: #f9f9f9;
+  border-left: 3px solid #409eff;
+  border-radius: 0 4px 4px 0;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.recommendation-alert {
+  margin-top: 12px;
+}
+
+.recommendation-alert :deep(.el-alert__title) {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.distinguishing-section {
+  margin-top: 16px;
+}
+
+.distinguishing-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.distinguishing-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: #fef0f0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.7;
+  border-left: 3px solid #f56c6c;
+}
+
+.distinguishing-list li .el-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.safety-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: #fffaf0;
+  border: 1px solid #faecd8;
+  border-radius: 10px;
+}
+
+.safety-section .section-title {
+  margin-bottom: 12px;
+}
+
+.safety-warning-alert {
+  margin-bottom: 8px;
+}
+
+.safety-warning-alert :deep(.el-alert__title) {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.precautions-section {
+  margin-top: 12px;
+}
+
+.precautions-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.precautions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.precautions-list li {
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  background: #f0f9eb;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.precautions-list li::before {
+  content: "✓ ";
+  color: #67c23a;
+  font-weight: bold;
+}
+
+.emergency-alert {
+  margin-top: 12px;
+}
+
+.emergency-alert :deep(.el-alert__description) {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.emergency-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.confusable-section {
+  margin-top: 20px;
+}
+
+.confusable-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confusable-item {
+  padding: 14px;
+  border: 1px solid #ebeef5;
+  border-radius: 10px;
+  background: #fafafa;
+  transition: all 0.2s;
+}
+
+.confusable-item.confusable-danger {
+  border-color: #fbc4c4;
+  background: #fef0f0;
+}
+
+.confusable-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.confusable-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.confusable-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.confusable-english {
+  font-size: 12px;
+  color: #909399;
+  font-style: italic;
+}
+
+.confusable-similarity {
+  flex-shrink: 0;
+}
+
+.confusable-difference {
+  padding: 10px 12px;
+  background: #ecf5ff;
+  border-radius: 6px;
+}
+
+.diff-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #409eff;
+  margin-bottom: 4px;
+}
+
+.diff-text {
+  margin: 0;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.7;
+}
+
+.confusable-danger-alert {
+  margin-top: 10px;
+}
+
+.confusable-danger-alert :deep(.el-alert__title) {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.disclaimer-alert {
+  margin-top: 4px;
+  border-radius: 8px;
+}
+
+.disclaimer-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.disclaimer-alert :deep(.el-alert__description) {
+  font-size: 13px;
+  line-height: 1.8;
   color: #606266;
 }
 </style>

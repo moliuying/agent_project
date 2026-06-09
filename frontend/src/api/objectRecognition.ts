@@ -29,6 +29,48 @@ export type ObjectCategory =
   | 'furniture'
   | 'other'
 
+export type SafetyLevel = 'safe' | 'caution' | 'danger' | 'unknown'
+
+export type ConfidenceLevel = 'very_high' | 'high' | 'medium' | 'low' | 'very_low'
+
+export interface ConfidenceBreakdown {
+  visualMatch: number
+  featureMatch: number
+  contextMatch: number
+  overall: number
+}
+
+export interface ConfidenceExplanation {
+  level: ConfidenceLevel
+  levelLabel: string
+  score: number
+  breakdown: ConfidenceBreakdown
+  reasons: string[]
+  recommendation: string
+}
+
+export interface SafetyInfo {
+  level: SafetyLevel
+  levelLabel: string
+  edibility: 'edible' | 'toxic' | 'medicinal' | 'unknown' | 'not_applicable'
+  edibilityLabel: string
+  warnings: string[]
+  precautions: string[]
+  emergencyAdvice?: string
+}
+
+export interface ConfusableSpecies {
+  id: string
+  name: string
+  englishName: string
+  similarity: number
+  similarityLabel: string
+  isToxic: boolean
+  keyDifference: string
+  dangerLevel?: SafetyLevel
+  dangerDescription?: string
+}
+
 export interface ObjectRecognitionRequest {
   imageBase64: string
   extraNote?: string
@@ -42,6 +84,7 @@ export interface RecognizedObject {
   category: ObjectCategory
   categoryLabel: string
   confidence: number
+  confidenceExplanation: ConfidenceExplanation
   description: string
   backgroundKnowledge: string
   taxonomy: {
@@ -54,6 +97,7 @@ export interface RecognizedObject {
     species?: string
   }
   keyFeatures: string[]
+  distinguishingFeatures: string[]
   funFacts: string[]
   relatedObjects: {
     id: string
@@ -62,6 +106,8 @@ export interface RecognizedObject {
     relation: string
   }[]
   tags: string[]
+  safetyInfo: SafetyInfo
+  confusableSpecies: ConfusableSpecies[]
 }
 
 export interface ObjectRecognitionResponse {
@@ -71,6 +117,9 @@ export interface ObjectRecognitionResponse {
   overallConfidence: number
   qualityWarnings: string[]
   recognitionTimestamp: string
+  safetyDisclaimer: string
+  hasSafetyRisk: boolean
+  highRiskWarning?: string
 }
 
 export const objectRecognitionApi = {
