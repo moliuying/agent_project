@@ -204,6 +204,17 @@
               </el-card>
             </el-col>
           </el-row>
+          <el-row :gutter="20" style="margin-top: 20px">
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/outfit-recognition')" class="feature-card">
+                <el-icon :size="40" color="#eb2f96">
+                  <CameraFilled />
+                </el-icon>
+                <h3>拍照识别穿搭</h3>
+                <p>AI 识别衣物·搭配建议·同款推荐</p>
+              </el-card>
+            </el-col>
+          </el-row>
         </div>
       </div>
     </el-card>

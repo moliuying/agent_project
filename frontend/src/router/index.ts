@@ -130,6 +130,11 @@ const routes: RouteRecordRaw[] = [
         path: '/scene-english',
         name: 'SceneEnglish',
         component: () => import('@/views/SceneEnglish.vue')
+      },
+      {
+        path: '/outfit-recognition',
+        name: 'OutfitRecognition',
+        component: () => import('@/views/OutfitRecognition.vue')
       }
     ]
   }
