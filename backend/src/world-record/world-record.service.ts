@@ -10,6 +10,8 @@ export interface WorldRecord {
   funFacts: string[];
   relatedRecords: string[];
   keywords: string[];
+  source: string;
+  updatedAt: string;
 }
 
 export interface WorldRecordAnswer {
@@ -43,7 +45,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '卡梅隆的潜水发现了约68个新物种'
     ],
     relatedRecords: ['highest-mountain', 'deepest-lake', 'longest-river'],
-    keywords: ['最深', '海沟', '海洋', '马里亚纳', '太平洋', '海底']
+    keywords: ['最深', '海沟', '海洋', '马里亚纳', '太平洋', '海底'],
+    source: '联合国教科文组织海洋学委员会、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'highest-mountain',
@@ -59,7 +63,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '珠峰上的尸体因严寒干燥而不会腐烂，成为登山者的路标'
     ],
     relatedRecords: ['deepest-trench', 'tallest-animal', 'longest-mountain-range'],
-    keywords: ['最高', '山峰', '珠穆朗玛', '喜马拉雅', '海拔', '攀登']
+    keywords: ['最高', '山峰', '珠穆朗玛', '喜马拉雅', '海拔', '攀登'],
+    source: '联合国教科文组织、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-animal',
@@ -75,7 +81,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '刚出生的蓝鲸幼崽就有约7米长，体重约2.5吨，每天要喝约400升母乳'
     ],
     relatedRecords: ['tallest-animal', 'largest-land-animal', 'smallest-animal'],
-    keywords: ['最大', '动物', '蓝鲸', '鲸鱼', '海洋生物', '哺乳动物']
+    keywords: ['最大', '动物', '蓝鲸', '鲸鱼', '海洋生物', '哺乳动物'],
+    source: 'IUCN 红色名录、世界自然基金会 WWF、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'tallest-animal',
@@ -91,7 +99,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '长颈鹿的奔跑速度可以达到每小时56公里'
     ],
     relatedRecords: ['largest-animal', 'largest-land-animal', 'fastest-animal'],
-    keywords: ['最高', '陆地', '动物', '长颈鹿', '非洲', '脖子']
+    keywords: ['最高', '陆地', '动物', '长颈鹿', '非洲', '脖子'],
+    source: 'IUCN 红色名录、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'longest-river',
@@ -107,7 +117,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '尼罗河每年6-10月会定期泛滥，洪水退去后留下的肥沃淤泥孕育了古埃及文明'
     ],
     relatedRecords: ['largest-ocean', 'deepest-trench', 'highest-mountain'],
-    keywords: ['最长', '河流', '尼罗河', '亚马孙', '非洲', '埃及']
+    keywords: ['最长', '河流', '尼罗河', '亚马孙', '非洲', '埃及'],
+    source: '联合国教科文组织、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-ocean',
@@ -123,7 +135,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '太平洋底部有地球上最长的山脉——洋中脊，全长约8万公里'
     ],
     relatedRecords: ['deepest-trench', 'longest-river', 'largest-continent'],
-    keywords: ['最大', '海洋', '太平洋', '岛屿', '最深', '海底']
+    keywords: ['最大', '海洋', '太平洋', '岛屿', '最深', '海底'],
+    source: '联合国教科文组织海洋学委员会、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-country',
@@ -139,7 +153,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '莫斯科地铁被公认为世界上最漂亮的地铁之一，有"地下宫殿"之称'
     ],
     relatedRecords: ['smallest-country', 'most-populous-country', 'largest-continent'],
-    keywords: ['最大', '国家', '俄罗斯', '面积', '领土', '欧亚']
+    keywords: ['最大', '国家', '俄罗斯', '面积', '领土', '欧亚'],
+    source: '世界银行、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'smallest-country',
@@ -155,7 +171,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '梵蒂冈有自己的货币、邮票、电台和军队（瑞士近卫队）'
     ],
     relatedRecords: ['largest-country', 'most-populous-country', 'tallest-building'],
-    keywords: ['最小', '国家', '梵蒂冈', '国中国', '教皇', '天主教']
+    keywords: ['最小', '国家', '梵蒂冈', '国中国', '教皇', '天主教'],
+    source: '吉尼斯世界纪录、梵蒂冈官方统计',
+    updatedAt: '2024-06'
   },
   {
     id: 'most-populous-country',
@@ -171,7 +189,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '印度的电影产业（宝莱坞）每年生产约1,000部电影，是世界上最大的电影生产国'
     ],
     relatedRecords: ['largest-country', 'smallest-country', 'largest-city'],
-    keywords: ['最多', '人口', '印度', '中国', '国家', '人口数']
+    keywords: ['最多', '人口', '印度', '中国', '国家', '人口数'],
+    source: '联合国人口司、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'fastest-animal',
@@ -187,7 +207,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '与其他大型猫科动物不同，猎豹不会咆哮，而是发出类似鸟鸣的高频率叫声'
     ],
     relatedRecords: ['largest-animal', 'tallest-animal', 'slowest-animal'],
-    keywords: ['最快', '速度', '动物', '猎豹', '跑步', '非洲']
+    keywords: ['最快', '速度', '动物', '猎豹', '跑步', '非洲'],
+    source: 'IUCN 红色名录、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-land-animal',
@@ -203,7 +225,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '大象的怀孕期长达22个月，是所有哺乳动物中最长的'
     ],
     relatedRecords: ['largest-animal', 'tallest-animal', 'smartest-animal'],
-    keywords: ['最大', '陆地', '动物', '大象', '非洲象', '哺乳动物']
+    keywords: ['最大', '陆地', '动物', '大象', '非洲象', '哺乳动物'],
+    source: 'IUCN 红色名录、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'oldest-tree',
@@ -219,7 +243,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '科学家通过数年轮（Dendrochronology）来确定树的年龄，狐尾松的年轮非常紧密'
     ],
     relatedRecords: ['tallest-tree', 'largest-tree', 'oldest-animal'],
-    keywords: ['最老', '古老', '树', '狐尾松', '玛士撒拉', '潘多']
+    keywords: ['最老', '古老', '树', '狐尾松', '玛士撒拉', '潘多'],
+    source: '吉尼斯世界纪录、《自然》杂志',
+    updatedAt: '2024-06'
   },
   {
     id: 'tallest-tree',
@@ -235,7 +261,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '据记载，历史上还有更高的红杉和桉树，最高可达130米以上，但都已被砍伐'
     ],
     relatedRecords: ['largest-tree', 'oldest-tree', 'tallest-animal'],
-    keywords: ['最高', '树', '红杉', '亥伯龙', '加州', '植物']
+    keywords: ['最高', '树', '红杉', '亥伯龙', '加州', '植物'],
+    source: '吉尼斯世界纪录、《自然》杂志',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-desert',
@@ -251,7 +279,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '撒哈拉沙漠的面积在不断扩大，自1920年以来已扩张了约10%'
     ],
     relatedRecords: ['coldest-place', 'hottest-place', 'largest-ocean'],
-    keywords: ['最大', '沙漠', '撒哈拉', '南极', '干旱', '荒漠']
+    keywords: ['最大', '沙漠', '撒哈拉', '南极', '干旱', '荒漠'],
+    source: '联合国教科文组织、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'coldest-place',
@@ -267,7 +297,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '南极冬季有长达4个月的极夜，气温在此期间持续下降'
     ],
     relatedRecords: ['hottest-place', 'largest-desert', 'highest-mountain'],
-    keywords: ['最冷', '低温', '南极', '沃斯托克', '冰冻', '极寒']
+    keywords: ['最冷', '低温', '南极', '沃斯托克', '冰冻', '极寒'],
+    source: '世界气象组织 WMO、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'hottest-place',
@@ -283,7 +315,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '在如此高温下，人类如果没有适当防护，会在数小时内出现严重中暑甚至死亡'
     ],
     relatedRecords: ['coldest-place', 'largest-desert', 'deepest-trench'],
-    keywords: ['最热', '高温', '死亡谷', '卢特', '沙漠', '气温']
+    keywords: ['最热', '高温', '死亡谷', '卢特', '沙漠', '气温'],
+    source: '世界气象组织 WMO、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'tallest-building',
@@ -299,7 +333,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '由于太高，哈利法塔底层和顶层的日落时间相差约3分钟'
     ],
     relatedRecords: ['tallest-statue', 'longest-bridge', 'largest-country'],
-    keywords: ['最高', '建筑', '摩天楼', '哈利法塔', '迪拜', '大楼']
+    keywords: ['最高', '建筑', '摩天楼', '哈利法塔', '迪拜', '大楼'],
+    source: '吉尼斯世界纪录、世界高层建筑与都市人居学会 CTBUH',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-continent',
@@ -315,7 +351,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '亚洲是世界三大宗教（佛教、基督教、伊斯兰教）的发源地'
     ],
     relatedRecords: ['largest-country', 'most-populous-country', 'largest-ocean'],
-    keywords: ['最大', '洲', '亚洲', '大陆', '面积', '欧亚']
+    keywords: ['最大', '洲', '亚洲', '大陆', '面积', '欧亚'],
+    source: '联合国教科文组织、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'deepest-lake',
@@ -331,7 +369,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '科学家认为贝加尔湖是一个正在形成的大洋，两岸每年以约2厘米的速度分离'
     ],
     relatedRecords: ['deepest-trench', 'largest-ocean', 'highest-mountain'],
-    keywords: ['最深', '湖泊', '贝加尔湖', '淡水', '俄罗斯', '湖水']
+    keywords: ['最深', '湖泊', '贝加尔湖', '淡水', '俄罗斯', '湖水'],
+    source: '联合国教科文组织、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-waterfall',
@@ -347,7 +387,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '伊瓜苏瀑布由约275个大小瀑布组成，呈马蹄形排列'
     ],
     relatedRecords: ['deepest-trench', 'longest-river', 'highest-mountain'],
-    keywords: ['最大', '瀑布', '尼亚加拉', '伊瓜苏', '维多利亚', '安赫尔']
+    keywords: ['最大', '瀑布', '尼亚加拉', '伊瓜苏', '维多利亚', '安赫尔'],
+    source: '联合国教科文组织、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'smartest-animal',
@@ -363,7 +405,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '猪被认为是最聪明的家畜，能理解简单的符号语言，玩电子游戏，甚至比有些狗更聪明'
     ],
     relatedRecords: ['largest-animal', 'largest-land-animal', 'oldest-animal'],
-    keywords: ['最聪明', '智慧', '动物', '黑猩猩', '海豚', '乌鸦']
+    keywords: ['最聪明', '智慧', '动物', '黑猩猩', '海豚', '乌鸦'],
+    source: 'IUCN 红色名录、《自然》杂志',
+    updatedAt: '2024-06'
   },
   {
     id: 'smallest-country',
@@ -374,7 +418,9 @@ const WORLD_RECORDS: WorldRecord[] = [
     background: '（同smallest-country）',
     funFacts: ['（同smallest-country）'],
     relatedRecords: [],
-    keywords: ['最小', '国家']
+    keywords: ['最小', '国家'],
+    source: '吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'longest-mountain-range',
@@ -390,7 +436,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '安第斯山脉是马铃薯、番茄、玉米、古柯等重要农作物的原产地'
     ],
     relatedRecords: ['highest-mountain', 'largest-continent', 'longest-river'],
-    keywords: ['最长', '山脉', '安第斯', '山', '南美洲', '山峰']
+    keywords: ['最长', '山脉', '安第斯', '山', '南美洲', '山峰'],
+    source: '联合国教科文组织、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-island',
@@ -406,7 +454,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '夏季时，格陵兰岛会有极昼，太阳全天不落；冬季则有极夜'
     ],
     relatedRecords: ['smallest-country', 'largest-ocean', 'coldest-place'],
-    keywords: ['最大', '岛屿', '格陵兰', '岛', '北极', '冰盖']
+    keywords: ['最大', '岛屿', '格陵兰', '岛', '北极', '冰盖'],
+    source: '联合国教科文组织、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-city',
@@ -422,7 +472,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '世界上人口密度最高的城市是菲律宾马尼拉，每平方公里超过4万人'
     ],
     relatedRecords: ['most-populous-country', 'tallest-building', 'largest-country'],
-    keywords: ['最大', '城市', '东京', '重庆', '人口', '都市']
+    keywords: ['最大', '城市', '东京', '重庆', '人口', '都市'],
+    source: '联合国人口司、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'smallest-bird',
@@ -438,7 +490,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '蜂鸟是唯一可以悬停在空中和向后飞行的鸟，它们的飞行方式更接近昆虫'
     ],
     relatedRecords: ['largest-animal', 'fastest-animal', 'tallest-animal'],
-    keywords: ['最小', '鸟', '蜂鸟', '吸蜜蜂鸟', '古巴', '飞']
+    keywords: ['最小', '鸟', '蜂鸟', '吸蜜蜂鸟', '古巴', '飞'],
+    source: 'IUCN 红色名录、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-bird',
@@ -454,7 +508,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '鸵鸟的一脚可以踢死一只狮子，是它们最强有力的防御武器'
     ],
     relatedRecords: ['smallest-bird', 'fastest-animal', 'largest-land-animal'],
-    keywords: ['最大', '鸟', '鸵鸟', '非洲', '不会飞', '奔跑']
+    keywords: ['最大', '鸟', '鸵鸟', '非洲', '不会飞', '奔跑'],
+    source: 'IUCN 红色名录、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'oldest-animal',
@@ -470,7 +526,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '格陵兰睡鲨游泳速度只有每秒约0.3米，是最慢的鲨鱼之一'
     ],
     relatedRecords: ['oldest-tree', 'largest-animal', 'deepest-trench'],
-    keywords: ['最长寿', '最老', '动物', '格陵兰睡鲨', '明蛤', '灯塔水母']
+    keywords: ['最长寿', '最老', '动物', '格陵兰睡鲨', '明蛤', '灯塔水母'],
+    source: 'IUCN 红色名录、《自然》杂志',
+    updatedAt: '2024-06'
   },
   {
     id: 'slowest-animal',
@@ -486,7 +544,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '尽管看起来很懒，树懒游泳却很快，它们是游泳健将，速度是爬行的3倍'
     ],
     relatedRecords: ['fastest-animal', 'tallest-animal', 'smartest-animal'],
-    keywords: ['最慢', '速度', '动物', '树懒', '哺乳动物', '雨林']
+    keywords: ['最慢', '速度', '动物', '树懒', '哺乳动物', '雨林'],
+    source: 'IUCN 红色名录、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'smallest-ocean',
@@ -502,7 +562,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '北冰洋下蕴藏着丰富的石油和天然气资源，估计占世界未开发油气资源的25%'
     ],
     relatedRecords: ['largest-ocean', 'deepest-trench', 'coldest-place'],
-    keywords: ['最小', '大洋', '北冰洋', '北极', '海洋', '冰盖']
+    keywords: ['最小', '大洋', '北冰洋', '北极', '海洋', '冰盖'],
+    source: '联合国教科文组织海洋学委员会、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-planet',
@@ -518,7 +580,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '如果你能站在木星表面（实际上不行，因为没有固体表面），你的体重将是地球上的约2.5倍'
     ],
     relatedRecords: ['smallest-planet', 'hottest-planet', 'tallest-building'],
-    keywords: ['最大', '行星', '木星', '太阳系', '气态巨行星', '大红斑']
+    keywords: ['最大', '行星', '木星', '太阳系', '气态巨行星', '大红斑'],
+    source: 'NASA、国际天文学联合会 IAU',
+    updatedAt: '2024-06'
   },
   {
     id: 'smallest-planet',
@@ -534,7 +598,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '2006年以前，冥王星被认为是第九大行星，也是最小的行星，但现在被归类为矮行星'
     ],
     relatedRecords: ['largest-planet', 'hottest-planet', 'oldest-tree'],
-    keywords: ['最小', '行星', '水星', '太阳系', '距离太阳', '温差']
+    keywords: ['最小', '行星', '水星', '太阳系', '距离太阳', '温差'],
+    source: 'NASA、国际天文学联合会 IAU',
+    updatedAt: '2024-06'
   },
   {
     id: 'hottest-planet',
@@ -550,7 +616,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '金星是夜空中最亮的行星，比天狼星（最亮的恒星）还亮15倍，中国古代称之为"太白金星"'
     ],
     relatedRecords: ['coldest-place', 'hottest-place', 'largest-planet'],
-    keywords: ['最热', '行星', '金星', '太阳系', '温室效应', '温度']
+    keywords: ['最热', '行星', '金星', '太阳系', '温室效应', '温度'],
+    source: 'NASA、国际天文学联合会 IAU',
+    updatedAt: '2024-06'
   },
   {
     id: 'tallest-statue',
@@ -566,7 +634,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '雕像在建设过程中使用了约2.1万吨钢铁和1,850吨青铜'
     ],
     relatedRecords: ['tallest-building', 'largest-country', 'smallest-country'],
-    keywords: ['最高', '雕像', '雕塑', '团结雕像', '印度', '建筑']
+    keywords: ['最高', '雕像', '雕塑', '团结雕像', '印度', '建筑'],
+    source: '吉尼斯世界纪录、各国官方公告',
+    updatedAt: '2024-06'
   },
   {
     id: 'longest-bridge',
@@ -582,7 +652,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '丹昆特大桥的长度约为英吉利海峡隧道（50.5公里）的3倍多'
     ],
     relatedRecords: ['tallest-building', 'tallest-statue', 'most-populous-country'],
-    keywords: ['最长', '桥', '桥梁', '丹昆特大桥', '港珠澳大桥', '高铁']
+    keywords: ['最长', '桥', '桥梁', '丹昆特大桥', '港珠澳大桥', '高铁'],
+    source: '吉尼斯世界纪录、国际铁路联盟 UIC',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-lake',
@@ -598,7 +670,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '里海拥有丰富的石油和天然气资源，也是世界上最大的鲟鱼和鱼子酱产地'
     ],
     relatedRecords: ['deepest-lake', 'largest-ocean', 'smallest-ocean'],
-    keywords: ['最大', '湖泊', '里海', '咸水湖', '苏必利尔湖', '淡水湖']
+    keywords: ['最大', '湖泊', '里海', '咸水湖', '苏必利尔湖', '淡水湖'],
+    source: '联合国教科文组织、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-diamond',
@@ -614,7 +688,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '发现这颗钻石的矿场经理拿到的奖金是一匹小马和一辆马车'
     ],
     relatedRecords: ['largest-gold', 'tallest-building', 'smallest-country'],
-    keywords: ['最大', '钻石', '库里南', '宝石', '非洲之星', '英国王室']
+    keywords: ['最大', '钻石', '库里南', '宝石', '非洲之星', '英国王室'],
+    source: '吉尼斯世界纪录、世界钻石协会',
+    updatedAt: '2024-06'
   },
   {
     id: 'fastest-train',
@@ -630,7 +706,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '磁悬浮列车的速度已经接近短程螺旋桨飞机的速度（约600-800公里/小时）'
     ],
     relatedRecords: ['fastest-animal', 'longest-bridge', 'tallest-building'],
-    keywords: ['最快', '火车', '高铁', '磁悬浮', '复兴号', 'CR450']
+    keywords: ['最快', '火车', '高铁', '磁悬浮', '复兴号', 'CR450'],
+    source: '吉尼斯世界纪录、国际铁路联盟 UIC',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-cave',
@@ -646,7 +724,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '每年只有约1000名游客可以进入韩松洞，需要徒步穿越丛林并涉水，整个探险行程约4天'
     ],
     relatedRecords: ['deepest-trench', 'highest-mountain', 'largest-desert'],
-    keywords: ['最大', '洞穴', '山洞', '韩松洞', '越南', '地下']
+    keywords: ['最大', '洞穴', '山洞', '韩松洞', '越南', '地下'],
+    source: '联合国教科文组织、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'largest-gold',
@@ -662,7 +742,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '19世纪的澳大利亚淘金热吸引了数十万移民，改变了这个国家的历史'
     ],
     relatedRecords: ['largest-diamond', 'tallest-building', 'smallest-country'],
-    keywords: ['最大', '金块', '黄金', '狗头金', '欢迎陌生人', '澳大利亚']
+    keywords: ['最大', '金块', '黄金', '狗头金', '欢迎陌生人', '澳大利亚'],
+    source: '吉尼斯世界纪录、各博物馆官方数据',
+    updatedAt: '2024-06'
   },
   {
     id: 'most-spoken-language',
@@ -678,7 +760,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '全世界有超过7,000种语言，每两周就有一种语言消失'
     ],
     relatedRecords: ['most-populous-country', 'largest-country', 'largest-city'],
-    keywords: ['最多', '语言', '汉语', '英语', '普通话', '使用人数']
+    keywords: ['最多', '语言', '汉语', '英语', '普通话', '使用人数'],
+    source: '联合国人口司、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   },
   {
     id: 'tallest-waterfall',
@@ -694,7 +778,9 @@ const WORLD_RECORDS: WorldRecord[] = [
       '瀑布底部的水汽蒸发后在周围形成独特的生态环境'
     ],
     relatedRecords: ['largest-waterfall', 'deepest-trench', 'highest-mountain'],
-    keywords: ['最高', '瀑布', '安赫尔', '天使瀑布', '落差', '委内瑞拉']
+    keywords: ['最高', '瀑布', '安赫尔', '天使瀑布', '落差', '委内瑞拉'],
+    source: '联合国教科文组织、吉尼斯世界纪录',
+    updatedAt: '2024-06'
   }
 ];
 

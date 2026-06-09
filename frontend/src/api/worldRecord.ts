@@ -15,6 +15,8 @@ export interface WorldRecord {
   funFacts: string[]
   relatedRecords: string[]
   keywords: string[]
+  source: string
+  updatedAt: string
 }
 
 export interface WorldRecordAnswer {

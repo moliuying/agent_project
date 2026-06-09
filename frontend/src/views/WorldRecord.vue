@@ -215,6 +215,22 @@
             </el-tag>
           </div>
         </div>
+
+        <div class="source-section">
+          <div class="source-item">
+            <el-icon color="#909399"><Document /></el-icon>
+            <span class="source-label">数据来源：</span>
+            <span class="source-text">{{ currentAnswer.record.source }}</span>
+          </div>
+          <div class="source-item">
+            <el-icon color="#909399"><Clock /></el-icon>
+            <span class="source-label">更新时间：</span>
+            <span class="source-text">{{ currentAnswer.record.updatedAt }}</span>
+            <el-tooltip content="部分世界之最数据会随时间变化，请注意核对最新信息" placement="top">
+              <el-icon class="warning-icon" color="#e6a23c"><WarningFilled /></el-icon>
+            </el-tooltip>
+          </div>
+        </div>
       </div>
 
       <div v-if="currentAnswer?.suggestions && currentAnswer.suggestions.length > 0" class="suggestions-section">
@@ -334,7 +350,9 @@ import {
   Star,
   Connection,
   Compass,
-  ChatDotRound
+  ChatDotRound,
+  Document,
+  WarningFilled
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
@@ -550,6 +568,10 @@ const copyAnswer = () => {
     })
     lines.push('')
     lines.push(`分类：${r.category}`)
+    lines.push('')
+    lines.push(`📄 数据来源：${r.source}`)
+    lines.push(`🕒 更新时间：${r.updatedAt}`)
+    lines.push('⚠️ 注：部分世界之最数据会随时间变化，引用时请核对最新信息')
   } else if (currentMessage.value) {
     lines.push(currentMessage.value)
     if (currentAnswer.value?.suggestions && currentAnswer.value.suggestions.length > 0) {
@@ -882,6 +904,39 @@ onMounted(() => {
 .related-tag:hover {
   color: #13c2c2;
   border-color: #13c2c2;
+}
+
+.source-section {
+  padding: 14px 16px;
+  background: #fafafa;
+  border: 1px dashed #dcdfe6;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.source-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #606266;
+  flex-wrap: wrap;
+}
+
+.source-label {
+  font-weight: 600;
+  color: #909399;
+}
+
+.source-text {
+  color: #606266;
+}
+
+.warning-icon {
+  margin-left: 4px;
+  cursor: help;
 }
 
 .suggestions-section {
