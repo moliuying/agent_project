@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
+export type VolatilityLevel = 'stable' | 'variable' | 'volatile';
+
 export interface WorldRecord {
   id: string;
   category: string;
@@ -12,6 +14,7 @@ export interface WorldRecord {
   keywords: string[];
   source: string;
   updatedAt: string;
+  volatility: VolatilityLevel;
 }
 
 export interface WorldRecordAnswer {
@@ -20,6 +23,7 @@ export interface WorldRecordAnswer {
   suggestions?: WorldRecord[];
   category?: string;
   message?: string;
+  knowledgeVersion: string;
 }
 
 export interface CategoryInfo {
@@ -29,6 +33,8 @@ export interface CategoryInfo {
   count: number;
   description: string;
 }
+
+const KNOWLEDGE_VERSION = 'v1.0.0-202406';
 
 const WORLD_RECORDS: WorldRecord[] = [
   {
@@ -47,7 +53,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['highest-mountain', 'deepest-lake', 'longest-river'],
     keywords: ['最深', '海沟', '海洋', '马里亚纳', '太平洋', '海底'],
     source: '联合国教科文组织海洋学委员会、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'highest-mountain',
@@ -65,7 +72,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['deepest-trench', 'tallest-animal', 'longest-mountain-range'],
     keywords: ['最高', '山峰', '珠穆朗玛', '喜马拉雅', '海拔', '攀登'],
     source: '联合国教科文组织、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-animal',
@@ -83,7 +91,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['tallest-animal', 'largest-land-animal', 'smallest-animal'],
     keywords: ['最大', '动物', '蓝鲸', '鲸鱼', '海洋生物', '哺乳动物'],
     source: 'IUCN 红色名录、世界自然基金会 WWF、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'tallest-animal',
@@ -101,7 +110,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-animal', 'largest-land-animal', 'fastest-animal'],
     keywords: ['最高', '陆地', '动物', '长颈鹿', '非洲', '脖子'],
     source: 'IUCN 红色名录、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'longest-river',
@@ -119,7 +129,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-ocean', 'deepest-trench', 'highest-mountain'],
     keywords: ['最长', '河流', '尼罗河', '亚马孙', '非洲', '埃及'],
     source: '联合国教科文组织、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-ocean',
@@ -137,7 +148,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['deepest-trench', 'longest-river', 'largest-continent'],
     keywords: ['最大', '海洋', '太平洋', '岛屿', '最深', '海底'],
     source: '联合国教科文组织海洋学委员会、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-country',
@@ -155,7 +167,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['smallest-country', 'most-populous-country', 'largest-continent'],
     keywords: ['最大', '国家', '俄罗斯', '面积', '领土', '欧亚'],
     source: '世界银行、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'variable'
   },
   {
     id: 'smallest-country',
@@ -173,7 +186,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-country', 'most-populous-country', 'tallest-building'],
     keywords: ['最小', '国家', '梵蒂冈', '国中国', '教皇', '天主教'],
     source: '吉尼斯世界纪录、梵蒂冈官方统计',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'variable'
   },
   {
     id: 'most-populous-country',
@@ -191,7 +205,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-country', 'smallest-country', 'largest-city'],
     keywords: ['最多', '人口', '印度', '中国', '国家', '人口数'],
     source: '联合国人口司、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'volatile'
   },
   {
     id: 'fastest-animal',
@@ -209,7 +224,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-animal', 'tallest-animal', 'slowest-animal'],
     keywords: ['最快', '速度', '动物', '猎豹', '跑步', '非洲'],
     source: 'IUCN 红色名录、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-land-animal',
@@ -227,7 +243,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-animal', 'tallest-animal', 'smartest-animal'],
     keywords: ['最大', '陆地', '动物', '大象', '非洲象', '哺乳动物'],
     source: 'IUCN 红色名录、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'oldest-tree',
@@ -245,7 +262,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['tallest-tree', 'largest-tree', 'oldest-animal'],
     keywords: ['最老', '古老', '树', '狐尾松', '玛士撒拉', '潘多'],
     source: '吉尼斯世界纪录、《自然》杂志',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'tallest-tree',
@@ -263,7 +281,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-tree', 'oldest-tree', 'tallest-animal'],
     keywords: ['最高', '树', '红杉', '亥伯龙', '加州', '植物'],
     source: '吉尼斯世界纪录、《自然》杂志',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-desert',
@@ -281,7 +300,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['coldest-place', 'hottest-place', 'largest-ocean'],
     keywords: ['最大', '沙漠', '撒哈拉', '南极', '干旱', '荒漠'],
     source: '联合国教科文组织、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'coldest-place',
@@ -299,7 +319,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['hottest-place', 'largest-desert', 'highest-mountain'],
     keywords: ['最冷', '低温', '南极', '沃斯托克', '冰冻', '极寒'],
     source: '世界气象组织 WMO、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'hottest-place',
@@ -317,7 +338,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['coldest-place', 'largest-desert', 'deepest-trench'],
     keywords: ['最热', '高温', '死亡谷', '卢特', '沙漠', '气温'],
     source: '世界气象组织 WMO、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'tallest-building',
@@ -335,7 +357,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['tallest-statue', 'longest-bridge', 'largest-country'],
     keywords: ['最高', '建筑', '摩天楼', '哈利法塔', '迪拜', '大楼'],
     source: '吉尼斯世界纪录、世界高层建筑与都市人居学会 CTBUH',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'variable'
   },
   {
     id: 'largest-continent',
@@ -353,7 +376,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-country', 'most-populous-country', 'largest-ocean'],
     keywords: ['最大', '洲', '亚洲', '大陆', '面积', '欧亚'],
     source: '联合国教科文组织、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'deepest-lake',
@@ -371,7 +395,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['deepest-trench', 'largest-ocean', 'highest-mountain'],
     keywords: ['最深', '湖泊', '贝加尔湖', '淡水', '俄罗斯', '湖水'],
     source: '联合国教科文组织、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-waterfall',
@@ -389,7 +414,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['deepest-trench', 'longest-river', 'highest-mountain'],
     keywords: ['最大', '瀑布', '尼亚加拉', '伊瓜苏', '维多利亚', '安赫尔'],
     source: '联合国教科文组织、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'smartest-animal',
@@ -407,7 +433,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-animal', 'largest-land-animal', 'oldest-animal'],
     keywords: ['最聪明', '智慧', '动物', '黑猩猩', '海豚', '乌鸦'],
     source: 'IUCN 红色名录、《自然》杂志',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'smallest-country',
@@ -420,7 +447,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: [],
     keywords: ['最小', '国家'],
     source: '吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'variable'
   },
   {
     id: 'longest-mountain-range',
@@ -438,7 +466,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['highest-mountain', 'largest-continent', 'longest-river'],
     keywords: ['最长', '山脉', '安第斯', '山', '南美洲', '山峰'],
     source: '联合国教科文组织、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-island',
@@ -456,7 +485,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['smallest-country', 'largest-ocean', 'coldest-place'],
     keywords: ['最大', '岛屿', '格陵兰', '岛', '北极', '冰盖'],
     source: '联合国教科文组织、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-city',
@@ -474,7 +504,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['most-populous-country', 'tallest-building', 'largest-country'],
     keywords: ['最大', '城市', '东京', '重庆', '人口', '都市'],
     source: '联合国人口司、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'volatile'
   },
   {
     id: 'smallest-bird',
@@ -492,7 +523,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-animal', 'fastest-animal', 'tallest-animal'],
     keywords: ['最小', '鸟', '蜂鸟', '吸蜜蜂鸟', '古巴', '飞'],
     source: 'IUCN 红色名录、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-bird',
@@ -510,7 +542,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['smallest-bird', 'fastest-animal', 'largest-land-animal'],
     keywords: ['最大', '鸟', '鸵鸟', '非洲', '不会飞', '奔跑'],
     source: 'IUCN 红色名录、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'oldest-animal',
@@ -528,7 +561,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['oldest-tree', 'largest-animal', 'deepest-trench'],
     keywords: ['最长寿', '最老', '动物', '格陵兰睡鲨', '明蛤', '灯塔水母'],
     source: 'IUCN 红色名录、《自然》杂志',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'slowest-animal',
@@ -546,7 +580,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['fastest-animal', 'tallest-animal', 'smartest-animal'],
     keywords: ['最慢', '速度', '动物', '树懒', '哺乳动物', '雨林'],
     source: 'IUCN 红色名录、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'smallest-ocean',
@@ -564,7 +599,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-ocean', 'deepest-trench', 'coldest-place'],
     keywords: ['最小', '大洋', '北冰洋', '北极', '海洋', '冰盖'],
     source: '联合国教科文组织海洋学委员会、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-planet',
@@ -582,7 +618,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['smallest-planet', 'hottest-planet', 'tallest-building'],
     keywords: ['最大', '行星', '木星', '太阳系', '气态巨行星', '大红斑'],
     source: 'NASA、国际天文学联合会 IAU',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'smallest-planet',
@@ -600,7 +637,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-planet', 'hottest-planet', 'oldest-tree'],
     keywords: ['最小', '行星', '水星', '太阳系', '距离太阳', '温差'],
     source: 'NASA、国际天文学联合会 IAU',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'hottest-planet',
@@ -618,7 +656,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['coldest-place', 'hottest-place', 'largest-planet'],
     keywords: ['最热', '行星', '金星', '太阳系', '温室效应', '温度'],
     source: 'NASA、国际天文学联合会 IAU',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'tallest-statue',
@@ -636,7 +675,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['tallest-building', 'largest-country', 'smallest-country'],
     keywords: ['最高', '雕像', '雕塑', '团结雕像', '印度', '建筑'],
     source: '吉尼斯世界纪录、各国官方公告',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'variable'
   },
   {
     id: 'longest-bridge',
@@ -654,7 +694,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['tallest-building', 'tallest-statue', 'most-populous-country'],
     keywords: ['最长', '桥', '桥梁', '丹昆特大桥', '港珠澳大桥', '高铁'],
     source: '吉尼斯世界纪录、国际铁路联盟 UIC',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'variable'
   },
   {
     id: 'largest-lake',
@@ -672,7 +713,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['deepest-lake', 'largest-ocean', 'smallest-ocean'],
     keywords: ['最大', '湖泊', '里海', '咸水湖', '苏必利尔湖', '淡水湖'],
     source: '联合国教科文组织、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-diamond',
@@ -690,7 +732,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-gold', 'tallest-building', 'smallest-country'],
     keywords: ['最大', '钻石', '库里南', '宝石', '非洲之星', '英国王室'],
     source: '吉尼斯世界纪录、世界钻石协会',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'variable'
   },
   {
     id: 'fastest-train',
@@ -708,7 +751,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['fastest-animal', 'longest-bridge', 'tallest-building'],
     keywords: ['最快', '火车', '高铁', '磁悬浮', '复兴号', 'CR450'],
     source: '吉尼斯世界纪录、国际铁路联盟 UIC',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'variable'
   },
   {
     id: 'largest-cave',
@@ -726,7 +770,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['deepest-trench', 'highest-mountain', 'largest-desert'],
     keywords: ['最大', '洞穴', '山洞', '韩松洞', '越南', '地下'],
     source: '联合国教科文组织、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   },
   {
     id: 'largest-gold',
@@ -744,7 +789,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-diamond', 'tallest-building', 'smallest-country'],
     keywords: ['最大', '金块', '黄金', '狗头金', '欢迎陌生人', '澳大利亚'],
     source: '吉尼斯世界纪录、各博物馆官方数据',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'variable'
   },
   {
     id: 'most-spoken-language',
@@ -762,7 +808,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['most-populous-country', 'largest-country', 'largest-city'],
     keywords: ['最多', '语言', '汉语', '英语', '普通话', '使用人数'],
     source: '联合国人口司、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'volatile'
   },
   {
     id: 'tallest-waterfall',
@@ -780,7 +827,8 @@ const WORLD_RECORDS: WorldRecord[] = [
     relatedRecords: ['largest-waterfall', 'deepest-trench', 'highest-mountain'],
     keywords: ['最高', '瀑布', '安赫尔', '天使瀑布', '落差', '委内瑞拉'],
     source: '联合国教科文组织、吉尼斯世界纪录',
-    updatedAt: '2024-06'
+    updatedAt: '2024-06',
+    volatility: 'stable'
   }
 ];
 
@@ -883,7 +931,8 @@ export class WorldRecordService {
     if (!trimmed) {
       return {
         found: false,
-        message: '请输入您的问题，例如"世界上最深的海沟是哪里"或"世界上最大的动物是什么"'
+        message: '请输入您的问题，例如"世界上最深的海沟是哪里"或"世界上最大的动物是什么"',
+        knowledgeVersion: KNOWLEDGE_VERSION
       };
     }
 
@@ -893,7 +942,7 @@ export class WorldRecordService {
     })).sort((a, b) => b.score - a.score);
 
     if (scoredRecords.length === 0) {
-      return { found: false, message: '知识库中暂无数据' };
+      return { found: false, message: '知识库中暂无数据', knowledgeVersion: KNOWLEDGE_VERSION };
     }
 
     const topMatch = scoredRecords[0];
@@ -902,7 +951,8 @@ export class WorldRecordService {
       return {
         found: true,
         record: topMatch.record,
-        category: topMatch.record.category
+        category: topMatch.record.category,
+        knowledgeVersion: KNOWLEDGE_VERSION
       };
     }
 
@@ -916,14 +966,16 @@ export class WorldRecordService {
       return {
         found: false,
         message: `抱歉，没有找到与"${trimmed}"相关的世界之最知识。您可以试试更通用的提问，比如包含"最高"、"最大"、"最深"等关键词。`,
-        suggestions: random
+        suggestions: random,
+        knowledgeVersion: KNOWLEDGE_VERSION
       };
     }
 
     return {
       found: false,
       message: `没有找到与"${trimmed}"完全匹配的结果，以下是一些相关的世界之最知识，可能对您有帮助：`,
-      suggestions
+      suggestions,
+      knowledgeVersion: KNOWLEDGE_VERSION
     };
   }
 }

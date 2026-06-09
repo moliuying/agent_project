@@ -1,5 +1,19 @@
 <template>
   <div class="world-record">
+    <el-alert
+      type="warning"
+      :closable="false"
+      show-icon
+      class="disclaimer-banner"
+    >
+      <template #title>
+        <span class="disclaimer-title">⚠️ 重要提示</span>
+        <span class="disclaimer-text">
+          本工具内容仅供学习参考和兴趣了解。<strong>知识竞赛、考试、学术引用等严肃场景请务必交叉核验权威来源</strong>，部分世界之最数据会随时间变化，以最新官方公布为准。
+        </span>
+      </template>
+    </el-alert>
+
     <el-card class="guide-card">
       <template #header>
         <div class="card-header">
@@ -142,6 +156,42 @@
           >
             {{ currentAnswer.category }}
           </el-tag>
+          <el-tag
+            v-if="currentAnswer?.knowledgeVersion"
+            size="small"
+            type="info"
+            effect="plain"
+            class="header-tag"
+          >
+            知识库 {{ currentAnswer.knowledgeVersion }}
+          </el-tag>
+          <el-tag
+            v-if="currentAnswer?.record?.volatility === 'stable'"
+            size="small"
+            type="success"
+            effect="plain"
+            class="header-tag"
+          >
+            ✅ 数据稳定
+          </el-tag>
+          <el-tag
+            v-else-if="currentAnswer?.record?.volatility === 'variable'"
+            size="small"
+            type="warning"
+            effect="dark"
+            class="header-tag"
+          >
+            ⚠️ 可能有新纪录
+          </el-tag>
+          <el-tag
+            v-else-if="currentAnswer?.record?.volatility === 'volatile'"
+            size="small"
+            type="danger"
+            effect="dark"
+            class="header-tag"
+          >
+            🔴 数据可能已过时
+          </el-tag>
           <el-button size="small" text class="copy-btn" @click="copyAnswer">
             <el-icon><CopyDocument /></el-icon>
             <span>复制内容</span>
@@ -156,6 +206,22 @@
           :closable="false"
           show-icon
         />
+      </div>
+
+      <div v-if="currentAnswer?.record && currentAnswer.record.volatility !== 'stable'" class="volatility-warning">
+        <el-alert
+          :type="currentAnswer.record.volatility === 'volatile' ? 'error' : 'warning'"
+          :closable="false"
+          show-icon
+        >
+          <template #title>
+            <strong v-if="currentAnswer.record.volatility === 'volatile'">🔴 高时效性数据</strong>
+            <strong v-else>⚠️ 时效性数据</strong>
+            <span>
+              {{ getVolatilityHint(currentAnswer.record.volatility) }}
+            </span>
+          </template>
+        </el-alert>
       </div>
 
       <div v-if="currentAnswer?.record" class="answer-content">
@@ -369,6 +435,7 @@ interface HistoryItem {
 }
 
 const STORAGE_KEY = 'world_record_history'
+const KNOWLEDGE_VERSION = 'v1.0.0-202406'
 
 const loading = ref(false)
 const questionInput = ref('')
@@ -474,11 +541,23 @@ const handleAsk = async () => {
   }
 }
 
+const getVolatilityHint = (volatility: string): string => {
+  switch (volatility) {
+    case 'volatile':
+      return '：人口、统计等数据变化频繁，仅供参考！参加竞赛、考试等严肃场景前请务必查找最新官方数据进行核验。'
+    case 'variable':
+      return '：该纪录可能已被新的纪录打破，建议核实最新信息。'
+    default:
+      return ''
+  }
+}
+
 const selectRecord = (record: WorldRecord) => {
   currentAnswer.value = {
     found: true,
     record,
-    category: record.category
+    category: record.category,
+    knowledgeVersion: KNOWLEDGE_VERSION
   }
   currentMessage.value = ''
   questionInput.value = record.question
@@ -571,7 +650,18 @@ const copyAnswer = () => {
     lines.push('')
     lines.push(`📄 数据来源：${r.source}`)
     lines.push(`🕒 更新时间：${r.updatedAt}`)
-    lines.push('⚠️ 注：部分世界之最数据会随时间变化，引用时请核对最新信息')
+    lines.push(`📦 知识库版本：${currentAnswer.value.knowledgeVersion || KNOWLEDGE_VERSION}`)
+    if (r.volatility === 'stable') {
+      lines.push('✅ 数据稳定性：该数据属于稳定类事实，一般不会发生变化')
+    } else if (r.volatility === 'variable') {
+      lines.push('⚠️ 数据稳定性：该纪录可能已被新纪录打破，建议核实最新信息')
+    } else if (r.volatility === 'volatile') {
+      lines.push('🔴 数据稳定性：该数据变化频繁（人口/统计类），仅供学习参考')
+      lines.push('🚫 【重要警告】知识竞赛、考试、学术论文等严肃场景严禁直接引用！')
+      lines.push('   使用前务必查找最新官方发布数据进行交叉核验。')
+    }
+    lines.push('')
+    lines.push('—— 内容来自世界之最知识库，仅供学习与兴趣了解 ——')
   } else if (currentMessage.value) {
     lines.push(currentMessage.value)
     if (currentAnswer.value?.suggestions && currentAnswer.value.suggestions.length > 0) {
@@ -602,6 +692,38 @@ onMounted(() => {
 .world-record {
   max-width: 1100px;
   margin: 0 auto;
+}
+
+.disclaimer-banner {
+  margin-bottom: 20px;
+  border-radius: 12px;
+}
+
+.disclaimer-banner :deep(.el-alert__content) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.disclaimer-title {
+  font-weight: bold;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.disclaimer-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #606266;
+}
+
+.disclaimer-text strong {
+  color: #f56c6c;
+}
+
+.volatility-warning {
+  margin-bottom: 16px;
 }
 
 .guide-card,

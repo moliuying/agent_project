@@ -5,6 +5,8 @@ const api = axios.create({
   timeout: 20000
 })
 
+export type VolatilityLevel = 'stable' | 'variable' | 'volatile'
+
 export interface WorldRecord {
   id: string
   category: string
@@ -17,6 +19,7 @@ export interface WorldRecord {
   keywords: string[]
   source: string
   updatedAt: string
+  volatility: VolatilityLevel
 }
 
 export interface WorldRecordAnswer {
@@ -25,6 +28,7 @@ export interface WorldRecordAnswer {
   suggestions?: WorldRecord[]
   category?: string
   message?: string
+  knowledgeVersion: string
 }
 
 export interface CategoryInfo {
