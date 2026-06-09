@@ -8,7 +8,9 @@ export type DiscourseStyle =
   | 'classical'     // 典雅厚重：古典文学、历史小说
   | 'grand'         // 宏大冷峻：科幻、史诗
   | 'scholarly'     // 平实严谨：学术、社会学
-  | 'melancholic';  // 华丽忧伤：爵士时代、都市感伤
+  | 'melancholic'   // 华丽忧伤：爵士时代、都市感伤
+  | 'playful'       // 俏皮活泼：漫画、热血动漫
+  | 'light';        // 轻松愉快：童书、绘本、轻小说
 
 export interface BookInfo {
   title: string;
@@ -42,7 +44,7 @@ interface StyleConfig {
     closing: string;
   };
   emphasisMarkers: { start: string; end: string };
-  discussionTone: 'deep' | 'warm' | 'rational' | 'poetic';
+  discussionTone: 'deep' | 'warm' | 'rational' | 'poetic' | 'playful' | 'light';
 }
 
 export interface LiteratureMessage {
@@ -366,6 +368,125 @@ const BOOK_DATABASE: BookInfo[] = [
     emotionalTone: '平实而深刻，用最朴素的语言道出中国社会最深层的结构',
     discourseStyle: 'scholarly',
   },
+  {
+    title: '猜猜我有多爱你',
+    author: '山姆·麦克布雷尼',
+    authorNationality: '英国',
+    year: '1994',
+    genre: ['绘本', '儿童文学', '亲子共读'],
+    originalLanguage: '英语',
+    summary: '小兔子和大兔子比赛谁的爱更多一些——小兔子用张开手臂、举高手臂、倒立、跳得高高的各种方式，来丈量自己对大兔子的爱。可是不管他怎么比，大兔子的爱总是要更多一点。最后，小兔子在睡前悄悄地说："我爱你一直到月亮那里。"而大兔子在他睡着后，微笑着轻声说："我爱你一直到月亮那里，再从月亮上回到这里来。"这是一本关于爱的绘本，简单、柔软、却能瞬间击中每一个人的心。',
+    themes: ['爱的表达与丈量', '亲子之间的温暖', '简单语言中的深情', '想象力的温柔'],
+    iconicQuotes: [
+      { quote: '我爱你一直到月亮那里。', character: '小兔子' },
+      { quote: '我爱你一直到月亮那里，再从月亮上回到这里来。', character: '大兔子' },
+      { quote: '我爱你，有我跳得那么高。' },
+    ],
+    readingTips: [
+      '最好是和重要的人一起读——不管是小朋友还是大朋友',
+      '读的时候可以和对方一起做动作——张开手臂、跳起来，会特别有意思',
+      '不用着急翻页，每一幅画都可以看好久，安妮塔·婕朗的插画超治愈',
+      '建议读完之后抱抱身边的人～',
+    ],
+    similarBooks: [
+      { title: '我爸爸', author: '安东尼·布朗', reason: '同样是亲子主题的经典绘本，同样温柔又有想象力' },
+      { title: '爱心树', author: '谢尔·希尔弗斯坦', reason: '关于爱的另一本经典，更朴素也更让人泪目' },
+      { title: '你看起来很好吃', author: '宫西达也', reason: '恐龙父子的故事，画风可爱却超级好哭' },
+    ],
+    tags: ['经典绘本', '亲子共读', '爱的主题', '治愈系', '全世界孩子都在读'],
+    difficulty: '入门',
+    emotionalTone: '软乎乎暖融融的，像被人紧紧抱着的感觉',
+    discourseStyle: 'light',
+  },
+  {
+    title: '灌篮高手',
+    author: '井上雄彦',
+    authorNationality: '日本',
+    year: '1990-1996',
+    genre: ['漫画', '热血运动', '少年漫'],
+    summary: '红发不良少年樱木花道为了追喜欢的女孩赤木晴子，阴差阳错加入了湘北高中篮球队。从一个连篮球规则都不懂的门外汉，到和流川枫、赤木刚宪、宫城良田、三井寿一起，带着"我是天才！"的迷之自信，向全国大赛进发。这不仅仅是一个篮球故事——它是关于青春、关于热爱、关于朋友、关于"就算输了也没关系"的热血史诗。每个人的青春里，都有一个湘北。',
+    themes: ['青春与热血', '友情与团队', '从零开始的成长', '不完美的完美', '热爱本身就是意义'],
+    iconicQuotes: [
+      { quote: '我是天才！', character: '樱木花道' },
+      { quote: '教练，我想打篮球。', character: '三井寿' },
+      { quote: '你现在放弃的话，比赛就提前结束了哦。', character: '安西教练' },
+      { quote: '老头子，你最光辉的时刻是何时？全日本时代吗？……我呢，就是现在了！', character: '樱木花道' },
+    ],
+    readingTips: [
+      '别嫌画风"老"，你会越看越上头——井上雄彦的分镜是神级的！',
+      '看到山王工高那一战记得多留一点时间，那一话值得反复看几十遍',
+      '不要跳过比赛过程！那些细节才是最燃的',
+      '看完动画记得去看漫画的全国大赛篇，那才是整个故事的高潮！',
+    ],
+    similarBooks: [
+      { title: '棒球英豪', author: '安达充', reason: '同样是运动+青春的神作，更细腻也更催泪' },
+      { title: '足球小将', author: '高桥阳一', reason: '很多人的热血启蒙，一代人的足球梦想' },
+      { title: '海贼王', author: '尾田荣一郎', reason: '同样是"伙伴+梦想"主题，少年漫的另一座巅峰' },
+    ],
+    tags: ['少年漫神作', '青春回忆', '运动漫巅峰', '一代人的集体记忆', 'SD'],
+    difficulty: '入门',
+    emotionalTone: '燃到爆炸又甜到心里，青春最美好的样子',
+    discourseStyle: 'playful',
+  },
+  {
+    title: '向左走·向右走',
+    author: '几米',
+    authorNationality: '中国台湾',
+    year: '1999',
+    genre: ['绘本', '都市爱情', '图像小说'],
+    summary: '她住在城市郊区的一栋旧公寓大楼里，每次出门，不管去哪里，总是习惯性地先向左走。他住在同一栋公寓大楼里，每次出门，不管去哪里，总是习惯性地先向右走。他们从未相遇。直到有一天，他们在公园的喷水池边遇见了彼此，像失散多年的恋人，度过了一个美好如童话的下午。然而一场大雨让两人匆忙分开，他们弄丢了对方的电话号码，又回到了各自的生活——一个向左，一个向右。这是一个关于城市、关于缘分、关于错过与遇见的温柔故事。',
+    themes: ['城市中的孤独与相遇', '缘分与错过', '平行世界的可能性', '都市人的温柔困境', '等待与希望'],
+    iconicQuotes: [
+      { quote: '他们彼此深信，是瞬间迸发的热情让他们相遇。这样的确定是美丽的，但变幻无常更为美丽。' },
+      { quote: '迷宫般的城市，让人习惯看相同的景物，走相同的路线，到同样的目的地；习惯让人的生活不再变。习惯让人有种莫名的安全感，却又有种莫名的寂寞。' },
+      { quote: '人生总有许多巧合，两条平行线也可能会有交汇的一天。' },
+    ],
+    readingTips: [
+      '适合在一个人的下午慢慢读，配一杯咖啡或者茶',
+      '不用急着翻页，几米的每一幅画里都藏着很多小细节',
+      '如果你正在想念某个人，读完可能会想给他/她发个消息',
+      '可以翻回来再看一遍，第二遍会注意到很多之前没看到的伏笔',
+    ],
+    similarBooks: [
+      { title: '地下铁', author: '几米', reason: '几米的另一本代表作，同样是都市中的孤独与寻找' },
+      { title: '月亮忘记了', author: '几米', reason: '更奇幻也更治愈，关于陪伴与遗忘' },
+      { title: '森林里的秘密', author: '几米', reason: '几米的成名作，关于童年和梦境的温柔回忆' },
+    ],
+    tags: ['几米经典', '都市绘本', '关于爱情', '治愈系', '成人童话'],
+    difficulty: '入门',
+    emotionalTone: '像下雨天坐在窗边发呆，有点忧郁又有点甜',
+    discourseStyle: 'light',
+  },
+  {
+    title: 'ONE PIECE',
+    author: '尾田荣一郎',
+    authorNationality: '日本',
+    year: '1997-连载中',
+    genre: ['漫画', '热血冒险', '少年漫'],
+    summary: '财富、名声、势力——拥有整个世界的海贼王哥尔·D·罗杰，在临刑前的一句话，开启了"大海贼时代"："想要我的财宝吗？想要的话可以给你，去找吧！我把一切都放在那里了。"于是，怀揣各自梦想的人们奔向大海。戴着草帽的少年蒙奇·D·路飞也出海了，他要找齐10个伙伴，成为海贼王。这是一场横跨大海的冒险——关于梦想、关于伙伴、关于自由。20多年过去，这个故事还在继续，还在燃。',
+    themes: ['梦想的重量', '伙伴与羁绊', '自由的意义', '正义的多元性', '传承与意志'],
+    iconicQuotes: [
+      { quote: '我是要成为海贼王的男人！', character: '蒙奇·D·路飞' },
+      { quote: '人的梦想，是不会结束的！', character: '马歇尔·D·蒂奇' },
+      { quote: '我不会去统治这片大海，在这片大海上，最自由的人就是海贼王！', character: '蒙奇·D·路飞' },
+      { quote: '什么都没有发生过。', character: '山治（点烟时）' },
+    ],
+    readingTips: [
+      '前期画风有点"丑"，但是请坚持看！！过了阿拉巴斯坦篇你会停不下来',
+      '每个篇章都有一个让人泪崩的瞬间，提前备好纸巾',
+      '不要跳过扉页故事！里面藏着超多重要的伏笔',
+      '不要急着追进度，每一个角色、每一个故事都值得慢慢品',
+    ],
+    similarBooks: [
+      { title: '火影忍者', author: '岸本齐史', reason: '同为三大民工漫，同样是"羁绊+成长"的热血史诗' },
+      { title: '猎人', author: '富坚义博', reason: '少年漫中的另类神作，世界观和战斗系统的天花板' },
+      { title: '龙珠', author: '鸟山明', reason: '所有少年漫的祖师爷，热血二字的代名词' },
+    ],
+    tags: ['少年漫天花板', '世界第一漫画', '梦想与伙伴', '一代人的青春', 'OP'],
+    difficulty: '入门',
+    emotionalTone: '笑得肚子疼又哭得稀里哗啦，然后燃起对生活的热爱',
+    discourseStyle: 'playful',
+  },
 ];
 
 const STYLE_CONFIGS: Record<DiscourseStyle, StyleConfig> = {
@@ -512,6 +633,42 @@ const STYLE_CONFIGS: Record<DiscourseStyle, StyleConfig> = {
     emoji: { book: '🥂', theme: '🌙', quote: '🥀', tip: '🎷', closing: '✨' },
     emphasisMarkers: { start: '**', end: '**' },
     discussionTone: 'poetic',
+  },
+  playful: {
+    greeting: [
+      '哇！聊起《{title}》，我整个人都燃起来了！准备好开启这场快乐之旅了吗？🎉',
+      '啊啊啊《{title}》！这可是我的快乐源泉之一！来来来，一起聊！',
+      '说到《{title}》，我脑子里已经自动播放主题曲了！你最喜欢哪个角色？',
+    ],
+    themeIntro: '它最最最戳人的几个点，我给你扒一扒：',
+    quoteIntro: '这些台词我已经能背下来了！每次看到都激动得不行：',
+    tipIntro: '想获得最佳阅读/观看体验？听我给你支几招！',
+    closing: [
+      '你最爱的名场面是哪一个？快说快说！我超想听！！',
+      '如果让你给自己选一个超能力/果实/忍术，你会选什么？',
+      '你觉得哪个角色最被低估了？我要为他/她打抱不平！',
+    ],
+    emoji: { book: '🎮', theme: '🔥', quote: '💥', tip: '🎯', closing: '🎉' },
+    emphasisMarkers: { start: '**', end: '**' },
+    discussionTone: 'playful',
+  },
+  light: {
+    greeting: [
+      '《{title}》！这本书超治愈的～ 就像夏天喝到冰奶茶一样开心！🥰',
+      '聊《{title}》心情会变好哦！就像吃了一颗糖～',
+      '啊啊《{title}》我超喜欢的！整本书都是软乎乎的感觉～',
+    ],
+    themeIntro: '这些温柔又可爱的小细节，让这本书变得特别棒：',
+    quoteIntro: '这些句子读完让人忍不住"哇——好可爱！"：',
+    tipIntro: '读的时候怎么收获最大的快乐呢？给你几个小提示：',
+    closing: [
+      '你最喜欢书中哪个软萌软萌的角色呀？',
+      '有没有哪个画面让你忍不住笑出声或者"好治愈！"？',
+      '如果把这本书送给一个人，你会送给谁？为什么？',
+    ],
+    emoji: { book: '🍭', theme: '🌈', quote: '💖', tip: '🎨', closing: '🍬' },
+    emphasisMarkers: { start: '**', end: '**' },
+    discussionTone: 'light',
   },
 };
 
@@ -726,14 +883,37 @@ export class LiteratureQaService {
         recommendedBooks = book.similarBooks;
         discussionPoints = this.generateDiscussionPoints(book);
       } else {
-        style = 'gentle';
-        answer = this.generateGeneralAnswer(trimmedQuestion, style);
-        recommendedBooks = this.generateRandomRecommendations();
-        discussionPoints = [
-          '可以和我聊聊你最近在读什么书吗？',
-          '有没有哪个书中的人物让你特别有共鸣？',
-          '你觉得读文学作品对你最大的改变是什么？',
-        ];
+        const playfulKeywords = ['漫画', '动漫', '动画', '热血', '海贼王', '火影', '龙珠', '鬼灭', '进击的巨人', '灌篮高手', 'JOJO', '一拳超人'];
+        const lightKeywords = ['童书', '绘本', '儿童文学', '童话', '睡前故事', '绘本推荐', '儿童读物', '几米', '幾米', '漫画推荐'];
+        const isPlayful = playfulKeywords.some(kw => lowerQuestion.includes(kw.toLowerCase()));
+        const isLight = lightKeywords.some(kw => lowerQuestion.includes(kw.toLowerCase()));
+
+        if (isPlayful) {
+          style = 'playful';
+          answer = this.generateGeneralAnswer(trimmedQuestion, style);
+          discussionPoints = [
+            '你最近在追什么超好看的漫画/动漫呀？',
+            '有没有哪个角色的某个瞬间，让你激动得起鸡皮疙瘩？',
+            '如果让你给喜欢的角色设计一个必杀技，会是什么？',
+          ];
+        } else if (isLight) {
+          style = 'light';
+          answer = this.generateGeneralAnswer(trimmedQuestion, style);
+          discussionPoints = [
+            '你最近给小朋友（或者自己！）读了什么超可爱的书？',
+            '有没有哪本绘本读完之后，让你心里暖暖的？',
+            '你小时候最喜欢的童话是哪一个？为什么？',
+          ];
+        } else {
+          style = 'gentle';
+          answer = this.generateGeneralAnswer(trimmedQuestion, style);
+          recommendedBooks = this.generateRandomRecommendations();
+          discussionPoints = [
+            '可以和我聊聊你最近在读什么书吗？',
+            '有没有哪个书中的人物让你特别有共鸣？',
+            '你觉得读文学作品对你最大的改变是什么？',
+          ];
+        }
       }
     }
 
@@ -781,6 +961,29 @@ export class LiteratureQaService {
 
   private generateGeneralAnswer(question: string, style: DiscourseStyle): string {
     const cfg = STYLE_CONFIGS[style];
+
+    if (style === 'playful') {
+      const playfulGreetings = [
+        '哈哈哈这个问题太有意思了！！🔥🔥🔥',
+        '哇哦！聊到这个我可就不困了！！',
+        '这个问题问到点子上了！来劲儿了来劲儿了！🎉',
+      ];
+      const greeting = playfulGreetings[Math.floor(Math.random() * playfulGreetings.length)];
+
+      return `${greeting}\n\n关于你说的"${question}"——\n\n漫画和动漫最棒的地方就是，它不需要什么"正确答案"！喜欢就是喜欢，燃就是燃，爽就是爽！不用做阅读理解，不用分析中心思想，看完觉得"哇好酷！""好感动！"就足够了！💥\n\n而且——同一个作品，小时候看和长大再看，感受完全不一样哦。小时候只觉得打斗超帅，长大之后突然看懂了角色的眼泪和选择，那种感觉特别奇妙～\n\n快告诉我更多！！\n\n- 你是最近才入坑的，还是已经追了好多年了？\n- 有没有哪部作品，是你逢人就想安利的？\n- 你站哪个CP？（这个可以聊三天三夜！）\n\n不管聊什么都超开心的～ 赶紧说！！🎮`;
+    }
+
+    if (style === 'light') {
+      const lightGreetings = [
+        '哎呀这个话题好治愈呀～ 🌈',
+        '哇～ 聊童书和绘本最开心了！像拆礼物一样！',
+        '软乎乎的话题！我超爱！🥰',
+      ];
+      const greeting = lightGreetings[Math.floor(Math.random() * lightGreetings.length)];
+
+      return `${greeting}\n\n关于你说的"${question}"——\n\n童书和绘本最棒的地方，就是它从来不觉得"给小孩看的就可以随便"。那些画、那些文字、那些藏在故事里的小温柔，其实是写给所有人的——不管你是5岁还是50岁，都会被戳中心里最软的那个地方。💖\n\n而且最神奇的是：小时候读只觉得"好可爱"，长大再读突然就泪流满面了。原来那些简单的故事里，藏着我们长大之后才懂得的道理。\n\n想和你多聊聊～\n\n- 你是给自己看，还是给小朋友读呀？\n- 有没有哪本书，读完之后你特别想买给某个人？\n- 你小时候最喜欢的故事是什么？现在还会想起它吗？\n\n不管是什么，慢慢说～ 我认真听哦！🍭`;
+    }
+
     const greetings = [
       '这是一个很棒的问题！',
       '聊到文学，总有说不完的话～',
@@ -824,6 +1027,14 @@ export class LiteratureQaService {
         `有没有哪个画面或句子，读完之后在你脑子里久久不散？`,
         `如果把这本书比作一首曲子、一幅画或一种天气，你觉得它是什么？`,
       ],
+      playful: [
+        `你最想和哪个角色组队去冒险？准备干什么？`,
+        `你觉得哪个角色战斗力被严重高估/低估了？来辩！`,
+      ],
+      light: [
+        `你最想和书中哪个角色做朋友？想和他/她一起干什么？`,
+        `如果这本书里的人物来到你家，你最想和他们一起做什么？`,
+      ],
     };
 
     const closing = cfg.discussionTone === 'deep'
@@ -832,6 +1043,10 @@ export class LiteratureQaService {
       ? `你会在什么样的心情下，想要再次翻开这本书？`
       : cfg.discussionTone === 'rational'
       ? `如果用一句话向朋友推荐这本书，你会怎么说？`
+      : cfg.discussionTone === 'playful'
+      ? `如果让你给这部作品加一个番外篇，你想写什么样的故事？`
+      : cfg.discussionTone === 'light'
+      ? `读完这本书之后，你最想做的一件小事是什么？`
       : `如果让你给这本书换一个结尾（或换一个书名），你会怎么改？`;
 
     return [...base, ...toneBased[cfg.discussionTone], closing];

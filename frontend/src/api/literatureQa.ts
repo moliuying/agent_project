@@ -16,6 +16,8 @@ export type DiscourseStyle =
   | 'grand'
   | 'scholarly'
   | 'melancholic'
+  | 'playful'
+  | 'light'
 
 export interface StyleVisualConfig {
   label: string
@@ -135,6 +137,32 @@ export const STYLE_VISUAL_CONFIGS: Record<DiscourseStyle, StyleVisualConfig> = {
     avatarIcon: 'MoonNight',
     sectionBg: 'linear-gradient(135deg, #faf5ff 0%, #fdf4ff 100%)',
     sectionAccent: '#9333ea',
+  },
+  playful: {
+    label: '俏皮活泼',
+    primaryColor: '#f59e0b',
+    gradientStart: '#f97316',
+    gradientEnd: '#ef4444',
+    bgGradient: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+    bubbleBg: '#fff',
+    bubbleBorder: '#fde68a',
+    strongColor: '#d97706',
+    avatarIcon: 'Cpu',
+    sectionBg: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fef2f2 100%)',
+    sectionAccent: '#f59e0b',
+  },
+  light: {
+    label: '轻松愉快',
+    primaryColor: '#10b981',
+    gradientStart: '#10b981',
+    gradientEnd: '#059669',
+    bgGradient: 'linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)',
+    bubbleBg: '#fff',
+    bubbleBorder: '#a7f3d0',
+    strongColor: '#059669',
+    avatarIcon: 'Star',
+    sectionBg: 'linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 100%)',
+    sectionAccent: '#10b981',
   },
 }
 
