@@ -194,6 +194,15 @@
                 <p>描述心情场景·智能匹配经典诗句</p>
               </el-card>
             </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/scene-english')" class="feature-card">
+                <el-icon :size="40" color="#165DFF">
+                  <ChatLineSquare />
+                </el-icon>
+                <h3>场景化英语表达</h3>
+                <p>真实场景英语表达·实用句式·口语速查</p>
+              </el-card>
+            </el-col>
           </el-row>
         </div>
       </div>
