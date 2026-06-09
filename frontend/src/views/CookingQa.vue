@@ -117,6 +117,32 @@
             <div class="bubble">
               <div class="bubble-content" v-html="formatAnswer(msg.content)"></div>
             </div>
+            <div class="followup-section" v-if="msg.followUpQuestions && msg.followUpQuestions.length > 0 && msg.role === 'ai'">
+              <div class="followup-title">
+                <el-icon color="#67c23a"><QuestionFilled /></el-icon>
+                <span>需要确认的信息</span>
+              </div>
+              <div class="followup-list">
+                <div v-for="(fq, fqIdx) in msg.followUpQuestions" :key="fqIdx" class="followup-item">
+                  <div class="followup-question">
+                    <el-icon color="#67c23a"><ChatDotRound /></el-icon>
+                    <span>{{ fq.question }}</span>
+                  </div>
+                  <div class="followup-options">
+                    <el-tag
+                      v-for="(opt, optIdx) in fq.options"
+                      :key="optIdx"
+                      class="followup-option-tag"
+                      effect="light"
+                      type="success"
+                      @click="handleFollowUpOption(fq.question, opt)"
+                    >
+                      {{ opt }}
+                    </el-tag>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="techniques-section" v-if="msg.relatedTechniques && msg.relatedTechniques.length > 0 && msg.role === 'ai'">
               <div class="techniques-title">
                 <el-icon color="#409eff"><MagicStick /></el-icon>
@@ -178,6 +204,61 @@
                         </div>
                       </div>
                     </el-collapse-item>
+                    <el-collapse-item v-if="tip.kitchenConditions && tip.kitchenConditions.length > 0" name="kitchenConditions">
+                      <template #title>
+                        <span class="collapse-title-icon">
+                          <el-icon color="#e6a23c"><Oven /></el-icon>
+                          不同厨房条件
+                        </span>
+                      </template>
+                      <div class="condition-cards">
+                        <div v-for="(item, idx) in tip.kitchenConditions" :key="idx" class="condition-card">
+                          <div class="condition-name">{{ item.condition }}</div>
+                          <div class="condition-advice">{{ item.advice }}</div>
+                        </div>
+                      </div>
+                    </el-collapse-item>
+                    <el-collapse-item v-if="tip.ingredientStates && tip.ingredientStates.length > 0" name="ingredientStates">
+                      <template #title>
+                        <span class="collapse-title-icon">
+                          <el-icon color="#67c23a"><Apple /></el-icon>
+                          不同食材状态
+                        </span>
+                      </template>
+                      <div class="condition-cards">
+                        <div v-for="(item, idx) in tip.ingredientStates" :key="idx" class="condition-card">
+                          <div class="condition-name">{{ item.state }}</div>
+                          <div class="condition-advice">{{ item.advice }}</div>
+                        </div>
+                      </div>
+                    </el-collapse-item>
+                    <el-collapse-item v-if="tip.troubleshootingSteps && tip.troubleshootingSteps.length > 0" name="troubleshootingSteps">
+                      <template #title>
+                        <span class="collapse-title-icon">
+                          <el-icon color="#409eff"><Search /></el-icon>
+                          逐步排查指南
+                        </span>
+                      </template>
+                      <el-steps direction="vertical" :active="tip.troubleshootingSteps.length" finish-status="success" class="troubleshoot-steps">
+                        <el-step v-for="(step, idx) in tip.troubleshootingSteps" :key="idx">
+                          <template #title>
+                            <span class="step-title-text">{{ step.step }}</span>
+                          </template>
+                          <template #description>
+                            <div class="troubleshoot-detail">
+                              <div class="troubleshoot-check">
+                                <el-icon><View /></el-icon>
+                                <span><strong>检查方法：</strong>{{ step.check }}</span>
+                              </div>
+                              <div class="troubleshoot-solution">
+                                <el-icon><Tools /></el-icon>
+                                <span><strong>解决方案：</strong>{{ step.solution }}</span>
+                              </div>
+                            </div>
+                          </template>
+                        </el-step>
+                      </el-steps>
+                    </el-collapse-item>
                   </el-collapse>
                 </el-card>
               </div>
@@ -238,12 +319,19 @@ import {
   MagicStick,
   CircleCheckFilled,
   WarningFilled,
+  QuestionFilled,
+  Oven,
+  Apple,
+  Search,
+  View,
+  Tools,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
   cookingQaApi,
   type QaMessage,
   type DifficultyLevel,
+  type FollowUpQuestion,
 } from '@/api/cookingQa'
 
 const loading = ref(false)
@@ -311,6 +399,11 @@ const askQuestion = async (question: string) => {
   submitQuestion()
 }
 
+const handleFollowUpOption = (question: string, option: string) => {
+  const combinedText = `${question}：${option}`
+  askQuestion(combinedText)
+}
+
 const submitQuestion = async () => {
   const question = userInput.value.trim()
   if (!question) {
@@ -338,6 +431,7 @@ const submitQuestion = async () => {
       timestamp: Date.now(),
       relatedTips: res.data.relatedTips,
       relatedTechniques: res.data.relatedTechniques,
+      followUpQuestions: res.data.followUpQuestions,
     }
     messages.value.push(aiMsg)
   } catch (e: any) {
@@ -781,6 +875,141 @@ onMounted(() => {
 .mistake-item .el-icon {
   margin-top: 2px;
   flex-shrink: 0;
+}
+
+.followup-section {
+  width: 100%;
+  background: linear-gradient(135deg, #f0f9eb 0%, #e8f7df 50%, #f0f9eb 100%);
+  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1px solid #c7e9b0;
+}
+
+.followup-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #67c23a;
+  margin-bottom: 10px;
+}
+
+.followup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.followup-item {
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid #d4edc1;
+}
+
+.followup-question {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.followup-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.followup-option-tag {
+  cursor: pointer;
+  padding: 4px 12px;
+  transition: all 0.2s ease;
+  font-size: 12px;
+}
+
+.followup-option-tag:hover {
+  background: #67c23a;
+  color: #fff;
+  border-color: #67c23a;
+  transform: translateY(-1px);
+}
+
+.collapse-title-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.condition-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.condition-card {
+  background: linear-gradient(135deg, #fffaf0 0%, #fff7e6 100%);
+  border: 1px solid #f0e6d2;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.condition-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e6a23c;
+  margin-bottom: 4px;
+}
+
+.condition-advice {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #606266;
+}
+
+.troubleshoot-steps {
+  padding-left: 8px;
+}
+
+.troubleshoot-steps :deep(.el-step__title) {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.step-title-text {
+  color: #409eff;
+}
+
+.troubleshoot-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.troubleshoot-check,
+.troubleshoot-solution {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #606266;
+}
+
+.troubleshoot-check .el-icon,
+.troubleshoot-solution .el-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+  color: #909399;
+}
+
+.troubleshoot-check strong,
+.troubleshoot-solution strong {
+  color: #303133;
 }
 
 .message-time {

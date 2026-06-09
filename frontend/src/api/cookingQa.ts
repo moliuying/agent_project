@@ -7,6 +7,22 @@ const api = axios.create({
 
 export type DifficultyLevel = '新手' | '进阶' | '专业'
 
+export interface KitchenCondition {
+  condition: string
+  advice: string
+}
+
+export interface IngredientState {
+  state: string
+  advice: string
+}
+
+export interface TroubleshootingStep {
+  step: string
+  check: string
+  solution: string
+}
+
 export interface CookingTip {
   id: string
   title: string
@@ -17,12 +33,21 @@ export interface CookingTip {
   commonMistakes: string[]
   difficulty: DifficultyLevel
   tags: string[]
+  kitchenConditions?: KitchenCondition[]
+  ingredientStates?: IngredientState[]
+  troubleshootingSteps?: TroubleshootingStep[]
+}
+
+export interface FollowUpQuestion {
+  question: string
+  options: string[]
 }
 
 export interface AskResponse {
   answer: string
   relatedTips: CookingTip[]
   relatedTechniques: string[]
+  followUpQuestions?: FollowUpQuestion[]
 }
 
 export interface QaMessage {
@@ -32,6 +57,7 @@ export interface QaMessage {
   timestamp: number
   relatedTips?: CookingTip[]
   relatedTechniques?: string[]
+  followUpQuestions?: FollowUpQuestion[]
 }
 
 export const cookingQaApi = {
