@@ -120,6 +120,163 @@
               </div>
             </div>
           </div>
+
+          <div v-if="imagePreview && qualityAnalysisReady" class="quality-section">
+            <el-divider content-position="left">
+              <span class="divider-label">
+                <el-icon :size="14"><Monitor /></el-icon>
+                图片质量检测
+              </span>
+            </el-divider>
+            <el-alert
+              v-if="qualityWarnings.length > 0"
+              type="warning"
+              :closable="false"
+              show-icon
+              class="quality-warning"
+            >
+              <template #title>
+                <span class="quality-warning-title">
+                  <el-icon :size="16"><WarningFilled /></el-icon>
+                  图片质量可能影响识别准确度
+                </span>
+              </template>
+              <ul class="quality-warning-list">
+                <li v-for="(w, idx) in qualityWarnings" :key="idx">{{ w }}</li>
+              </ul>
+              <div class="quality-warning-actions">
+                <el-button type="warning" size="small" @click="triggerFileInput">
+                  <el-icon><Refresh /></el-icon>
+                  重新上传
+                </el-button>
+                <el-button type="primary" size="small" @click="triggerCamera">
+                  <el-icon><Camera /></el-icon>
+                  重新拍照
+                </el-button>
+                <el-button size="small" plain @click="ignoreQualityWarning">
+                  继续识别
+                </el-button>
+              </div>
+            </el-alert>
+            <div class="quality-metrics">
+              <div class="quality-metric">
+                <div class="metric-header">
+                  <span class="metric-label">清晰度</span>
+                  <el-tag
+                    size="small"
+                    :type="imageQuality.sharpness >= 70 ? 'success' : imageQuality.sharpness >= 40 ? 'warning' : 'danger'"
+                  >{{ imageQuality.sharpness >= 70 ? '良好' : imageQuality.sharpness >= 40 ? '一般' : '模糊' }}</el-tag>
+                </div>
+                <el-progress
+                  :percentage="imageQuality.sharpness"
+                  :color="imageQuality.sharpness >= 70 ? '#67c23a' : imageQuality.sharpness >= 40 ? '#e6a23c' : '#f56c6c'"
+                  :stroke-width="8"
+                />
+              </div>
+              <div class="quality-metric">
+                <div class="metric-header">
+                  <span class="metric-label">亮度</span>
+                  <el-tag
+                    size="small"
+                    :type="imageQuality.brightnessStatus === 'normal' ? 'success' : 'warning'"
+                  >{{ imageQuality.brightnessStatus === 'normal' ? '适中' : imageQuality.brightnessStatus === 'dark' ? '偏暗' : '过亮' }}</el-tag>
+                </div>
+                <el-progress
+                  :percentage="imageQuality.brightness"
+                  :color="imageQuality.brightnessStatus === 'normal' ? '#67c23a' : '#e6a23c'"
+                  :stroke-width="8"
+                />
+              </div>
+              <div class="quality-metric">
+                <div class="metric-header">
+                  <span class="metric-label">对比度</span>
+                  <el-tag
+                    size="small"
+                    :type="imageQuality.contrast >= 50 ? 'success' : 'warning'"
+                  >{{ imageQuality.contrast >= 50 ? '清晰' : '偏低' }}</el-tag>
+                </div>
+                <el-progress
+                  :percentage="imageQuality.contrast"
+                  :color="imageQuality.contrast >= 50 ? '#67c23a' : '#e6a23c'"
+                  :stroke-width="8"
+                />
+              </div>
+            </div>
+          </div>
+        </el-card>
+
+        <el-card class="photo-guide-card">
+          <template #header>
+            <div class="card-header small">
+              <el-icon :size="18" color="#67c23a">
+                <Bulb />
+              </el-icon>
+              <span>拍照建议 · 提升识别准确率</span>
+              <el-tag size="small" type="success" effect="light">高质量图片 = 更精准推荐</el-tag>
+            </div>
+          </template>
+          <el-row :gutter="12">
+            <el-col :span="12">
+              <div class="guide-column good">
+                <h4 class="guide-title good">
+                  <el-icon :size="16"><CircleCheckFilled /></el-icon>
+                  推荐这样拍
+                </h4>
+                <ul class="guide-list">
+                  <li>
+                    <el-icon><Check /></el-icon>
+                    光线充足的自然光下拍摄
+                  </li>
+                  <li>
+                    <el-icon><Check /></el-icon>
+                    衣物平铺或挂起，保持平整
+                  </li>
+                  <li>
+                    <el-icon><Check /></el-icon>
+                    正面居中拍摄，完整展示单品
+                  </li>
+                  <li>
+                    <el-icon><Check /></el-icon>
+                    纯色或简洁背景，减少干扰
+                  </li>
+                  <li>
+                    <el-icon><Check /></el-icon>
+                    整套穿搭拍全身照，比例协调
+                  </li>
+                </ul>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="guide-column bad">
+                <h4 class="guide-title bad">
+                  <el-icon :size="16"><CircleCloseFilled /></el-icon>
+                  尽量避免
+                </h4>
+                <ul class="guide-list">
+                  <li>
+                    <el-icon><Close /></el-icon>
+                    昏暗灯光、逆光拍摄
+                  </li>
+                  <li>
+                    <el-icon><Close /></el-icon>
+                    衣物褶皱、堆放杂乱
+                  </li>
+                  <li>
+                    <el-icon><Close /></el-icon>
+                    角度倾斜、只拍到局部
+                  </li>
+                  <li>
+                    <el-icon><Close /></el-icon>
+                    背景复杂、杂物过多
+                  </li>
+                  <li>
+                    <el-icon><Close /></el-icon>
+                    模糊、抖动、网购截图
+                  </li>
+                </ul>
+              </div>
+            </el-col>
+          </el-row>
         </el-card>
 
         <el-card class="config-card">
@@ -551,7 +708,12 @@ import {
   Tshirt,
   Picture,
   Bulb,
-  Close
+  Close,
+  WarningFilled,
+  Check,
+  CircleCheckFilled,
+  CircleCloseFilled,
+  Monitor
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
@@ -596,6 +758,16 @@ const resultReady = ref(false)
 const historyList = ref<HistoryItem[]>([])
 const showCamera = ref(false)
 const activeTipsTab = ref('styling')
+
+const qualityAnalysisReady = ref(false)
+const qualityIgnored = ref(false)
+const imageQuality = reactive({
+  sharpness: 0,
+  brightness: 0,
+  brightnessStatus: 'normal' as 'normal' | 'dark' | 'overexposed',
+  contrast: 0
+})
+const qualityWarnings = ref<string[]>([])
 
 let mediaStream: MediaStream | null = null
 
@@ -694,6 +866,9 @@ const capturePhoto = () => {
   if (ctx) {
     ctx.drawImage(video, 0, 0)
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
+    qualityAnalysisReady.value = false
+    qualityIgnored.value = false
+    qualityWarnings.value = []
     imagePreview.value = dataUrl
     imageBase64.value = dataUrl.split(',')[1] || dataUrl
     recognitionResult.value = null
@@ -732,6 +907,10 @@ const processFile = (file: File) => {
     return
   }
 
+  qualityAnalysisReady.value = false
+  qualityIgnored.value = false
+  qualityWarnings.value = []
+
   const reader = new FileReader()
   reader.onload = (e) => {
     const dataUrl = e.target?.result as string
@@ -744,17 +923,125 @@ const processFile = (file: File) => {
   reader.readAsDataURL(file)
 }
 
+const analyzeImageQuality = (
+  imageData: ImageData,
+  width: number,
+  height: number,
+  originalWidth: number,
+  originalHeight: number
+) => {
+  const pixels = imageData.data
+  const pixelCount = width * height
+
+  let totalLuminance = 0
+  const luminanceValues: number[] = []
+  let minL = 255
+  let maxL = 0
+
+  for (let i = 0; i < pixels.length; i += 4) {
+    const r = pixels[i]
+    const g = pixels[i + 1]
+    const b = pixels[i + 2]
+    const luminance = 0.299 * r + 0.587 * g + 0.114 * b
+    totalLuminance += luminance
+    luminanceValues.push(luminance)
+    if (luminance < minL) minL = luminance
+    if (luminance > maxL) maxL = luminance
+  }
+
+  const avgLuminance = totalLuminance / pixelCount
+  imageQuality.brightness = Math.round((avgLuminance / 255) * 100)
+
+  if (avgLuminance < 60) {
+    imageQuality.brightnessStatus = 'dark'
+  } else if (avgLuminance > 220) {
+    imageQuality.brightnessStatus = 'overexposed'
+  } else {
+    imageQuality.brightnessStatus = 'normal'
+  }
+
+  const contrastRange = maxL - minL
+  imageQuality.contrast = Math.round((contrastRange / 255) * 100)
+
+  let laplacianSum = 0
+  const kernel = [
+    [0, -1, 0],
+    [-1, 4, -1],
+    [0, -1, 0]
+  ]
+  const grayMatrix: number[][] = []
+  for (let y = 0; y < height; y++) {
+    grayMatrix[y] = []
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4
+      grayMatrix[y][x] = 0.299 * pixels[idx] + 0.587 * pixels[idx + 1] + 0.114 * pixels[idx + 2]
+    }
+  }
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      let val = 0
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          val += grayMatrix[y + ky][x + kx] * kernel[ky + 1][kx + 1]
+        }
+      }
+      laplacianSum += val * val
+    }
+  }
+  const laplacianVariance = laplacianSum / ((height - 2) * (width - 2))
+  const sharpnessRaw = Math.min(100, Math.sqrt(laplacianVariance) * 2)
+  const resolutionFactor = Math.min(1, (originalWidth * originalHeight) / (2000000))
+  imageQuality.sharpness = Math.round(sharpnessRaw * 0.7 + resolutionFactor * 30)
+
+  const warnings: string[] = []
+  if (imageQuality.sharpness < 40) {
+    warnings.push('图片清晰度较低，可能是拍摄抖动或图片压缩过度导致，建议重新拍摄清晰的图片')
+  }
+  if (imageQuality.brightnessStatus === 'dark') {
+    warnings.push('图片偏暗，衣物细节可能无法充分识别，建议在光线充足处重新拍摄')
+  }
+  if (imageQuality.brightnessStatus === 'overexposed') {
+    warnings.push('图片过亮（过曝），颜色和纹理可能失真，建议避免逆光或强光直射')
+  }
+  if (imageQuality.contrast < 40) {
+    warnings.push('图片对比度偏低，衣物与背景区分不明显，建议使用纯色背景并调整光线')
+  }
+  if (originalWidth < 400 || originalHeight < 400) {
+    warnings.push('图片分辨率较低（小于 400×400），建议使用更高分辨率的图片')
+  }
+  qualityWarnings.value = warnings
+  qualityAnalysisReady.value = true
+}
+
+const ignoreQualityWarning = () => {
+  qualityIgnored.value = true
+  ElMessage.info('已忽略质量提示，将继续识别')
+}
+
 const analyzeImageWithCanvas = (dataUrl: string) => {
   const img = new Image()
   img.crossOrigin = 'anonymous'
   img.onload = () => {
     try {
+      const originalWidth = img.width
+      const originalHeight = img.height
+
+      const qualityCanvas = document.createElement('canvas')
+      const qualityCtx = qualityCanvas.getContext('2d')!
+      const qualitySize = 200
+      const qScale = Math.min(qualitySize / originalWidth, qualitySize / originalHeight)
+      qualityCanvas.width = Math.floor(originalWidth * qScale)
+      qualityCanvas.height = Math.floor(originalHeight * qScale)
+      qualityCtx.drawImage(img, 0, 0, qualityCanvas.width, qualityCanvas.height)
+      const qualityImageData = qualityCtx.getImageData(0, 0, qualityCanvas.width, qualityCanvas.height)
+      analyzeImageQuality(qualityImageData, qualityCanvas.width, qualityCanvas.height, originalWidth, originalHeight)
+
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d')!
       const maxSize = 100
-      const scale = Math.min(maxSize / img.width, maxSize / img.height)
-      canvas.width = Math.floor(img.width * scale)
-      canvas.height = Math.floor(img.height * scale)
+      const scale = Math.min(maxSize / originalWidth, maxSize / originalHeight)
+      canvas.width = Math.floor(originalWidth * scale)
+      canvas.height = Math.floor(originalHeight * scale)
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
@@ -799,8 +1086,9 @@ const analyzeImageWithCanvas = (dataUrl: string) => {
       })
       colorAnalysisReady.value = true
     } catch (e) {
-      console.warn('Color analysis failed:', e)
+      console.warn('Image analysis failed:', e)
       colorAnalysisReady.value = false
+      qualityAnalysisReady.value = false
     }
   }
   img.src = dataUrl
@@ -813,6 +1101,13 @@ const removeImage = () => {
   autoColorAnalysis.value = []
   recognitionResult.value = null
   resultReady.value = false
+  qualityAnalysisReady.value = false
+  qualityIgnored.value = false
+  qualityWarnings.value = []
+  imageQuality.sharpness = 0
+  imageQuality.brightness = 0
+  imageQuality.brightnessStatus = 'normal'
+  imageQuality.contrast = 0
   stopCamera()
   if (fileInputRef.value) {
     fileInputRef.value.value = ''
@@ -822,6 +1117,15 @@ const removeImage = () => {
 const recognizeOutfit = async () => {
   if (!imageBase64.value) {
     ElMessage.warning('请先上传穿搭图片')
+    return
+  }
+
+  if (qualityWarnings.value.length > 0 && !qualityIgnored.value) {
+    ElMessage.warning({
+      message: '当前图片质量较低，建议重新上传后再识别，或确认继续识别',
+      duration: 3000,
+      showClose: true
+    })
     return
   }
 
@@ -1457,5 +1761,133 @@ const recognizeOutfit = async () => {
 
 .tip-alert:last-child {
   margin-bottom: 0;
+}
+
+.photo-guide-card {
+  margin-bottom: 20px;
+}
+
+.guide-column {
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.guide-column.good {
+  background: linear-gradient(135deg, #f0f9eb 0%, #e1f3d8 100%);
+  border: 1px solid #c2e7b0;
+}
+
+.guide-column.bad {
+  background: linear-gradient(135deg, #fef0f0 0%, #fde2e2 100%);
+  border: 1px solid #fbc4c4;
+}
+
+.guide-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.guide-title.good {
+  color: #529b2e;
+}
+
+.guide-title.bad {
+  color: #f56c6c;
+}
+
+.guide-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guide-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.guide-list li :deep(.el-icon) {
+  flex-shrink: 0;
+}
+
+.guide-column.good li :deep(.el-icon) {
+  color: #67c23a;
+}
+
+.guide-column.bad li :deep(.el-icon) {
+  color: #f56c6c;
+}
+
+.quality-section {
+  margin-top: 4px;
+}
+
+.quality-warning {
+  margin-bottom: 16px;
+  border-radius: 10px;
+}
+
+.quality-warning-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.quality-warning-list {
+  margin: 8px 0 12px 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quality-warning-list li {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.quality-warning-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.quality-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.quality-metric {
+  background: #f5f7fa;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.metric-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #303133;
 }
 </style>
