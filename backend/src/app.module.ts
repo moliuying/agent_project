@@ -17,6 +17,7 @@ import { EnglishConversationModule } from './english-conversation/english-conver
 import { PoetryRecommendationModule } from './poetry-recommendation/poetry-recommendation.module';
 import { SceneEnglishModule } from './scene-english/scene-english.module';
 import { OutfitRecognitionModule } from './outfit-recognition/outfit-recognition.module';
+import { WorldRecordModule } from './world-record/world-record.module';
 import * as path from 'path';
 
 @Module({
@@ -43,6 +44,7 @@ import * as path from 'path';
     PoetryRecommendationModule,
     SceneEnglishModule,
     OutfitRecognitionModule,
+    WorldRecordModule,
   ],
 })
 export class AppModule {}

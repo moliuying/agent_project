@@ -214,6 +214,15 @@
                 <p>AI 识别衣物·搭配建议·同款推荐</p>
               </el-card>
             </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/world-record')" class="feature-card">
+                <el-icon :size="40" color="#13c2c2">
+                  <Trophy />
+                </el-icon>
+                <h3>世界之最知识问答</h3>
+                <p>AI智能问答·百科知识·趣味冷知识</p>
+              </el-card>
+            </el-col>
           </el-row>
         </div>
       </div>

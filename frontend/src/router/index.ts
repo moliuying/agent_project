@@ -135,6 +135,11 @@ const routes: RouteRecordRaw[] = [
         path: '/outfit-recognition',
         name: 'OutfitRecognition',
         component: () => import('@/views/OutfitRecognition.vue')
+      },
+      {
+        path: '/world-record',
+        name: 'WorldRecord',
+        component: () => import('@/views/WorldRecord.vue')
       }
     ]
   }
