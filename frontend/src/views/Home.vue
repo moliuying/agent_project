@@ -232,6 +232,15 @@
                 <p>AI古生物专家·科普学习·亲子教育</p>
               </el-card>
             </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/food-calorie')" class="feature-card">
+                <el-icon :size="40" color="#67c23a">
+                  <CameraFilled />
+                </el-icon>
+                <h3>拍照识别食物热量</h3>
+                <p>AI识别食物·热量估算·营养分析</p>
+              </el-card>
+            </el-col>
           </el-row>
         </div>
       </div>

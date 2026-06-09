@@ -145,6 +145,11 @@ const routes: RouteRecordRaw[] = [
         path: '/dinosaur-qa',
         name: 'DinosaurQa',
         component: () => import('@/views/DinosaurQa.vue')
+      },
+      {
+        path: '/food-calorie',
+        name: 'FoodCalorie',
+        component: () => import('@/views/FoodCalorie.vue')
       }
     ]
   }

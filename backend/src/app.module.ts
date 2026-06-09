@@ -19,6 +19,7 @@ import { SceneEnglishModule } from './scene-english/scene-english.module';
 import { OutfitRecognitionModule } from './outfit-recognition/outfit-recognition.module';
 import { WorldRecordModule } from './world-record/world-record.module';
 import { DinosaurQaModule } from './dinosaur-qa/dinosaur-qa.module';
+import { FoodCalorieModule } from './food-calorie/food-calorie.module';
 import * as path from 'path';
 
 @Module({
@@ -47,6 +48,7 @@ import * as path from 'path';
     OutfitRecognitionModule,
     WorldRecordModule,
     DinosaurQaModule,
+    FoodCalorieModule,
   ],
 })
 export class AppModule {}
