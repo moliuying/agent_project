@@ -83,13 +83,14 @@ const SCENES_DATA: Record<string, SceneData> = {
       icon: 'Briefcase',
       category: '职场',
       description: '国际商务会议、跨国团队会议沟通',
-      keywords: ['会议', '开会', '商务', '同事', '团队', 'work', 'meeting', 'conference', 'office', '职场', '汇报', '例会'],
+      keywords: ['会议', '开会', '商务', '同事', '团队', 'work', 'meeting', 'conference', 'office', '职场', '汇报', '例会', '老板', 'manager', 'boss', '团队会议'],
       stages: [
         { stage: '开场破冰', stageEn: 'Opening & Icebreaker' },
         { stage: '介绍议题', stageEn: 'Introducing Topics' },
         { stage: '发表观点', stageEn: 'Expressing Opinions' },
         { stage: '提问与澄清', stageEn: 'Asking & Clarifying' },
         { stage: '表达不同意见', stageEn: 'Disagreeing Politely' },
+        { stage: '应对临时加任务', stageEn: 'Handling Last-minute Tasks' },
         { stage: '推进与收尾', stageEn: 'Moving Forward & Closing' },
       ],
     },
@@ -148,6 +149,20 @@ const SCENES_DATA: Record<string, SceneData> = {
           { english: "Have we considered...?", chinese: '我们有没有考虑过...？', whenToUse: '用提问的方式提出不同角度', speaker: '任何人' },
           { english: "I'm not sure I entirely agree with that.", chinese: '我不太确定完全同意这个说法。', whenToUse: '比较强硬但依然礼貌的反对', speaker: '任何人' },
           { english: "Another angle to think about is...", chinese: '另一个值得思考的角度是...', whenToUse: '不直接否定，而是提供新视角', speaker: '任何人' },
+        ],
+      },
+      {
+        stage: '应对临时加任务',
+        stageEn: 'Handling Last-minute Tasks',
+        description: '会议中老板或经理突然给你追加新任务时的回应',
+        phrases: [
+          { english: "Absolutely, I can take that on.", chinese: '没问题，我可以负责。', whenToUse: '任务不重、能接下时，干脆利落的正面回应', speaker: '你（下属）' },
+          { english: "Happy to help. Let me just confirm the priority relative to my current work.", chinese: '没问题我来处理。不过先和您确认一下，这个和我手上的工作优先级怎么排？', whenToUse: '接受任务但要先理清优先级（避免被不断加活）', speaker: '你（下属）' },
+          { english: "I'd be glad to help with this. Given my current workload, would it be possible to reprioritize X?", chinese: '我很乐意帮忙。不过考虑到我目前的工作量，能不能把 X 任务的优先级往后调？', whenToUse: '接受的同时委婉提出：需要调整现有任务优先级', speaker: '你（下属）' },
+          { english: "I want to make sure I can deliver this well. Can we discuss the timeline?", chinese: '我想确保能把这件事做好。我们能聊一下时间要求吗？', whenToUse: '不急着答应，先确认 deadline 是否合理', speaker: '你（下属）' },
+          { english: "I'm currently at capacity with [任务A] and [任务B]. Could we discuss how to best accommodate this?", chinese: '我目前手上[任务A]和[任务B]已经排满了。我们商量下怎么安排这个新任务好吗？', whenToUse: '实在接不下时，诚实说明并寻求解决方案（不是直接拒绝）', speaker: '你（下属）' },
+          { english: "Let me check my current priorities and get back to you in 10 minutes.", chinese: '让我先理一下手上的优先级，10 分钟后给您回复。', whenToUse: '不想当场答应/拒绝，争取思考时间', speaker: '你（下属）' },
+          { english: "Sure, I can handle this. When do you need this by?", chinese: '好的我来处理。需要什么时候完成？', whenToUse: '先答应，再确认具体时间要求', speaker: '你（下属）' },
         ],
       },
       {
@@ -332,6 +347,146 @@ const SCENES_DATA: Record<string, SceneData> = {
       { role: 'B', english: "Would you prefer a window or aisle seat?", chinese: '您想要靠窗还是靠过道的座位？', context: '【选择座位】询问偏好' },
       { role: 'A', english: "A window seat, please. And could you tell me if my luggage is checked through to my final destination?", chinese: '请给我靠窗座位。你能告诉我我的行李是直挂到最终目的地吗？', context: '【转机相关】确认行李直挂' },
       { role: 'B', english: "Yes, your bags will be checked straight through. Your gate is C18, boarding starts at 10:45.", chinese: '是的，您的行李将直挂。您的登机口是C18，10:45开始登机。', context: '【登机口信息】告知登机信息' },
+    ],
+  },
+  office_daily: {
+    info: {
+      id: 'office_daily',
+      name: '职场日常沟通',
+      nameEn: 'Office Daily Communication',
+      icon: 'ChatSquare',
+      category: '职场',
+      description: '被临时加任务、请假、提加薪、汇报进度、1对1沟通等高频职场时刻',
+      keywords: [
+        '老板', '临时', '任务', '加班', '请假', '加薪', '汇报', '进度', '1对1', '提薪',
+        'boss', 'manager', 'task', 'overtime', 'extra work', 'last minute', 'leave', 'vacation',
+        'raise', 'promotion', 'salary', 'PTO', 'day off', 'sick', 'one on one', '1:1',
+        '额外', '加活', '被安排', '突然', '临时加', '请假条', '年假', '涨工资', '调岗',
+      ],
+      stages: [
+        { stage: '被老板临时加任务', stageEn: 'Getting a Last-minute Task' },
+        { stage: '委婉拒绝不合理需求', stageEn: 'Saying No Politely' },
+        { stage: '请求请假/休假', stageEn: 'Requesting Time Off' },
+        { stage: '汇报工作进度', stageEn: 'Reporting Progress' },
+        { stage: '提出加薪/升职', stageEn: 'Asking for a Raise or Promotion' },
+        { stage: '1对1与上级沟通', stageEn: '1:1 with Manager' },
+      ],
+    },
+    briefIntroduction: '职场中最让人紧张的往往不是正式会议，而是那些猝不及防的时刻——老板突然走过来丢个新任务、该提加薪了张不开口、想请假又怕留下不好印象…下面按「具体时刻」分组，找到你正在应对的场景直接套用。',
+    keyPhrasesGrouped: [
+      {
+        stage: '被老板临时加任务',
+        stageEn: 'Getting a Last-minute Task',
+        description: '老板或经理突然走过来/发消息，给你加一个之前没提过的任务。此时关键是：别急着答应也别急着拒绝，先确认优先级和时间要求。',
+        phrases: [
+          { english: "Absolutely, I can take that on.", chinese: '没问题，我来负责。', whenToUse: '任务不重，确实能接下时，干脆正面回应', speaker: '你（下属）' },
+          { english: "Happy to help. Just to make sure I'm prioritizing correctly—should this come before X, or after?", chinese: '没问题我来处理。先确认下优先级——这件事比 X 任务先做还是后做？', whenToUse: '最推荐的句式：先表明愿意帮忙，然后要求确认优先级（避免以后被不断加活）', speaker: '你（下属）' },
+          { english: "I'd be glad to help. Given my current workload, could we adjust the deadline for X to make room for this?", chinese: '我很乐意帮忙。不过考虑到目前的工作量，能不能把 X 任务的截止日期往后调？', whenToUse: '接受任务的同时，要求调整其他任务的时间，保护自己', speaker: '你（下属）' },
+          { english: "I want to make sure I do this right. What's the timeline and expected outcome?", chinese: '我想确保把这件事做好。请问时间要求和预期产出是怎样的？', whenToUse: '不急着答应，先问清楚任务的具体要求和 deadline，看是否合理', speaker: '你（下属）' },
+          { english: "I'm currently fully committed to [任务A] which is due Friday, and [任务B] for next week. What would you suggest I deprioritize to fit this in?", chinese: '我目前手上[周五要交的A任务]和[下周的B任务]已经排满了。您看我应该先把哪一件延后？', whenToUse: '确实手头太紧时，用「列出正在做的事 + 让老板拍板优先级」的方式（不是直接拒绝，是寻求解决方案）', speaker: '你（下属）' },
+          { english: "Let me take a quick look at my current priorities and get back to you in 10 minutes.", chinese: '让我先理一下手上的优先级，10 分钟后给您回复。', whenToUse: '不想当场被迫答应/拒绝，给自己争取思考时间', speaker: '你（下属）' },
+          { english: "Sure, I can handle this. Just to confirm—you need this by when exactly?", chinese: '好的我来处理。确认一下——具体需要什么时候完成？', whenToUse: '先答应，再确认具体 deadline（避免模糊的"尽快"）', speaker: '你（下属）' },
+        ],
+      },
+      {
+        stage: '委婉拒绝不合理需求',
+        stageEn: 'Saying No Politely',
+        description: '任务确实超出能力或负荷，需要礼貌拒绝的场合',
+        phrases: [
+          { english: "I appreciate you thinking of me for this. Unfortunately, I'm at full capacity right now.", chinese: '谢谢您想到我。不过我目前确实排满了。', whenToUse: '先表示感谢+婉拒', speaker: '你（下属）' },
+          { english: "I want to make sure everything I deliver is high quality, so I'd rather not take on something I can't give proper attention to.", chinese: '我希望交付的每件事都是高质量的，所以不想接一件我没法好好投入的事。', whenToUse: '用「对质量负责」作为拒绝理由，非常得体', speaker: '你（下属）' },
+          { english: "Would it be possible to revisit this request next week when [当前任务] is wrapped up?", chinese: '能不能等下周[当前任务]做完后我们再重新看这件事？', whenToUse: '不是永久拒绝，而是延迟', speaker: '你（下属）' },
+          { english: "I'm not the best person for this because [原因]. Have you considered [推荐的人]?", chinese: '我不是做这件事最合适的人选，因为[原因]。您有没有考虑过[推荐的人]？', whenToUse: '拒绝的同时给出替代方案', speaker: '你（下属）' },
+        ],
+      },
+      {
+        stage: '请求请假/休假',
+        stageEn: 'Requesting Time Off',
+        description: '向上级请年假、病假、事假时的沟通',
+        phrases: [
+          { english: "I'd like to request [天数] days of PTO from [开始日期] to [结束日期].", chinese: '我想申请[天数]天年假，时间是[开始日期]到[结束日期]。', whenToUse: '正式申请请假的标准开头', speaker: '你（下属）' },
+          { english: "I've already coordinated with [同事] to cover my work while I'm away.", chinese: '我已经和[同事]协调好了，我不在的时候他/她会帮我处理工作。', whenToUse: '说明你已经做好交接安排，让老板放心', speaker: '你（下属）' },
+          { english: "I'll be reachable for urgent matters, but I'll try to fully disconnect.", chinese: '紧急的事可以联系到我，但我会尽量完全离线。', whenToUse: '说明自己的紧急响应安排', speaker: '你（下属）' },
+          { english: "I'm not feeling well today, so I'll be working from home / taking a sick day.", chinese: '我今天不太舒服，所以在家办公/请一天病假。', whenToUse: '请病假', speaker: '你（下属）' },
+        ],
+      },
+      {
+        stage: '汇报工作进度',
+        stageEn: 'Reporting Progress',
+        description: '向老板汇报当前在做什么、进展如何',
+        phrases: [
+          { english: "A quick update on [项目名称]: we're on track for the Friday deadline.", chinese: '[项目名称]的最新进展：我们周五的 deadline 没有问题。', whenToUse: '简洁正面的进度汇报', speaker: '你（下属）' },
+          { english: "We're making good progress, but we've hit a minor blocker with [问题].", chinese: '整体进展不错，不过我们在[问题]上遇到了一点小阻碍。', whenToUse: '汇报好消息的同时提前告知风险', speaker: '你（下属）' },
+          { english: "Here's where we stand: [已完成的], and we're currently working on [进行中的].", chinese: '目前的情况是：[已完成的]，现在正在推进[进行中的]。', whenToUse: '结构化的进度汇报', speaker: '你（下属）' },
+          { english: "I need your input on [某个决策点] before we can move forward.", chinese: '在推进之前，我需要您在[某个决策点]上给一些意见。', whenToUse: '遇到需要老板拍板的事时', speaker: '你（下属）' },
+        ],
+      },
+      {
+        stage: '提出加薪/升职',
+        stageEn: 'Asking for a Raise or Promotion',
+        description: '鼓起勇气和老板谈薪资或职位的时刻',
+        phrases: [
+          { english: "I'd like to schedule some time to discuss my career development and compensation.", chinese: '我想约个时间和您聊聊我的职业发展和薪资。', whenToUse: '发消息约 1:1 谈加薪/升职的开场，不要直接在消息里说具体数字', speaker: '你（下属）' },
+          { english: "Over the past [时间段], I've [具体成就1] and [具体成就2]. I'd like to discuss how this aligns with my compensation.", chinese: '过去[时间段]，我完成了[具体成就1]和[具体成就2]。我想聊聊这些成绩和我的薪资是否匹配。', whenToUse: '正式谈话时，用「具体成就」铺垫，而不是说「我觉得我该涨了」', speaker: '你（下属）' },
+          { english: "Based on the responsibilities I've taken on and the market rate, I was hoping we could discuss a salary adjustment to [数字] / in the range of [区间].", chinese: '基于我承担的职责和市场行情，我希望我们能讨论把薪资调到[数字] / [区间]。', whenToUse: '给出自己的期望数字或区间（要提前做市场调研）', speaker: '你（下属）' },
+          { english: "I'd like to understand what I need to do to reach the next level in the next [时间段].", chinese: '我想了解一下，未来[时间段]我需要做到什么才能到下一个级别。', whenToUse: '如果当下没谈成，退而求其次：问清楚晋升路径', speaker: '你（下属）' },
+        ],
+      },
+      {
+        stage: '1对1与上级沟通',
+        stageEn: '1:1 with Manager',
+        description: '和老板定期 1:1 会议时的常用表达',
+        phrases: [
+          { english: "I wanted to get your thoughts on [某个问题/项目].", chinese: '我想听听您对[某个问题/项目]的看法。', whenToUse: '1:1 开场说要聊什么', speaker: '你（下属）' },
+          { english: "What's your top priority right now? I want to make sure I'm aligned.", chinese: '您当前最关注的事情是什么？我想确保自己的方向和您一致。', whenToUse: '了解老板的优先级，非常加分的问题', speaker: '你（下属）' },
+          { english: "Is there anything I should be doing differently?", chinese: '有没有什么地方我应该换个方式做？', whenToUse: '主动寻求反馈', speaker: '你（下属）' },
+          { english: "I'm considering [某个计划], and I'd value your perspective.", chinese: '我在考虑[某个计划]，想听听您的意见。', whenToUse: '有想法但不确定，提前让老板知道', speaker: '你（下属）' },
+        ],
+      },
+    ],
+    keyPhrases: [],
+    commonPatterns: [
+      {
+        pattern: "Happy to help. Just to confirm—[确认的内容]?",
+        example: "Happy to help. Just to confirm—should this come before the client report, or after?",
+        translation: "没问题我来处理。确认一下——这件事比客户报告先做还是后做？",
+        explanation: "接任务时的黄金句式：先表明态度积极，再礼貌地确认优先级或其他细节。",
+        whenToUse: "老板临时加任务、同事找你帮忙，任何你想接受但需要先搞清楚条件的场合",
+      },
+      {
+        pattern: "I'm currently fully committed to [当前任务]. What would you suggest I deprioritize?",
+        example: "I'm currently fully committed to the product launch due Friday. What would you suggest I deprioritize?",
+        translation: "我目前周五要交的产品发布项目已经排满了。您看我应该先把哪件事延后？",
+        explanation: "不直接说「我太忙了做不了」，而是让对方帮你做优先级判断，既不拒绝也不硬扛。",
+        whenToUse: "手头任务确实饱和，接不了更多活时",
+      },
+      {
+        pattern: "Over the past [时间段], I've [具体成就]. I'd like to discuss how this aligns with [薪资/职位].",
+        example: "Over the past year, I've led the X project which drove a 20% increase in retention, and I've been mentoring two junior team members.",
+        translation: "过去一年，我主导了 X 项目，用户留存提升了 20%，同时也在带两位初级同事。",
+        explanation: "谈加薪升职要用具体事实和数据铺垫，不要说「我觉得我该涨了」，而是让成绩替你说话。",
+        whenToUse: "正式和老板谈加薪/升职时",
+      },
+      {
+        pattern: "I'd like to request [天数] days of PTO from [开始日期] to [结束日期]. I've already coordinated with [同事] to cover my work.",
+        example: "I'd like to request 5 days of PTO from June 10th to June 14th. I've already coordinated with Sarah to cover my client meetings.",
+        translation: "我想申请 6 月 10 日到 14 日共 5 天年假。我已经和 Sarah 协调好帮我处理客户会议。",
+        explanation: "请假时最重要的是让老板安心：你已经安排好了交接。",
+        whenToUse: "正式申请休假时",
+      },
+    ],
+    tips: [
+      { title: '被临时加任务时别急着答应', content: '第一反应不要立刻说 "Yes"，先问清楚 deadline 和预期产出，再说 "Happy to help"。把「先答应再想办法」改成「先确认再接受」。' },
+      { title: '拒绝不等于说 No', content: '不要直接说 "I can\'t do that"，而是：① 先表示感谢/理解 ② 说明当前负荷 ③ 提供替代方案（延迟/推荐其他人/减少范围）。' },
+      { title: '谈加薪用数据说话', content: '不要说 "I need a raise" 或 "I\'ve been here long enough"，要说 "Over the past X months, I delivered [具体成就1], [具体成就2]..." 用事实和成果铺垫。' },
+      { title: '请假提前安排交接', content: '请假不是请求批准，而是告知+展示安排：你和谁交接了、紧急事怎么联系、哪些事等你回来处理。老板只关心「你不在了谁来做」。' },
+    ],
+    sampleDialogue: [
+      { role: 'B', english: "Hey, do you have a minute? I need someone to take a look at the client presentation before tomorrow morning.", chinese: '嘿，有空吗？明天早上之前我需要有人帮我过一下这个客户的演示稿。', context: '【被临时加任务】老板突然走过来丢活' },
+      { role: 'A', english: "Happy to help. Just to confirm—this takes priority over the quarterly report I was working on today?", chinese: '没问题我来处理。先确认下——这件事比我今天在做的季度报告优先级高吗？', context: '【被临时加任务】先接再确认优先级（推荐做法）' },
+      { role: 'B', english: "Yes, the client call is at 9am, so this is more urgent.", chinese: '对，客户会议是明早9点，这件事更急。', context: '【被临时加任务】老板确认优先级' },
+      { role: 'A', english: "Got it. I'll switch to this now, and move the quarterly report to this afternoon.", chinese: '明白。我现在先做这个，季度报告挪到今天下午。', context: '【被临时加任务】确认并同步调整安排' },
+      { role: 'B', english: "Perfect, thanks so much for being flexible.", chinese: '太好了，谢谢你灵活调整。', context: '【被临时加任务】对话结束' },
     ],
   },
   tv_series_slang: {
@@ -844,6 +999,7 @@ const SCENES_DATA: Record<string, SceneData> = {
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   business_meeting: ['会议', '开会', '商务', '同事', '团队', 'work', 'meeting', 'conference', 'office', '职场', '汇报', '例会', '老板', '客户', 'presentation', '讨论'],
+  office_daily: ['老板', '临时', '任务', '加班', '请假', '加薪', '汇报', '进度', '1对1', '提薪', 'boss', 'manager', 'task', 'overtime', 'extra work', 'last minute', 'leave', 'vacation', 'raise', 'promotion', 'salary', 'PTO', 'day off', 'sick', 'one on one', '额外', '加活', '被安排', '突然', '临时加', '请假条', '年假', '涨工资', '调岗', '辞职', '离职'],
   airport_checkin: ['机场', '值机', '登机', '行李', '托运', 'airport', 'checkin', 'flight', 'luggage', '飞机', '航站楼', '登机口', '安检', '海关', '出境', '转机', '机票'],
   tv_series_slang: ['美剧', '俚语', '口语', '电影', 'tv', 'slang', 'movie', 'drama', '流行语', '追剧', '看剧', '娱乐', 'native speaker', '地道', 'native', '老外'],
   restaurant_ordering: ['餐厅', '点餐', '吃饭', '菜单', '订餐', 'restaurant', 'food', 'menu', 'dinner', '点菜', '西餐', '用餐', '吃饭', 'lunch', 'breakfast', 'brunch'],
@@ -859,7 +1015,7 @@ const DEFAULT_RESPONSE: {
   tips: SceneTip[];
   sampleDialogue: { role: 'A' | 'B'; english: string; chinese: string; context?: string }[];
 } = {
-  briefIntroduction: '没能精准匹配到你的具体场景。下方提供了一些通用英语表达，也可以尝试补充更具体的信息（比如"在机场遇到什么问题？""会议中你是主持人还是参会者？"）来获取更精准的内容。',
+  briefIntroduction: '没能精准匹配到你的具体场景。下方提供了一些通用英语表达，也可以尝试补充更具体的信息（比如"被老板临时加任务怎么回应""请假 5 天怎么说""想提加薪怎么开口"）来获取更精准的内容。',
   keyPhrases: [
     { english: "Excuse me, could you help me?", chinese: '打扰一下，能帮我吗？', whenToUse: '任何需要寻求帮助的场合', speaker: '你' },
     { english: "Could you repeat that, please?", chinese: '能重复一下吗？', whenToUse: '没听清对方说的话', speaker: '你' },

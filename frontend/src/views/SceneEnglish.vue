@@ -22,15 +22,15 @@
         class="intro-alert"
       >
         <template #default>
-          <p>💡 <strong>模糊描述</strong>："我要出国" → 可能返回通用表达；<strong>具体描述</strong>："在洛杉矶机场值机，有两件行李要托运，想选靠窗座位" → 精准命中机场值机并定位到对应环节</p>
-          <p style="margin-top:6px;">推荐直接点击下方场景卡片，或输入如："和外国同事开会，我需要做汇报"、"在纽约餐厅点牛排，五分熟"</p>
+          <p>💡 <strong>模糊描述</strong>："我要出国" → 可能返回通用表达；<strong>具体描述</strong>："被老板临时加任务怎么回应" → 精准命中对应场景并给出那一刻该说的话</p>
+          <p style="margin-top:6px;">可以直接输入具体时刻，如："被老板临时加任务怎么回应"、"想请假 5 天怎么说"、"提加薪怎么开口"、"在纽约餐厅点牛排五分熟"</p>
         </template>
       </el-alert>
 
       <div class="search-section">
         <el-input
           v-model="sceneDescription"
-          placeholder="请具体描述：地点 + 你的角色 + 想做什么（如：在国外餐厅想点一份三分熟牛排）"
+          placeholder="试试具体时刻：比如「被老板临时加任务怎么回应」「请假5天怎么说」「提加薪怎么开口」"
           size="large"
           clearable
           @keydown.enter="handleQuery"
