@@ -1,5 +1,15 @@
 import { Injectable } from '@nestjs/common';
 
+export type DiscourseStyle =
+  | 'solemn'        // 严肃沉郁：苦难文学、存在主义
+  | 'magical'       // 魔幻诗意：魔幻现实主义、奇幻
+  | 'gentle'        // 温柔细腻：青春文学、治愈系
+  | 'profound'      // 深邃哲思：哲学小说、寓言
+  | 'classical'     // 典雅厚重：古典文学、历史小说
+  | 'grand'         // 宏大冷峻：科幻、史诗
+  | 'scholarly'     // 平实严谨：学术、社会学
+  | 'melancholic';  // 华丽忧伤：爵士时代、都市感伤
+
 export interface BookInfo {
   title: string;
   author: string;
@@ -15,6 +25,24 @@ export interface BookInfo {
   tags: string[];
   difficulty: '入门' | '进阶' | '挑战';
   emotionalTone: string;
+  discourseStyle: DiscourseStyle;
+}
+
+interface StyleConfig {
+  greeting: string[];
+  themeIntro: string;
+  quoteIntro: string;
+  tipIntro: string;
+  closing: string[];
+  emoji: {
+    book: string;
+    theme: string;
+    quote: string;
+    tip: string;
+    closing: string;
+  };
+  emphasisMarkers: { start: string; end: string };
+  discussionTone: 'deep' | 'warm' | 'rational' | 'poetic';
 }
 
 export interface LiteratureMessage {
@@ -32,6 +60,7 @@ export interface AskResponse {
   relatedBooks: BookInfo[];
   discussionPoints: string[];
   recommendedBooks: { title: string; author: string; reason: string }[];
+  style: DiscourseStyle;
 }
 
 interface KnowledgeEntry {
@@ -40,6 +69,7 @@ interface KnowledgeEntry {
   bookTitles?: string[];
   recommendedBooks?: { title: string; author: string; reason: string }[];
   discussionPoints?: string[];
+  style: DiscourseStyle;
 }
 
 const BOOK_DATABASE: BookInfo[] = [
@@ -71,6 +101,7 @@ const BOOK_DATABASE: BookInfo[] = [
     tags: ['魔幻现实主义', '诺奖作品', '拉美文学', '经典必读', '家族史诗'],
     difficulty: '挑战',
     emotionalTone: '苍凉而诗意，在宏大的时间长河中体味个体的孤独与命运的轮回',
+    discourseStyle: 'magical',
   },
   {
     title: '活着',
@@ -99,6 +130,7 @@ const BOOK_DATABASE: BookInfo[] = [
     tags: ['当代中国文学', '苦难叙事', '生命哲学', '畅销经典', '茅盾文学奖'],
     difficulty: '入门',
     emotionalTone: '沉重却温暖，在极致的苦难中开出一朵名为"活着"的花',
+    discourseStyle: 'solemn',
   },
   {
     title: '挪威的森林',
@@ -127,6 +159,7 @@ const BOOK_DATABASE: BookInfo[] = [
     tags: ['日本文学', '青春小说', '都市孤独', '畅销百万', '文艺青年必读'],
     difficulty: '入门',
     emotionalTone: '忧郁而温柔，像雨后的下午，在回忆中轻轻叹息',
+    discourseStyle: 'gentle',
   },
   {
     title: '红楼梦',
@@ -156,6 +189,7 @@ const BOOK_DATABASE: BookInfo[] = [
     tags: ['四大名著', '古典文学巅峰', '红学', '封建社会百科全书', '中华文化瑰宝'],
     difficulty: '进阶',
     emotionalTone: '繁华落尽的悲凉，在锦绣丛中读出人世的沧桑与无常',
+    discourseStyle: 'classical',
   },
   {
     title: '追风筝的人',
@@ -184,6 +218,7 @@ const BOOK_DATABASE: BookInfo[] = [
     tags: ['成长救赎', '阿富汗文学', '全球畅销书', '改编电影', '友谊与背叛'],
     difficulty: '入门',
     emotionalTone: '温暖而刺痛，在人性的懦弱与勇敢之间，看见救赎的光',
+    discourseStyle: 'gentle',
   },
   {
     title: '小王子',
@@ -212,6 +247,7 @@ const BOOK_DATABASE: BookInfo[] = [
     tags: ['世界经典', '哲理童话', '全年龄阅读', '全球销量过亿', '法语文学'],
     difficulty: '入门',
     emotionalTone: '纯净而深邃，像夜空中最温柔的那颗星',
+    discourseStyle: 'profound',
   },
   {
     title: '局外人',
@@ -240,6 +276,7 @@ const BOOK_DATABASE: BookInfo[] = [
     tags: ['存在主义', '诺贝尔文学奖', '法国文学', '哲学入门必读', '荒诞文学'],
     difficulty: '进阶',
     emotionalTone: '冷静到刺骨，在阳光下直视荒诞，在死亡中寻找真实',
+    discourseStyle: 'solemn',
   },
   {
     title: '三体',
@@ -269,6 +306,7 @@ const BOOK_DATABASE: BookInfo[] = [
     tags: ['雨果奖', '中国科幻巅峰', '硬科幻', '宇宙社会学', '现象级作品'],
     difficulty: '进阶',
     emotionalTone: '宏大而冷酷，在宇宙的尺度下审视人类文明的渺小与伟大',
+    discourseStyle: 'grand',
   },
   {
     title: '了不起的盖茨比',
@@ -297,6 +335,7 @@ const BOOK_DATABASE: BookInfo[] = [
     tags: ['美国文学经典', '爵士时代', '迷惘的一代', '美国梦的幻灭', '诺奖遗珠'],
     difficulty: '入门',
     emotionalTone: '华丽而忧伤，在爵士时代的香槟泡沫中，看见梦想碎成星光',
+    discourseStyle: 'melancholic',
   },
   {
     title: '乡土中国',
@@ -325,8 +364,156 @@ const BOOK_DATABASE: BookInfo[] = [
     tags: ['社会学经典', '理解中国', '学术入门', '费孝通', '中国社会结构'],
     difficulty: '入门',
     emotionalTone: '平实而深刻，用最朴素的语言道出中国社会最深层的结构',
+    discourseStyle: 'scholarly',
   },
 ];
+
+const STYLE_CONFIGS: Record<DiscourseStyle, StyleConfig> = {
+  solemn: {
+    greeting: [
+      '谈起《{title}》，我的语气会不自觉地沉下来——这不是一本可以轻松翻阅的书。',
+      '说到《{title}》，我想先停下来，认真地和你聊聊。',
+      '每次重读《{title}》，都需要一些勇气。让我们慢慢走进它。',
+    ],
+    themeIntro: '它叩问的是这些人生的根本问题：',
+    quoteIntro: '书中那些沉重的句子，每一个字都需要慢慢咀嚼：',
+    tipIntro: '读这样的书，不必急于翻页。给你几个小小的建议：',
+    closing: [
+      '这本书可能会让你难过，甚至压抑。但如果你愿意，可以和我说说——哪一部分最让你透不过气来？',
+      '苦难本身不值得赞美，但面对苦难的姿态值得。你在书中看到了怎样的活着？',
+      '读完这样的书，往往需要沉默一会儿。你此刻心里涌起的是什么？',
+    ],
+    emoji: { book: '🪨', theme: '🔍', quote: '📜', tip: '🕯️', closing: '🌿' },
+    emphasisMarkers: { start: '**', end: '**' },
+    discussionTone: 'deep',
+  },
+  magical: {
+    greeting: [
+      '啊，《{title}》——这是一本翻开就会跌入另一个世界的书。准备好开始这场梦了吗？',
+      '聊起《{title}》，就像聊起一个只有读过的人才懂的秘密。让我们慢慢道来。',
+      '每次想起《{title}》，耳边就会响起某种遥远的风声。让我们跟着它走进去。',
+    ],
+    themeIntro: '在这个亦真亦幻的世界里，它想和我们谈的是：',
+    quoteIntro: '马尔克斯（或者说，那些魔法般的文字）留下了这些永不褪色的句子：',
+    tipIntro: '读这种书，最重要的是放下"这是真的还是假的"的执念。给你几个小小的提示：',
+    closing: [
+      '其实读魔幻现实主义，某种程度上是在读我们自己的梦。你在书中看到了哪些像梦一样的片段？',
+      '合上书之后，有没有哪个画面一直挥之不去？就像做了一场醒不来的梦？',
+      '孤独、命运、时间……你觉得这本书最想抓住的是什么？',
+    ],
+    emoji: { book: '🌙', theme: '✨', quote: '🪄', tip: '🗝️', closing: '🌌' },
+    emphasisMarkers: { start: '**', end: '**' },
+    discussionTone: 'poetic',
+  },
+  gentle: {
+    greeting: [
+      '聊起《{title}》，心情会不自觉地变得柔软起来。这是一本适合在雨天慢慢读的书。',
+      '啊，《{title}》——这是我非常喜欢的一本书，像一个很久没见的朋友。',
+      '说到《{title}》，我的语速都会放慢下来。让我们轻轻地聊。',
+    ],
+    themeIntro: '它温柔地触碰了这些我们每个人都有的心事：',
+    quoteIntro: '这些句子像是说给自己听的悄悄话：',
+    tipIntro: '读这样的书，不需要什么技巧，只要把心打开就好。不过可以留意：',
+    closing: [
+      '读的时候，有没有哪句话让你想抄在笔记本上，或者发给某个人？',
+      '你是在什么样的心情下遇到这本书的？它有没有陪你走过某段特别的日子？',
+      '直子和绿子（或者书中的某两个人物），你更心疼谁？',
+    ],
+    emoji: { book: '☕', theme: '💭', quote: '🍃', tip: '🌱', closing: '🌧️' },
+    emphasisMarkers: { start: '**', end: '**' },
+    discussionTone: 'warm',
+  },
+  profound: {
+    greeting: [
+      '《{title}》薄薄的一本，却装下了整个宇宙的问题。让我们认真地聊聊它。',
+      '这是一本适合每隔几年重读一次的书。每次翻开，都会看到不一样的东西。',
+      '说起《{title}》，我们其实是在聊我们自己。准备好了吗？',
+    ],
+    themeIntro: '它看似简单的故事背后，藏着这些沉甸甸的追问：',
+    quoteIntro: '这些简单到近乎天真的句子，其实是说给大人听的：',
+    tipIntro: '读这种书，"懂不懂"不重要，重要的是"感受到了什么"。给你几个可以留意的角度：',
+    closing: [
+      '如果用一句话来概括这本书对你说的话，会是什么？',
+      '你是在什么年纪第一次读它的？现在重读，感受有没有不一样？',
+      '狐狸说的"驯养"，在你看来是什么意思？（或者书中某个核心概念）',
+    ],
+    emoji: { book: '⭐', theme: '💫', quote: '🕊️', tip: '🔭', closing: '🌠' },
+    emphasisMarkers: { start: '**', end: '**' },
+    discussionTone: 'deep',
+  },
+  classical: {
+    greeting: [
+      '说起《{title}》，真不知该从何说起——这是一部说不尽的大书。让我们试着走进它。',
+      '《{title}》是一座宝库，每读一遍都能发现新的东西。我们今天从哪里聊起？',
+      '谈《{title}》，需要一点敬畏心——这是中国文学最华美的梦。',
+    ],
+    themeIntro: '它在繁华锦绣之中，藏着这些人世最深的感慨：',
+    quoteIntro: '这些传唱不衰的句子，每一句都值得细细品味：',
+    tipIntro: '读古典名著，入门有法。给你几个实用的建议：',
+    closing: [
+      '金陵十二钗（或书中的人物群像），你最牵挂谁？为什么？',
+      '有人说这是一本"色空"之书，有人说这是一本"人情"之书，你怎么看？',
+      '如果你是宝玉（或书中某个核心人物），你会做出不一样的选择吗？',
+    ],
+    emoji: { book: '🏮', theme: '🎋', quote: '📜', tip: '🖌️', closing: '🏯' },
+    emphasisMarkers: { start: '**', end: '**' },
+    discussionTone: 'poetic',
+  },
+  grand: {
+    greeting: [
+      '聊《{title}》，我们需要先把视角拉到宇宙的高度。准备好了吗？',
+      '《{title}》是那种读完之后会让你抬头看星空的书。让我们一起聊聊它。',
+      '说起《{title}》，人的渺小与伟大会同时涌上来。',
+    ],
+    themeIntro: '它在宏大的时空尺度下，追问这些关于文明与存在的根本问题：',
+    quoteIntro: '这些句子像来自宇宙深处的回响，每一句都震撼人心：',
+    tipIntro: '读硬科幻，需要一点耐心，但也不必强求理解所有设定。给你几个阅读建议：',
+    closing: [
+      '"黑暗森林法则"（或书中某个核心设定），你觉得它在逻辑上成立吗？',
+      '如果真的存在外星文明，你认为人类应该怎么做？',
+      '读完之后，你对人类文明的看法有改变吗？',
+    ],
+    emoji: { book: '🚀', theme: '🌌', quote: '🔭', tip: '🧭', closing: '✨' },
+    emphasisMarkers: { start: '**', end: '**' },
+    discussionTone: 'rational',
+  },
+  scholarly: {
+    greeting: [
+      '《{title}》是那种可以反复读、每读都有新收获的书。我们今天从哪个角度切入？',
+      '说起《{title}》，费孝通先生（或作者名）平实的文字里藏着很深的洞察。',
+      '《{title}》虽然是学术著作，但写得非常好读。让我们一起来梳理它的核心观点。',
+    ],
+    themeIntro: '这本书系统地讨论了这些重要的问题：',
+    quoteIntro: '这些朴素的论断，背后是扎实的田野调查和深刻的思考：',
+    tipIntro: '读这类学术著作，可以带着问题意识。给你几个阅读方法的建议：',
+    closing: [
+      '"差序格局"（或书中某个核心概念），对照你自己的生活经验，有没有共鸣？',
+      '你觉得书中的哪些观察在今天依然成立？哪些已经发生了变化？',
+      '如果让你用书中的一个观点去解释当下的某个社会现象，你会选什么？',
+    ],
+    emoji: { book: '📚', theme: '💡', quote: '📝', tip: '🧭', closing: '🔬' },
+    emphasisMarkers: { start: '**', end: '**' },
+    discussionTone: 'rational',
+  },
+  melancholic: {
+    greeting: [
+      '啊，《{title}》——这是一本适合在深夜读的书，像一杯苦中带甜的鸡尾酒。',
+      '聊起《{title}》，就像聊起一个已经过去的、黄金般的夏天。',
+      '《{title}》有一种迷人的忧伤——那种明知道梦会碎，还是忍不住伸手去抓的感觉。',
+    ],
+    themeIntro: '在华丽的表象之下，它真正想讲的是这些：',
+    quoteIntro: '这些句子写尽了繁华与幻灭之间的距离：',
+    tipIntro: '读这样的书，可以留意它的叙事者（尼克/渡边等人）——他的视角就是理解全书的钥匙。给你几个建议：',
+    closing: [
+      '盖茨比对岸的那盏绿灯（或书中的核心意象），在你看来象征着什么？',
+      '你觉得书中最悲剧的人物是谁？为什么？',
+      '有没有哪个人物，让你看到了自己身上的影子？',
+    ],
+    emoji: { book: '🥂', theme: '🌙', quote: '🥀', tip: '🎷', closing: '✨' },
+    emphasisMarkers: { start: '**', end: '**' },
+    discussionTone: 'poetic',
+  },
+};
 
 const WHY_DIFFICULT_ANSWERS: KnowledgeEntry[] = [
   {
@@ -338,6 +525,7 @@ const WHY_DIFFICULT_ANSWERS: KnowledgeEntry[] = [
       '有没有哪一段"魔幻"的描写让你觉得特别有共鸣？',
       '你身边有没有人像布恩迪亚家族的人——永远陷在某种循环里走不出来？',
     ],
+    style: 'magical',
   },
 ];
 
@@ -351,6 +539,7 @@ const WHAT_EXPRESS_ANSWERS: KnowledgeEntry[] = [
       '如果让余华写一个"幸福版"的结局，你觉得会更有力量还是更弱？',
       '余华说"写作是为了活着"，你认同吗？写作（或阅读）对你来说意味着什么？',
     ],
+    style: 'solemn',
   },
 ];
 
@@ -370,6 +559,7 @@ const RECOMMEND_STYLE_ANSWERS: KnowledgeEntry[] = [
       '村上的小说里总有一种"距离感"——你觉得这是一种保护，还是一种遗憾？',
       '有没有哪本书也给过你类似"下雨的下午"那种感觉？',
     ],
+    style: 'gentle',
   },
 ];
 
@@ -382,6 +572,7 @@ const COMMON_QUESTIONS: KnowledgeEntry[] = [
       '有没有一本书读完后，让你久久无法平静？',
       '你是习惯写读书笔记，还是让感受留在心里就好？',
     ],
+    style: 'gentle',
   },
   {
     keywords: ['读书会', '怎么讨论', '讨论话题', '分享会', '聊什么'],
@@ -391,6 +582,7 @@ const COMMON_QUESTIONS: KnowledgeEntry[] = [
       '你觉得读书是"一个人的事"，还是"可以和别人分享的事"？',
       '有没有哪本书，你特别想和别人讨论，但一直没找到合适的人？',
     ],
+    style: 'profound',
   },
   {
     keywords: ['文学入门', '新手怎么读', '怎么开始读文学', '文学欣赏', '怎么读懂'],
@@ -400,6 +592,7 @@ const COMMON_QUESTIONS: KnowledgeEntry[] = [
       '有没有一本书，是你学生时代讨厌，但长大之后突然爱上的？',
       '你觉得读文学最重要的是"读懂"，还是"感受到"？',
     ],
+    style: 'gentle',
   },
   {
     keywords: ['如何做笔记', '怎么记笔记', '阅读笔记', '笔记方法'],
@@ -409,6 +602,7 @@ const COMMON_QUESTIONS: KnowledgeEntry[] = [
       '有没有哪页笔记，你现在翻到还会会心一笑？',
       '你觉得电子笔记和手写笔记，哪个更有"温度"？',
     ],
+    style: 'scholarly',
   },
 ];
 
@@ -445,6 +639,7 @@ export class LiteratureQaService {
     let recommendedBooks: { title: string; author: string; reason: string }[] = [];
     let discussionPoints: string[] = [];
     let answer = '';
+    let style: DiscourseStyle = 'gentle';
 
     for (const book of BOOK_DATABASE) {
       if (
@@ -468,6 +663,7 @@ export class LiteratureQaService {
       if (this.matchKeywords(lowerQuestion, entry.keywords)) {
         answer = entry.answer;
         discussionPoints = entry.discussionPoints || [];
+        style = entry.style;
         if (entry.bookTitles) {
           for (const t of entry.bookTitles) {
             const book = this.getBookByTitle(t);
@@ -485,6 +681,7 @@ export class LiteratureQaService {
         if (this.matchKeywords(lowerQuestion, entry.keywords)) {
           answer = entry.answer;
           discussionPoints = entry.discussionPoints || [];
+          style = entry.style;
           if (entry.bookTitles) {
             for (const t of entry.bookTitles) {
               const book = this.getBookByTitle(t);
@@ -504,6 +701,7 @@ export class LiteratureQaService {
           answer = entry.answer;
           discussionPoints = entry.discussionPoints || [];
           recommendedBooks = entry.recommendedBooks || [];
+          style = entry.style;
           break;
         }
       }
@@ -514,6 +712,7 @@ export class LiteratureQaService {
         if (this.matchKeywords(lowerQuestion, entry.keywords)) {
           answer = entry.answer;
           discussionPoints = entry.discussionPoints || [];
+          style = entry.style;
           break;
         }
       }
@@ -522,11 +721,13 @@ export class LiteratureQaService {
     if (!answer) {
       if (relatedBooks.length > 0) {
         const book = relatedBooks[0];
+        style = book.discourseStyle;
         answer = this.generateBookIntroduction(book, trimmedQuestion);
         recommendedBooks = book.similarBooks;
         discussionPoints = this.generateDiscussionPoints(book);
       } else {
-        answer = this.generateGeneralAnswer(trimmedQuestion);
+        style = 'gentle';
+        answer = this.generateGeneralAnswer(trimmedQuestion, style);
         recommendedBooks = this.generateRandomRecommendations();
         discussionPoints = [
           '可以和我聊聊你最近在读什么书吗？',
@@ -540,7 +741,7 @@ export class LiteratureQaService {
     recommendedBooks = recommendedBooks.slice(0, 5);
     discussionPoints = discussionPoints.slice(0, 5);
 
-    return { answer, relatedBooks, discussionPoints, recommendedBooks };
+    return { answer, relatedBooks, discussionPoints, recommendedBooks, style };
   }
 
   private matchKeywords(text: string, keywords: string[]): boolean {
@@ -554,26 +755,32 @@ export class LiteratureQaService {
   }
 
   private generateBookIntroduction(book: BookInfo, question: string): string {
-    let answer = `很高兴和你聊《${book.title}》！这是${book.author}的代表作，也是我个人非常珍爱的一本书。📚\n\n`;
-    answer += `**📖 关于这本书**\n\n${book.summary}\n\n`;
-    answer += `**💡 它最打动我的几个主题**\n\n`;
+    const cfg = STYLE_CONFIGS[book.discourseStyle];
+    const randomGreeting = cfg.greeting[Math.floor(Math.random() * cfg.greeting.length)];
+    const randomClosing = cfg.closing[Math.floor(Math.random() * cfg.closing.length)];
+    const greeting = randomGreeting.replace('{title}', book.title);
+
+    let answer = `${greeting} ${cfg.emoji.book}\n\n`;
+    answer += `**${cfg.emoji.book} 关于这本书**\n\n${book.summary}\n\n`;
+    answer += `**${cfg.emoji.theme} ${cfg.themeIntro}**\n\n`;
     book.themes.slice(0, 4).forEach((theme, i) => {
-      answer += `${i + 1}. **${theme}**\n`;
+      answer += `${i + 1}. ${cfg.emphasisMarkers.start}${theme}${cfg.emphasisMarkers.end}\n`;
     });
-    answer += `\n**✨ 那些让人过目不忘的句子**\n\n`;
+    answer += `\n**${cfg.emoji.quote} ${cfg.quoteIntro}**\n\n`;
     book.iconicQuotes.slice(0, 2).forEach(q => {
       answer += `> "${q.quote}"${q.character ? ` —— ${q.character}` : ''}\n\n`;
     });
-    answer += `**🎯 阅读建议**\n\n`;
+    answer += `**${cfg.emoji.tip} ${cfg.tipIntro}**\n\n`;
     book.readingTips.slice(0, 2).forEach((tip, i) => {
       answer += `${i + 1}. ${tip}\n`;
     });
-    answer += `\n这本书的整体气质可以说是：**${book.emotionalTone}**。\n\n`;
-    answer += `你是刚准备开始读，还是已经读过了？有什么特别想聊的角度吗——人物、主题、或者某个让你印象深刻的细节？💬`;
+    answer += `\n这本书的整体气质可以说是：${cfg.emphasisMarkers.start}${book.emotionalTone}${cfg.emphasisMarkers.end}。\n\n`;
+    answer += `${cfg.emoji.closing} ${randomClosing}`;
     return answer;
   }
 
-  private generateGeneralAnswer(question: string): string {
+  private generateGeneralAnswer(question: string, style: DiscourseStyle): string {
+    const cfg = STYLE_CONFIGS[style];
     const greetings = [
       '这是一个很棒的问题！',
       '聊到文学，总有说不完的话～',
@@ -581,7 +788,7 @@ export class LiteratureQaService {
     ];
     const greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
-    return `${greeting} 💫\n\n关于你的问题"${question}"，我想说：\n\n文学最迷人的地方，就在于它没有标准答案。每一本书、每一个人物、每一段情节，在不同的人眼中都会折射出不同的光。这也是为什么我们需要和别人讨论——因为别人的解读，会让你看到自己从未注意过的风景。\n\n我整理了一些相关的书籍和讨论话题，希望能给你一些启发。你也可以告诉我更多：\n\n- 你是在准备读书心得还是读书会讨论？\n- 有没有哪本具体的书是你最近在思考的？\n- 你更想聊"内容解读"还是"写作方法"？\n\n不管是什么，我都很乐意和你一起慢慢聊～ 🌿`;
+    return `${greeting} ${cfg.emoji.closing}\n\n关于你的问题"${question}"，我想说：\n\n文学最迷人的地方，就在于它没有标准答案。每一本书、每一个人物、每一段情节，在不同的人眼中都会折射出不同的光。这也是为什么我们需要和别人讨论——因为别人的解读，会让你看到自己从未注意过的风景。\n\n我整理了一些相关的书籍和讨论话题，希望能给你一些启发。你也可以告诉我更多：\n\n- 你是在准备读书心得还是读书会讨论？\n- 有没有哪本具体的书是你最近在思考的？\n- 你更想聊"内容解读"还是"写作方法"？\n\n不管是什么，我都很乐意和你一起慢慢聊～ ${cfg.emoji.closing}`;
   }
 
   private generateRandomRecommendations(): { title: string; author: string; reason: string }[] {
@@ -594,12 +801,39 @@ export class LiteratureQaService {
   }
 
   private generateDiscussionPoints(book: BookInfo): string[] {
-    return [
+    const cfg = STYLE_CONFIGS[book.discourseStyle];
+    const base = [
       `你觉得《${book.title}》里最打动你的是什么？`,
       `书中哪个角色让你最有共鸣（或者最讨厌）？为什么？`,
-      `如果用一句话向朋友推荐《${book.title}》，你会怎么说？`,
-      `这本书有没有改变你看待生活的某个角度？`,
-      `你会在什么心境下推荐别人读这本书？`,
     ];
+
+    const toneBased: Record<StyleConfig['discussionTone'], string[]> = {
+      deep: [
+        `这本书有没有让你对某个根深蒂固的看法产生动摇？`,
+        `如果让你用一个词来概括这本书的"内核"，你会选什么？`,
+      ],
+      warm: [
+        `读的时候，有没有哪个瞬间让你想起了自己的某段经历？`,
+        `你会把这本书推荐给此刻的谁？为什么？`,
+      ],
+      rational: [
+        `书中哪个设定或观点，你觉得逻辑上最有意思（或最值得商榷）？`,
+        `如果跳出情感层面，你觉得作者在写作技巧上最厉害的是什么？`,
+      ],
+      poetic: [
+        `有没有哪个画面或句子，读完之后在你脑子里久久不散？`,
+        `如果把这本书比作一首曲子、一幅画或一种天气，你觉得它是什么？`,
+      ],
+    };
+
+    const closing = cfg.discussionTone === 'deep'
+      ? `读完这本书之后，你觉得自己有什么东西被永久地改变了吗？`
+      : cfg.discussionTone === 'warm'
+      ? `你会在什么样的心情下，想要再次翻开这本书？`
+      : cfg.discussionTone === 'rational'
+      ? `如果用一句话向朋友推荐这本书，你会怎么说？`
+      : `如果让你给这本书换一个结尾（或换一个书名），你会怎么改？`;
+
+    return [...base, ...toneBased[cfg.discussionTone], closing];
   }
 }
