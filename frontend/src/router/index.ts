@@ -165,6 +165,11 @@ const routes: RouteRecordRaw[] = [
         path: '/cooking-qa',
         name: 'CookingQa',
         component: () => import('@/views/CookingQa.vue')
+      },
+      {
+        path: '/object-recognition',
+        name: 'ObjectRecognition',
+        component: () => import('@/views/ObjectRecognition.vue')
       }
     ]
   }

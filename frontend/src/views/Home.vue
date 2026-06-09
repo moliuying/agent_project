@@ -270,6 +270,15 @@
                 <p>AI专业厨师·做菜技巧·新手学厨</p>
               </el-card>
             </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/object-recognition')" class="feature-card">
+                <el-icon :size="40" color="#722ed1">
+                  <CameraFilled />
+                </el-icon>
+                <h3>拍照识别万物</h3>
+                <p>AI识别物体·百科知识·探索发现</p>
+              </el-card>
+            </el-col>
           </el-row>
         </div>
       </div>

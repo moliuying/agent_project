@@ -22,6 +22,7 @@ import { DinosaurQaModule } from './dinosaur-qa/dinosaur-qa.module';
 import { FoodCalorieModule } from './food-calorie/food-calorie.module';
 import { LiteratureQaModule } from './literature-qa/literature-qa.module';
 import { CookingQaModule } from './cooking-qa/cooking-qa.module';
+import { ObjectRecognitionModule } from './object-recognition/object-recognition.module';
 import * as path from 'path';
 
 @Module({
@@ -53,6 +54,7 @@ import * as path from 'path';
     FoodCalorieModule,
     LiteratureQaModule,
     CookingQaModule,
+    ObjectRecognitionModule,
   ],
 })
 export class AppModule {}

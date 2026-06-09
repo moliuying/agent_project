@@ -29,6 +29,7 @@ async function bootstrap() {
       { name: 'Python代码示例', path: '/python-code-samples', icon: 'Cpu', parentId: null, sort: 12, component: 'views/PythonCodeSamples.vue' },
       { name: '文学作品问答', path: '/literature-qa', icon: 'Reading', parentId: null, sort: 32, component: 'views/LiteratureQa.vue' },
       { name: '烹饪问题解答', path: '/cooking-qa', icon: 'Reading', parentId: null, sort: 33, component: 'views/CookingQa.vue' },
+      { name: '拍照识别万物', path: '/object-recognition', icon: 'CameraFilled', parentId: null, sort: 34, component: 'views/ObjectRecognition.vue' },
       { name: '系统管理', path: '/system', icon: 'Setting', parentId: null, sort: 99, component: null },
       { name: '菜单管理', path: '/system/menu', icon: 'Menu', parentId: 14, sort: 1, component: 'views/Menu.vue' },
     ];
