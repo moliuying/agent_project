@@ -17,12 +17,15 @@ export interface ImageQualityHints {
   resolutionScore?: number
 }
 
+export type ReferenceObject = 'none' | 'standard_plate' | 'small_plate' | 'bowl' | 'phone' | 'hand' | 'coin'
+
 export interface FoodCalorieRequest {
   imageBase64: string
   dietGoal?: 'lose' | 'gain' | 'maintain' | 'diabetes' | 'fitness'
   mealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack'
   extraNote?: string
   qualityHints?: ImageQualityHints
+  referenceObject?: ReferenceObject
 }
 
 export interface FoodItem {
@@ -31,8 +34,11 @@ export interface FoodItem {
   category: string
   portion: string
   portionGrams: number
+  portionUncertainty: number
   confidence: number
   calories: number
+  caloriesMin: number
+  caloriesMax: number
   protein: number
   carbs: number
   fat: number
@@ -40,10 +46,16 @@ export interface FoodItem {
   sugar?: number
   giIndex?: number
   tags: string[]
+  caloriesPer100g: number
+  proteinPer100g: number
+  carbsPer100g: number
+  fatPer100g: number
 }
 
 export interface NutritionSummary {
   totalCalories: number
+  totalCaloriesMin: number
+  totalCaloriesMax: number
   totalProtein: number
   totalCarbs: number
   totalFat: number
@@ -52,6 +64,7 @@ export interface NutritionSummary {
   proteinRatio: number
   carbsRatio: number
   fatRatio: number
+  estimationUncertainty: number
 }
 
 export interface DietAdvice {

@@ -327,6 +327,43 @@
               />
             </el-form-item>
 
+            <el-form-item label="参照物校准（大幅提升份量准确度）">
+              <el-radio-group v-model="form.referenceObject" class="ref-radio-group">
+                <el-radio-button value="none">
+                  <el-icon><QuestionFilled /></el-icon>
+                  无参照
+                </el-radio-button>
+                <el-radio-button value="standard_plate">
+                  <el-icon><Dish /></el-icon>
+                  标准餐盘(≈26cm)
+                </el-radio-button>
+                <el-radio-button value="small_plate">
+                  <el-icon><Dish /></el-icon>
+                  小餐盘(≈20cm)
+                </el-radio-button>
+                <el-radio-button value="bowl">
+                  <el-icon><Bowl /></el-icon>
+                  普通碗
+                </el-radio-button>
+                <el-radio-button value="phone">
+                  <el-icon><Iphone /></el-icon>
+                  手机
+                </el-radio-button>
+                <el-radio-button value="hand">
+                  <el-icon><Hand /></el-icon>
+                  手掌
+                </el-radio-button>
+                <el-radio-button value="coin">
+                  <el-icon><Coin /></el-icon>
+                  1元硬币
+                </el-radio-button>
+              </el-radio-group>
+              <div class="ref-hint">
+                <el-icon :size="13"><InfoFilled /></el-icon>
+                拍照时请将参照物与食物放在同一平面，俯视 45° 拍摄效果最佳。选择参照物后，系统将自动校准份量估算。
+              </div>
+            </el-form-item>
+
             <el-button
               type="success"
               size="large"
@@ -450,8 +487,20 @@
               </div>
               <div class="calories-info">
                 <div class="calories-value">
-                  {{ recognitionResult.nutritionSummary.totalCalories }}
+                  {{ adjustedNutrition.totalCalories }}
                   <span class="calories-unit">kcal</span>
+                </div>
+                <div class="calories-range" v-if="resultReady">
+                  <el-icon :size="12"><Warning /></el-icon>
+                  估算范围：{{ adjustedNutrition.totalCaloriesMin }} ~ {{ adjustedNutrition.totalCaloriesMax }} kcal
+                  <el-tag
+                    size="small"
+                    :type="adjustedNutrition.estimationUncertainty <= 20 ? 'success' : adjustedNutrition.estimationUncertainty <= 30 ? 'warning' : 'danger'"
+                    effect="light"
+                    class="uncertainty-tag"
+                  >
+                    误差 ±{{ adjustedNutrition.estimationUncertainty }}%
+                  </el-tag>
                 </div>
                 <div class="calories-label">本餐总热量</div>
               </div>
@@ -465,42 +514,42 @@
                   <span class="macro-dot"></span>
                   蛋白质
                 </div>
-                <div class="macro-value">{{ recognitionResult.nutritionSummary.totalProtein }} g</div>
+                <div class="macro-value">{{ adjustedNutrition.totalProtein }} g</div>
                 <el-progress
-                  :percentage="recognitionResult.nutritionSummary.proteinRatio"
+                  :percentage="adjustedNutrition.proteinRatio"
                   color="#165DFF"
                   :stroke-width="10"
                   :show-text="false"
                 />
-                <div class="macro-ratio">{{ recognitionResult.nutritionSummary.proteinRatio }}%</div>
+                <div class="macro-ratio">{{ adjustedNutrition.proteinRatio }}%</div>
               </div>
               <div class="macro-item carbs">
                 <div class="macro-label">
                   <span class="macro-dot"></span>
                   碳水化合物
                 </div>
-                <div class="macro-value">{{ recognitionResult.nutritionSummary.totalCarbs }} g</div>
+                <div class="macro-value">{{ adjustedNutrition.totalCarbs }} g</div>
                 <el-progress
-                  :percentage="recognitionResult.nutritionSummary.carbsRatio"
+                  :percentage="adjustedNutrition.carbsRatio"
                   color="#e6a23c"
                   :stroke-width="10"
                   :show-text="false"
                 />
-                <div class="macro-ratio">{{ recognitionResult.nutritionSummary.carbsRatio }}%</div>
+                <div class="macro-ratio">{{ adjustedNutrition.carbsRatio }}%</div>
               </div>
               <div class="macro-item fat">
                 <div class="macro-label">
                   <span class="macro-dot"></span>
                   脂肪
                 </div>
-                <div class="macro-value">{{ recognitionResult.nutritionSummary.totalFat }} g</div>
+                <div class="macro-value">{{ adjustedNutrition.totalFat }} g</div>
                 <el-progress
-                  :percentage="recognitionResult.nutritionSummary.fatRatio"
+                  :percentage="adjustedNutrition.fatRatio"
                   color="#f56c6c"
                   :stroke-width="10"
                   :show-text="false"
                 />
-                <div class="macro-ratio">{{ recognitionResult.nutritionSummary.fatRatio }}%</div>
+                <div class="macro-ratio">{{ adjustedNutrition.fatRatio }}%</div>
               </div>
             </div>
 
@@ -511,12 +560,12 @@
               <div class="other-nutri-item">
                 <el-icon :size="16" color="#67c23a"><Leaf /></el-icon>
                 <span class="nutri-label">膳食纤维</span>
-                <span class="nutri-value">{{ recognitionResult.nutritionSummary.totalFiber }} g</span>
+                <span class="nutri-value">{{ adjustedNutrition.totalFiber }} g</span>
               </div>
               <div class="other-nutri-item">
                 <el-icon :size="16" color="#e6a23c"><Sugar /></el-icon>
                 <span class="nutri-label">糖分</span>
-                <span class="nutri-value">{{ recognitionResult.nutritionSummary.totalSugar }} g</span>
+                <span class="nutri-value">{{ adjustedNutrition.totalSugar }} g</span>
               </div>
             </div>
           </el-card>
@@ -528,12 +577,21 @@
                   <Goods />
                 </el-icon>
                 <span>识别到的食物</span>
-                <el-tag size="small" type="primary">共 {{ recognitionResult.foodItems.length }} 种</el-tag>
+                <div class="food-header-actions">
+                  <el-tag size="small" type="primary">共 {{ adjustedFoodItems.length }} 种</el-tag>
+                  <el-tooltip content="AI 份量估算存在误差，建议根据实际情况手动调整每种食物的份量" placement="top">
+                    <el-icon :size="16" color="#e6a23c"><WarningFilled /></el-icon>
+                  </el-tooltip>
+                </div>
               </div>
             </template>
+            <div class="portion-tip-bar">
+              <el-icon :size="14"><InfoFilled /></el-icon>
+              <span>份量估算仅供参考，请根据实际用餐量使用滑块或输入框精准调整，调整后热量和营养数据会实时重新计算。</span>
+            </div>
             <div class="food-items-list">
               <div
-                v-for="item in recognitionResult.foodItems"
+                v-for="item in adjustedFoodItems"
                 :key="item.id"
                 class="food-item-card"
               >
@@ -546,28 +604,36 @@
                     {{ item.confidence }}%
                   </el-tag>
                 </div>
-                <div class="food-portion">
-                  <el-icon><Scale /></el-icon>
-                  {{ item.portion }}
-                </div>
+
                 <div class="food-calories-row">
                   <div class="food-calories">
                     <el-icon :size="14" color="#f56c6c"><Flame /></el-icon>
-                    <span>{{ item.calories }} 大卡</span>
+                    <span class="food-calories-main">{{ item.adjustedCalories }} 大卡</span>
+                    <span class="food-calories-range">
+                      ({{ item.adjustedCaloriesMin }} ~ {{ item.adjustedCaloriesMax }})
+                    </span>
                   </div>
+                  <el-tag
+                    size="small"
+                    :type="item.portionUncertainty <= 20 ? 'success' : item.portionUncertainty <= 30 ? 'warning' : 'danger'"
+                    effect="light"
+                  >
+                    ±{{ item.portionUncertainty }}%
+                  </el-tag>
                 </div>
+
                 <div class="food-macros">
                   <div class="food-macro">
                     <span class="food-macro-label">蛋白</span>
-                    <span class="food-macro-value">{{ item.protein }}g</span>
+                    <span class="food-macro-value">{{ item.adjustedProtein }}g</span>
                   </div>
                   <div class="food-macro">
                     <span class="food-macro-label">碳水</span>
-                    <span class="food-macro-value">{{ item.carbs }}g</span>
+                    <span class="food-macro-value">{{ item.adjustedCarbs }}g</span>
                   </div>
                   <div class="food-macro">
                     <span class="food-macro-label">脂肪</span>
-                    <span class="food-macro-value">{{ item.fat }}g</span>
+                    <span class="food-macro-value">{{ item.adjustedFat }}g</span>
                   </div>
                   <div v-if="item.giIndex && item.giIndex > 0" class="food-macro">
                     <span class="food-macro-label">GI</span>
@@ -577,6 +643,58 @@
                     >{{ item.giIndex }}</span>
                   </div>
                 </div>
+
+                <div class="portion-control-section">
+                  <div class="portion-control-header">
+                    <span class="portion-control-label">
+                      <el-icon :size="14"><Scale /></el-icon>
+                      份量调节
+                    </span>
+                    <div class="portion-presets">
+                      <el-button
+                        v-for="preset in portionPresets"
+                        :key="preset.value"
+                        size="small"
+                        :type="item.adjustedGrams === Math.round(item.originalGrams * preset.value) ? 'primary' : 'default'"
+                        plain
+                        @click="setPortionPreset(item.id, preset.value)"
+                      >
+                        {{ preset.label }}
+                      </el-button>
+                    </div>
+                  </div>
+
+                  <div class="portion-slider-row">
+                    <el-slider
+                      v-model="item.adjustedGrams"
+                      :min="20"
+                      :max="500"
+                      :step="10"
+                      show-input
+                      :input-size="60"
+                      class="portion-slider"
+                      @change="watchFoodPortionChange(item.id)"
+                    />
+                    <span class="portion-grams-label">g</span>
+                  </div>
+
+                  <div class="portion-compare-row">
+                    <span class="portion-original" v-if="Math.abs(item.adjustedGrams - item.originalGrams) > 5">
+                      AI 估算：{{ item.originalGrams }}g
+                      <el-tag
+                        size="small"
+                        :type="item.adjustedGrams > item.originalGrams ? 'warning' : 'success'"
+                        effect="plain"
+                      >
+                        {{ item.adjustedGrams > item.originalGrams ? '+' : '' }}{{ item.adjustedGrams - item.originalGrams }}g
+                      </el-tag>
+                    </span>
+                    <span class="portion-per-100g">
+                      每 100g：{{ item.caloriesPer100g }} 大卡 | {{ item.proteinPer100g }}g蛋白 | {{ item.carbsPer100g }}g碳水 | {{ item.fatPer100g }}g脂肪
+                    </span>
+                  </div>
+                </div>
+
                 <div class="food-tags">
                   <el-tag
                     v-for="(tag, idx) in item.tags"
@@ -648,6 +766,44 @@
                 <p class="alt-reason">{{ alt.reason }}</p>
               </div>
             </div>
+          </el-card>
+
+          <el-card class="disclaimer-card">
+            <template #header>
+              <div class="card-header small">
+                <el-icon :size="18" color="#909399">
+                  <InfoFilled />
+                </el-icon>
+                <span>数据说明与免责声明</span>
+              </div>
+            </template>
+            <el-alert type="info" :closable="false" show-icon class="disclaimer-alert">
+              <template #title>
+                <strong>关于热量和营养数据的说明</strong>
+              </template>
+              <ul class="disclaimer-list">
+                <li>
+                  <el-icon :size="12"><Warning /></el-icon>
+                  <strong>份量估算误差</strong>：AI 通过图片估算食物份量时，受拍摄角度、光线、参照物缺失等因素影响，误差范围通常在 <b>±20% ~ ±40%</b>。建议使用参照物校准或手动调整份量滑块，以获得更准确的结果。
+                </li>
+                <li>
+                  <el-icon :size="12"><Warning /></el-icon>
+                  <strong>营养数据来源</strong>：营养数据参考《中国食物成分表》及常见食品营养数据库，实际数值因食材品种、烹饪方式（油盐用量）、加工工艺等会有较大差异。
+                </li>
+                <li>
+                  <el-icon :size="12"><Warning /></el-icon>
+                  <strong>烹饪方式影响</strong>：清蒸、水煮、烧烤、油炸等不同烹饪方式对热量和营养的影响差异巨大（如 100g 生鸡胸肉 vs 100g 油炸鸡排，热量可相差 3 倍以上）。系统默认按常见家庭烹饪方式估算。
+                </li>
+                <li>
+                  <el-icon :size="12"><Warning /></el-icon>
+                  <strong>仅供参考</strong>：本工具提供的所有数据均为 AI 估算值，<b>不作为医疗或营养诊断依据</b>。糖尿病、肾病、痛风等需要严格饮食管理的人群，请以专业营养师或医生建议为准。
+                </li>
+                <li>
+                  <el-icon :size="12"><Warning /></el-icon>
+                  <strong>使用建议</strong>：建议长期记录并观察整体趋势，而非过度纠结于单餐的精确数值。配合体重、体脂等生理指标的变化趋势，更能真实反映饮食效果。
+                </li>
+              </ul>
+            </el-alert>
           </el-card>
         </template>
 
@@ -731,6 +887,7 @@ import {
   Bulb,
   Close,
   WarningFilled,
+  Warning,
   Check,
   CircleCheckFilled,
   CircleCloseFilled,
@@ -749,13 +906,22 @@ import {
   Sugar,
   CoffeeCup,
   Bowl,
-  Food
+  Food,
+  QuestionFilled,
+  Dish,
+  Iphone,
+  Hand,
+  Coin,
+  InfoFilled
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
   foodCalorieApi,
   type FoodCalorieResponse,
-  type ImageQualityHints
+  type FoodItem,
+  type NutritionSummary,
+  type ImageQualityHints,
+  type ReferenceObject
 } from '@/api/foodCalorie'
 
 const HISTORY_KEY = 'food_calorie_history'
@@ -841,8 +1007,111 @@ let mediaStream: MediaStream | null = null
 const form = reactive({
   dietGoal: 'lose' as 'lose' | 'gain' | 'maintain' | 'diabetes' | 'fitness',
   mealType: 'lunch' as 'breakfast' | 'lunch' | 'dinner' | 'snack',
-  extraNote: ''
+  extraNote: '',
+  referenceObject: 'none' as ReferenceObject
 })
+
+const portionPresets = [
+  { label: '半份', value: 0.5 },
+  { label: '标准份', value: 1 },
+  { label: '1.5份', value: 1.5 },
+  { label: '2份', value: 2 }
+]
+
+interface AdjustedFoodItem extends FoodItem {
+  adjustedGrams: number
+  originalGrams: number
+  adjustedCalories: number
+  adjustedCaloriesMin: number
+  adjustedCaloriesMax: number
+  adjustedProtein: number
+  adjustedCarbs: number
+  adjustedFat: number
+}
+
+const adjustedFoodItems = ref<AdjustedFoodItem[]>([])
+
+const initAdjustedFoodItems = (items: FoodItem[]): AdjustedFoodItem[] => {
+  return items.map(item => {
+    const gramFactor = item.portionGrams / 100
+    return {
+      ...item,
+      adjustedGrams: item.portionGrams,
+      originalGrams: item.portionGrams,
+      adjustedCalories: item.calories,
+      adjustedCaloriesMin: item.caloriesMin,
+      adjustedCaloriesMax: item.caloriesMax,
+      adjustedProtein: Math.round(item.protein * 10) / 10,
+      adjustedCarbs: Math.round(item.carbs * 10) / 10,
+      adjustedFat: Math.round(item.fat * 10) / 10,
+      _gramFactor: gramFactor
+    }
+  }) as AdjustedFoodItem[]
+}
+
+const adjustedNutrition = computed<NutritionSummary & { totalCaloriesMin: number; totalCaloriesMax: number }>(() => {
+  if (!recognitionResult.value && adjustedFoodItems.value.length === 0) {
+    return {
+      totalCalories: 0, totalCaloriesMin: 0, totalCaloriesMax: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0, totalFiber: 0, totalSugar: 0, proteinRatio: 0, carbsRatio: 0, fatRatio: 0, estimationUncertainty: 0
+    }
+  }
+  const items = adjustedFoodItems.value
+  const totalCalories = items.reduce((s, i) => s + i.adjustedCalories, 0)
+  const totalCaloriesMin = items.reduce((s, i) => s + i.adjustedCaloriesMin, 0)
+  const totalCaloriesMax = items.reduce((s, i) => s + i.adjustedCaloriesMax, 0)
+  const totalProtein = items.reduce((s, i) => s + i.adjustedProtein, 0)
+  const totalCarbs = items.reduce((s, i) => s + i.adjustedCarbs, 0)
+  const totalFat = items.reduce((s, i) => s + i.adjustedFat, 0)
+  const totalFiber = items.reduce((s, i) => s + (i.fiber || 0), 0)
+  const totalSugar = items.reduce((s, i) => s + (i.sugar || 0), 0)
+  const avgUncertainty = items.length > 0
+    ? items.reduce((s, i) => s + i.portionUncertainty, 0) / items.length
+    : (recognitionResult.value?.nutritionSummary.estimationUncertainty || 25)
+
+  const proteinKcal = totalProtein * 4
+  const carbsKcal = totalCarbs * 4
+  const fatKcal = totalFat * 9
+  const totalKcal = proteinKcal + carbsKcal + fatKcal || 1
+
+  return {
+    totalCalories,
+    totalCaloriesMin,
+    totalCaloriesMax,
+    totalProtein: Math.round(totalProtein * 10) / 10,
+    totalCarbs: Math.round(totalCarbs * 10) / 10,
+    totalFat: Math.round(totalFat * 10) / 10,
+    totalFiber: Math.round(totalFiber * 10) / 10,
+    totalSugar: Math.round(totalSugar * 10) / 10,
+    proteinRatio: Math.round((proteinKcal / totalKcal) * 100),
+    carbsRatio: Math.round((carbsKcal / totalKcal) * 100),
+    fatRatio: Math.round((fatKcal / totalKcal) * 100),
+    estimationUncertainty: Math.round(avgUncertainty)
+  }
+})
+
+const updateFoodItemFromGrams = (id: string) => {
+  const item = adjustedFoodItems.value.find(i => i.id === id)
+  if (!item) return
+  const gramFactor = item.adjustedGrams / 100
+  const uncertaintyFactor = item.portionUncertainty / 100
+  item.adjustedCalories = Math.round(item.caloriesPer100g * gramFactor)
+  item.adjustedProtein = Math.round(item.proteinPer100g * gramFactor * 10) / 10
+  item.adjustedCarbs = Math.round(item.carbsPer100g * gramFactor * 10) / 10
+  item.adjustedFat = Math.round(item.fatPer100g * gramFactor * 10) / 10
+  item.adjustedCaloriesMin = Math.max(1, Math.round(item.adjustedCalories * (1 - uncertaintyFactor)))
+  item.adjustedCaloriesMax = Math.round(item.adjustedCalories * (1 + uncertaintyFactor))
+}
+
+const setPortionPreset = (id: string, multiplier: number) => {
+  const item = adjustedFoodItems.value.find(i => i.id === id)
+  if (!item) return
+  item.adjustedGrams = Math.round(item.originalGrams * multiplier)
+  updateFoodItemFromGrams(id)
+}
+
+const watchFoodPortionChange = (id: string) => {
+  updateFoodItemFromGrams(id)
+}
 
 const loadHistory = () => {
   try {
@@ -874,7 +1143,8 @@ const loadFromHistory = (h: HistoryItem) => {
   imageBase64.value = h.imagePreview.split(',')[1] || h.imagePreview
   recognitionResult.value = h.result
   resultReady.value = true
-  ElMessage.success('已加载历史记录')
+  adjustedFoodItems.value = initAdjustedFoodItems(h.result.foodItems)
+  ElMessage.success('已加载历史记录，可手动调节份量')
 }
 
 const formatTime = (ts: number) => {
@@ -1133,27 +1403,30 @@ const recognizeFood = async () => {
   }
 
   isRecognizing.value = true
+  adjustedFoodItems.value = []
   try {
     const { data } = await foodCalorieApi.recognize({
       imageBase64: imageBase64.value,
       dietGoal: form.dietGoal,
       mealType: form.mealType,
       extraNote: form.extraNote || undefined,
-      qualityHints: getQualityHints()
+      qualityHints: getQualityHints(),
+      referenceObject: form.referenceObject
     })
     recognitionResult.value = data
     resultReady.value = true
+    adjustedFoodItems.value = initAdjustedFoodItems(data.foodItems)
 
     historyList.value.unshift({
       timestamp: Date.now(),
       imagePreview: imagePreview.value,
-      totalCalories: data.nutritionSummary.totalCalories,
+      totalCalories: adjustedNutrition.value.totalCalories,
       dietGoalLabel: DIET_GOAL_LABEL_MAP[form.dietGoal] || '',
       result: data
     })
     saveHistory()
 
-    ElMessage.success('识别完成')
+    ElMessage.success('识别完成，可手动调节份量获取更准确结果')
   } catch (error: any) {
     ElMessage.error(error?.response?.data?.message || '识别失败，请稍后重试')
   } finally {
@@ -1203,6 +1476,7 @@ const recognizeFood = async () => {
 .food-items-card,
 .advice-card,
 .alternative-card,
+.disclaimer-card,
 .empty-result-card {
   margin-bottom: 20px;
 }
@@ -1795,5 +2069,181 @@ const recognizeFood = async () => {
   border-radius: 8px;
   font-size: 13px;
   color: #606266;
+}
+
+.ref-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.ref-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 12px;
+  color: #909399;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.food-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.portion-tip-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 14px;
+  background: #fdf6ec;
+  border: 1px solid #faecd8;
+  border-radius: 6px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: #906b0f;
+  line-height: 1.5;
+}
+
+.food-calories-main {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f56c6c;
+}
+
+.food-calories-range {
+  font-size: 12px;
+  color: #909399;
+  margin-left: 4px;
+}
+
+.food-calories {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.food-calories-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.portion-control-section {
+  margin: 12px 0;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.portion-control-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.portion-control-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #606266;
+}
+
+.portion-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.portion-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.portion-slider {
+  flex: 1;
+}
+
+.portion-grams-label {
+  font-size: 13px;
+  color: #606266;
+  font-weight: 500;
+}
+
+.portion-compare-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.portion-original {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #909399;
+}
+
+.portion-per-100g {
+  color: #909399;
+}
+
+.calories-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #909399;
+  margin: 6px 0;
+  flex-wrap: wrap;
+}
+
+.uncertainty-tag {
+  margin-left: 4px;
+}
+
+.disclaimer-card {
+  margin-bottom: 20px;
+}
+
+.disclaimer-alert {
+  margin: 0;
+}
+
+.disclaimer-list {
+  margin: 8px 0 0 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.disclaimer-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 0;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.disclaimer-list li strong {
+  color: #303133;
+}
+
+.disclaimer-alert :deep(.el-alert__content) {
+  width: 100%;
 }
 </style>

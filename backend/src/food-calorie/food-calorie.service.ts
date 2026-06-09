@@ -13,12 +13,15 @@ export interface ImageQualityHints {
   resolutionScore?: number;
 }
 
+export type ReferenceObject = 'none' | 'standard_plate' | 'small_plate' | 'bowl' | 'phone' | 'hand' | 'coin';
+
 export interface FoodCalorieRequest {
   imageBase64: string;
   dietGoal?: 'lose' | 'gain' | 'maintain' | 'diabetes' | 'fitness';
   mealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   extraNote?: string;
   qualityHints?: ImageQualityHints;
+  referenceObject?: ReferenceObject;
 }
 
 export interface FoodItem {
@@ -27,8 +30,11 @@ export interface FoodItem {
   category: string;
   portion: string;
   portionGrams: number;
+  portionUncertainty: number;
   confidence: number;
   calories: number;
+  caloriesMin: number;
+  caloriesMax: number;
   protein: number;
   carbs: number;
   fat: number;
@@ -36,10 +42,16 @@ export interface FoodItem {
   sugar?: number;
   giIndex?: number;
   tags: string[];
+  caloriesPer100g: number;
+  proteinPer100g: number;
+  carbsPer100g: number;
+  fatPer100g: number;
 }
 
 export interface NutritionSummary {
   totalCalories: number;
+  totalCaloriesMin: number;
+  totalCaloriesMax: number;
   totalProtein: number;
   totalCarbs: number;
   totalFat: number;
@@ -48,6 +60,7 @@ export interface NutritionSummary {
   proteinRatio: number;
   carbsRatio: number;
   fatRatio: number;
+  estimationUncertainty: number;
 }
 
 export interface DietAdvice {
@@ -77,7 +90,30 @@ export interface FoodCalorieResponse {
   qualityWarnings: string[];
 }
 
-const FOOD_DATABASE: Omit<FoodItem, 'id' | 'portionGrams' | 'confidence' | 'portion'>[] = [
+const REFERENCE_UNCERTAINTY: Record<ReferenceObject, number> = {
+  none: 35,
+  standard_plate: 18,
+  small_plate: 20,
+  bowl: 22,
+  phone: 15,
+  hand: 25,
+  coin: 28,
+};
+
+type FoodDbEntry = {
+  name: string;
+  category: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
+  sugar?: number;
+  giIndex?: number;
+  tags: string[];
+};
+
+const FOOD_DATABASE: FoodDbEntry[] = [
   { name: '白米饭', category: '主食', calories: 116, protein: 2.6, carbs: 25.9, fat: 0.3, fiber: 0.3, sugar: 0.1, giIndex: 83, tags: ['高碳水', '主食', '低脂肪'] },
   { name: '糙米饭', category: '主食', calories: 111, protein: 2.6, carbs: 23.7, fat: 0.9, fiber: 1.8, sugar: 0.3, giIndex: 56, tags: ['高纤维', '低GI', '全谷物'] },
   { name: '馒头', category: '主食', calories: 221, protein: 7.0, carbs: 47.0, fat: 1.1, fiber: 1.3, sugar: 1.8, giIndex: 88, tags: ['高碳水', '发酵食品'] },
@@ -221,16 +257,31 @@ export class FoodCalorieService {
     return hash.readUInt32BE(0) % 1000000;
   }
 
-  private generateFoodItems(rand: () => number, qualityScore: number): FoodItem[] {
+  private generateFoodItems(
+    rand: () => number,
+    qualityScore: number,
+    referenceObj: ReferenceObject = 'none'
+  ): FoodItem[] {
     const count = Math.floor(rand() * 4) + 1;
     const pickedFoods = this.pickSeeded(FOOD_DATABASE, count, rand);
     const confidencePenalty = Math.max(0, 100 - qualityScore) * 0.35;
+    const baseUncertainty = REFERENCE_UNCERTAINTY[referenceObj];
+    const qualityUncertaintyBonus = Math.max(0, 100 - qualityScore) * 0.25;
 
     return pickedFoods.map((food, idx) => {
       const portion = this.pickOne(PORTION_SIZES, rand);
       const portionGrams = Math.floor(rand() * (portion.grams[1] - portion.grams[0])) + portion.grams[0];
       const gramFactor = portionGrams / 100;
       const baseConfidence = Math.floor(rand() * 15) + 85;
+      const portionUncertainty = Math.round(
+        Math.min(60, baseUncertainty + qualityUncertaintyBonus + (rand() * 10 - 5))
+      );
+      const uncertaintyFactor = portionUncertainty / 100;
+
+      const calories = Math.round(food.calories * gramFactor);
+      const protein = Math.round(food.protein * gramFactor * 10) / 10;
+      const carbs = Math.round(food.carbs * gramFactor * 10) / 10;
+      const fat = Math.round(food.fat * gramFactor * 10) / 10;
 
       return {
         id: `food-${idx}`,
@@ -238,26 +289,36 @@ export class FoodCalorieService {
         category: food.category,
         portion: `${portion.label}（约 ${portionGrams}g）`,
         portionGrams,
+        portionUncertainty,
         confidence: Math.max(50, Math.floor(baseConfidence - confidencePenalty)),
-        calories: Math.round(food.calories * gramFactor),
-        protein: Math.round(food.protein * gramFactor * 10) / 10,
-        carbs: Math.round(food.carbs * gramFactor * 10) / 10,
-        fat: Math.round(food.fat * gramFactor * 10) / 10,
+        calories,
+        caloriesMin: Math.max(1, Math.round(calories * (1 - uncertaintyFactor))),
+        caloriesMax: Math.round(calories * (1 + uncertaintyFactor)),
+        protein,
+        carbs,
+        fat,
         fiber: food.fiber !== undefined ? Math.round(food.fiber * gramFactor * 10) / 10 : undefined,
         sugar: food.sugar !== undefined ? Math.round(food.sugar * gramFactor * 10) / 10 : undefined,
         giIndex: food.giIndex,
         tags: food.tags,
+        caloriesPer100g: food.calories,
+        proteinPer100g: food.protein,
+        carbsPer100g: food.carbs,
+        fatPer100g: food.fat,
       };
     });
   }
 
   private generateNutritionSummary(items: FoodItem[]): NutritionSummary {
     const totalCalories = items.reduce((sum, i) => sum + i.calories, 0);
+    const totalCaloriesMin = items.reduce((sum, i) => sum + i.caloriesMin, 0);
+    const totalCaloriesMax = items.reduce((sum, i) => sum + i.caloriesMax, 0);
     const totalProtein = items.reduce((sum, i) => sum + i.protein, 0);
     const totalCarbs = items.reduce((sum, i) => sum + i.carbs, 0);
     const totalFat = items.reduce((sum, i) => sum + i.fat, 0);
     const totalFiber = items.reduce((sum, i) => sum + (i.fiber || 0), 0);
     const totalSugar = items.reduce((sum, i) => sum + (i.sugar || 0), 0);
+    const avgUncertainty = items.reduce((sum, i) => sum + i.portionUncertainty, 0) / (items.length || 1);
 
     const proteinKcal = totalProtein * 4;
     const carbsKcal = totalCarbs * 4;
@@ -266,6 +327,8 @@ export class FoodCalorieService {
 
     return {
       totalCalories,
+      totalCaloriesMin,
+      totalCaloriesMax,
       totalProtein: Math.round(totalProtein * 10) / 10,
       totalCarbs: Math.round(totalCarbs * 10) / 10,
       totalFat: Math.round(totalFat * 10) / 10,
@@ -274,6 +337,7 @@ export class FoodCalorieService {
       proteinRatio: Math.round((proteinKcal / totalKcal) * 100),
       carbsRatio: Math.round((carbsKcal / totalKcal) * 100),
       fatRatio: Math.round((fatKcal / totalKcal) * 100),
+      estimationUncertainty: Math.round(avgUncertainty),
     };
   }
 
@@ -479,12 +543,32 @@ export class FoodCalorieService {
 
     const qualityScore = this.computeQualityScore(request.qualityHints);
     const qualityWarnings = this.buildQualityWarnings(request.qualityHints);
+    const refObj = request.referenceObject || 'none';
 
-    const foodItems = this.generateFoodItems(rand, qualityScore);
+    const foodItems = this.generateFoodItems(rand, qualityScore, refObj);
     const nutritionSummary = this.generateNutritionSummary(foodItems);
     const mealAssessment = this.generateMealAssessment(nutritionSummary, request.dietGoal, rand);
     const dietAdvice = this.generateDietAdvice(nutritionSummary, foodItems, request.dietGoal, rand);
     const alternativeSuggestions = this.generateAlternativeSuggestions(foodItems, request.dietGoal, rand);
+
+    if (refObj !== 'none' && qualityWarnings.length > 0) {
+      const refLabel: Record<ReferenceObject, string> = {
+        none: '',
+        standard_plate: '标准餐盘',
+        small_plate: '小餐盘',
+        bowl: '碗',
+        phone: '手机',
+        hand: '手掌',
+        coin: '硬币',
+      };
+      qualityWarnings.unshift(
+        `已使用「${refLabel[refObj]}」作为参照物进行份量校准，估算误差已降低。建议尽量俯视 45° 拍摄以获得更准确结果。`
+      );
+    } else if (refObj === 'none') {
+      qualityWarnings.unshift(
+        '当前未选择参照物，份量估算误差较大（±30%~40%）。建议选择下方参照物（餐盘/手机/手掌等）以提高准确度，或手动调整每种食物的份量。'
+      );
+    }
 
     return {
       foodItems,
