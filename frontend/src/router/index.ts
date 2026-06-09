@@ -150,6 +150,11 @@ const routes: RouteRecordRaw[] = [
         path: '/food-calorie',
         name: 'FoodCalorie',
         component: () => import('@/views/FoodCalorie.vue')
+      },
+      {
+        path: '/number-divination',
+        name: 'NumberDivination',
+        component: () => import('@/views/NumberDivination.vue')
       }
     ]
   }

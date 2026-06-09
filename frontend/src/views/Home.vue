@@ -242,6 +242,17 @@
               </el-card>
             </el-col>
           </el-row>
+          <el-row :gutter="20" style="margin-top: 20px">
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/number-divination')" class="feature-card">
+                <el-icon :size="40" color="#722ed1">
+                  <MagicStick />
+                </el-icon>
+                <h3>数字占卜问答</h3>
+                <p>输入1-1314数字·获得心灵启示</p>
+              </el-card>
+            </el-col>
+          </el-row>
         </div>
       </div>
     </el-card>
