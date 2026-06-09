@@ -4,6 +4,15 @@ export interface ScenePhrase {
   english: string;
   chinese: string;
   context?: string;
+  whenToUse?: string;
+  speaker?: string;
+}
+
+export interface ScenePhraseGroup {
+  stage: string;
+  stageEn: string;
+  description: string;
+  phrases: ScenePhrase[];
 }
 
 export interface ScenePattern {
@@ -11,6 +20,7 @@ export interface ScenePattern {
   example: string;
   translation: string;
   explanation: string;
+  whenToUse?: string;
 }
 
 export interface SceneTip {
@@ -18,14 +28,29 @@ export interface SceneTip {
   content: string;
 }
 
+export interface SceneCandidate {
+  id: string;
+  name: string;
+  nameEn: string;
+  icon: string;
+  description: string;
+  matchScore: number;
+  matchReasons: string[];
+}
+
 export interface SceneEnglishResponse {
   sceneName: string;
   sceneNameEn: string;
   briefIntroduction: string;
+  matchedScore: number;
+  isAmbiguous: boolean;
+  candidateScenes?: SceneCandidate[];
+  clarificationHint?: string;
   keyPhrases: ScenePhrase[];
+  keyPhrasesGrouped?: ScenePhraseGroup[];
   commonPatterns: ScenePattern[];
   tips: SceneTip[];
-  sampleDialogue: { role: 'A' | 'B'; english: string; chinese: string }[];
+  sampleDialogue: { role: 'A' | 'B'; english: string; chinese: string; context?: string }[];
 }
 
 export interface SceneInfo {
@@ -36,16 +61,20 @@ export interface SceneInfo {
   category: string;
   description: string;
   keywords: string[];
+  stages?: { stage: string; stageEn: string }[];
 }
 
-const SCENES_DATA: Record<string, {
+interface SceneData {
   info: SceneInfo;
   briefIntroduction: string;
   keyPhrases: ScenePhrase[];
+  keyPhrasesGrouped: ScenePhraseGroup[];
   commonPatterns: ScenePattern[];
   tips: SceneTip[];
-  sampleDialogue: { role: 'A' | 'B'; english: string; chinese: string }[];
-}> = {
+  sampleDialogue: { role: 'A' | 'B'; english: string; chinese: string; context?: string }[];
+}
+
+const SCENES_DATA: Record<string, SceneData> = {
   business_meeting: {
     info: {
       id: 'business_meeting',
@@ -54,45 +83,115 @@ const SCENES_DATA: Record<string, {
       icon: 'Briefcase',
       category: '职场',
       description: '国际商务会议、跨国团队会议沟通',
-      keywords: ['会议', '开会', '商务', '同事', '团队', 'work', 'meeting', 'conference'],
+      keywords: ['会议', '开会', '商务', '同事', '团队', 'work', 'meeting', 'conference', 'office', '职场', '汇报', '例会'],
+      stages: [
+        { stage: '开场破冰', stageEn: 'Opening & Icebreaker' },
+        { stage: '介绍议题', stageEn: 'Introducing Topics' },
+        { stage: '发表观点', stageEn: 'Expressing Opinions' },
+        { stage: '提问与澄清', stageEn: 'Asking & Clarifying' },
+        { stage: '表达不同意见', stageEn: 'Disagreeing Politely' },
+        { stage: '推进与收尾', stageEn: 'Moving Forward & Closing' },
+      ],
     },
-    briefIntroduction: '在国际商务会议中，清晰、专业、礼貌的表达至关重要。需要掌握会议开场、议题讨论、意见表达、议程推进、总结收尾等环节的常用表达。',
-    keyPhrases: [
-      { english: "Let's get the meeting started.", chinese: '我们开始开会吧。', context: '会议开场' },
-      { english: "First on the agenda is...", chinese: '议程第一项是...', context: '介绍议题' },
-      { english: "I'd like to share my thoughts on this.", chinese: '我想分享一下我对此的看法。', context: '发表意见' },
-      { english: "Could you elaborate on that?", chinese: '你能详细说明一下吗？', context: '请求解释' },
-      { english: "I see your point, but...", chinese: '我理解你的观点，但是...', context: '委婉反对' },
-      { english: "Let's move on to the next item.", chinese: '我们进入下一项议题吧。', context: '推进议程' },
-      { english: "Let's wrap this up.", chinese: '我们来总结一下吧。', context: '会议收尾' },
-      { english: "Action items will be sent out after the meeting.", chinese: '行动项将在会后发送。', context: '分配任务' },
-      { english: "Can we circle back to this later?", chinese: '我们稍后再回到这个问题上好吗？', context: '暂缓讨论' },
-      { english: "Let's take a 5-minute break.", chinese: '我们休息5分钟吧。', context: '中场休息' },
+    briefIntroduction: '国际商务会议流程化强，需要掌握从开场、讨论、决策到收尾的全环节表达。下方按会议流程阶段分组，找到你当前所处环节即可直接套用。',
+    keyPhrasesGrouped: [
+      {
+        stage: '开场破冰',
+        stageEn: 'Opening & Icebreaker',
+        description: '会议刚开始，大家陆续就座时使用',
+        phrases: [
+          { english: "Good morning everyone, thanks for making the time.", chinese: '大家早上好，感谢抽时间参会。', whenToUse: '主持人开场第一句话', speaker: '主持人' },
+          { english: "Let's get the meeting started.", chinese: '我们开始开会吧。', whenToUse: '参会人到齐，准备正式开始', speaker: '主持人' },
+          { english: "How was everyone's weekend?", chinese: '大家周末过得怎么样？', whenToUse: '正式开始前的寒暄，拉近距离', speaker: '任何人' },
+          { english: "Let's do a quick round of introductions.", chinese: '我们快速做个自我介绍吧。', whenToUse: '有新成员或跨部门参会时', speaker: '主持人' },
+        ],
+      },
+      {
+        stage: '介绍议题',
+        stageEn: 'Introducing Topics',
+        description: '引入要讨论的议题时使用',
+        phrases: [
+          { english: "First on the agenda is...", chinese: '议程第一项是...', whenToUse: '按议程依次介绍议题', speaker: '主持人' },
+          { english: "Today we're here to discuss...", chinese: '今天我们来讨论...', whenToUse: '点明本次会议的核心目的', speaker: '主持人' },
+          { english: "The main point I want to cover is...", chinese: '我想讲的重点是...', whenToUse: '轮到你发言，引出话题', speaker: '汇报人' },
+          { english: "Let me walk you through the numbers.", chinese: '我来给大家过一下数据。', whenToUse: '展示数据或PPT时', speaker: '汇报人' },
+        ],
+      },
+      {
+        stage: '发表观点',
+        stageEn: 'Expressing Opinions',
+        description: '表达自己对议题的看法时使用',
+        phrases: [
+          { english: "I'd like to share my thoughts on this.", chinese: '我想分享一下我对此的看法。', whenToUse: '轮到自己发言，礼貌开场', speaker: '任何人' },
+          { english: "From my perspective, + [观点]", chinese: '在我看来，+ [观点]', whenToUse: '正式表达观点，比 I think 更专业', speaker: '任何人' },
+          { english: "Based on my experience...", chinese: '根据我的经验...', whenToUse: '用过往经历支撑自己的观点', speaker: '任何人' },
+          { english: "I completely agree with that.", chinese: '我完全同意。', whenToUse: '明确表示赞同一方观点', speaker: '任何人' },
+        ],
+      },
+      {
+        stage: '提问与澄清',
+        stageEn: 'Asking & Clarifying',
+        description: '没听懂或想深入了解时使用',
+        phrases: [
+          { english: "Could you elaborate on that?", chinese: '你能详细说明一下吗？', whenToUse: '对方提到一个点，你想了解更多细节', speaker: '任何人' },
+          { english: "I'm afraid I don't quite follow. Could you + [请求]?", chinese: '恐怕我没太听懂，你能...吗？', whenToUse: '没听懂，但不想显得失礼', speaker: '任何人' },
+          { english: "Let me make sure I understand correctly—", chinese: '让我确认一下我的理解对不对——', whenToUse: '用自己的话复述，确认理解一致', speaker: '任何人' },
+          { english: "Quick question—", chinese: '快速问一个问题——', whenToUse: '临时插一个简短问题', speaker: '任何人' },
+        ],
+      },
+      {
+        stage: '表达不同意见',
+        stageEn: 'Disagreeing Politely',
+        description: '委婉反对他人观点时使用',
+        phrases: [
+          { english: "I see your point, but...", chinese: '我理解你的观点，但是...', whenToUse: '先认可再提出不同意见，最常用句式', speaker: '任何人' },
+          { english: "Have we considered...?", chinese: '我们有没有考虑过...？', whenToUse: '用提问的方式提出不同角度', speaker: '任何人' },
+          { english: "I'm not sure I entirely agree with that.", chinese: '我不太确定完全同意这个说法。', whenToUse: '比较强硬但依然礼貌的反对', speaker: '任何人' },
+          { english: "Another angle to think about is...", chinese: '另一个值得思考的角度是...', whenToUse: '不直接否定，而是提供新视角', speaker: '任何人' },
+        ],
+      },
+      {
+        stage: '推进与收尾',
+        stageEn: 'Moving Forward & Closing',
+        description: '推进议程、总结和分配任务时使用',
+        phrases: [
+          { english: "Let's move on to the next item.", chinese: '我们进入下一项议题吧。', whenToUse: '当前议题讨论得差不多了', speaker: '主持人' },
+          { english: "Can we circle back to this later?", chinese: '我们稍后再回到这个问题上好吗？', whenToUse: '当前议题陷入僵局，先搁置', speaker: '主持人/任何人' },
+          { english: "Let's wrap this up.", chinese: '我们来总结一下吧。', whenToUse: '准备结束会议', speaker: '主持人' },
+          { english: "So to sum up, we've agreed that + [总结].", chinese: '总结一下，我们已经同意 + [总结]', whenToUse: '会议最后确认共识', speaker: '主持人' },
+          { english: "Action items will be sent out after the meeting.", chinese: '行动项将在会后发送。', whenToUse: '收尾时通知任务分配', speaker: '主持人' },
+        ],
+      },
     ],
+    keyPhrases: [],
     commonPatterns: [
       {
         pattern: "From my perspective, + [观点]",
         example: "From my perspective, we should prioritize the Q3 launch.",
         translation: "在我看来，我们应该优先考虑第三季度的发布。",
-        explanation: "正式发表个人观点的常用句型，比 I think 更加专业。"
+        explanation: "正式发表个人观点的常用句型，比 I think 更加专业。",
+        whenToUse: "需要正式表达观点的任何场合",
       },
       {
         pattern: "I'm afraid I don't quite follow. Could you + [请求]?",
         example: "I'm afraid I don't quite follow. Could you explain the data again?",
         translation: "恐怕我没太听懂，你能再解释一下这些数据吗？",
-        explanation: "礼貌地表示没听懂并请求重复，避免直接说 I don't understand。"
+        explanation: "礼貌地表示没听懂并请求重复，避免直接说 I don't understand。",
+        whenToUse: "没听懂对方说的内容时",
       },
       {
         pattern: "Let's aim to + [目标] by + [时间].",
         example: "Let's aim to finalize the proposal by next Friday.",
         translation: "我们争取在下周五前敲定提案。",
-        explanation: "设定明确目标和截止时间的常用表达。"
+        explanation: "设定明确目标和截止时间的常用表达。",
+        whenToUse: "给团队分配任务并设定期限时",
       },
       {
         pattern: "To sum up, we've agreed that + [总结].",
         example: "To sum up, we've agreed that the marketing budget will increase by 10%.",
         translation: "总结一下，我们已同意营销预算增加10%。",
-        explanation: "会议总结时确认共识的标准句型。"
+        explanation: "会议总结时确认共识的标准句型。",
+        whenToUse: "议题讨论完毕或会议结束前做总结",
       },
     ],
     tips: [
@@ -102,12 +201,12 @@ const SCENES_DATA: Record<string, {
       { title: '使用商务缩略语', content: '常见缩略语：ASAP (尽快)、ETA (预计到达时间)、FYI (供你参考)、Action Item (待办事项)、RSVP (请回复)、KPI (关键绩效指标)。' },
     ],
     sampleDialogue: [
-      { role: 'A', english: "Good morning everyone, thanks for joining. Let's get the meeting started.", chinese: '大家早上好，感谢参加。我们开始开会吧。' },
-      { role: 'B', english: "First on the agenda is the Q3 product launch. Sarah, could you walk us through the timeline?", chinese: '议程第一项是第三季度产品发布。Sarah，你能给我们介绍一下时间线吗？' },
-      { role: 'A', english: "Sure. From my perspective, we should aim to launch by mid-September.", chinese: '好的。在我看来，我们应该争取在9月中旬发布。' },
-      { role: 'B', english: "I see your point, but the engineering team needs more time for testing.", chinese: '我理解你的观点，但工程团队需要更多测试时间。' },
-      { role: 'A', english: "That's a fair point. Could we circle back to this after the engineering update?", chinese: '有道理。我们能否在工程团队更新后再回到这个议题？' },
-      { role: 'B', english: "Absolutely. Let's move on to the next item—marketing budget.", chinese: '当然可以。我们进入下一项——营销预算。' },
+      { role: 'A', english: "Good morning everyone, thanks for joining. Let's get the meeting started.", chinese: '大家早上好，感谢参加。我们开始开会吧。', context: '【开场】主持人宣布会议开始' },
+      { role: 'B', english: "First on the agenda is the Q3 product launch. Sarah, could you walk us through the timeline?", chinese: '议程第一项是第三季度产品发布。Sarah，你能给我们介绍一下时间线吗？', context: '【介绍议题】主持人引入话题' },
+      { role: 'A', english: "Sure. From my perspective, we should aim to launch by mid-September.", chinese: '好的。在我看来，我们应该争取在9月中旬发布。', context: '【发表观点】汇报人提出建议' },
+      { role: 'B', english: "I see your point, but the engineering team needs more time for testing.", chinese: '我理解你的观点，但工程团队需要更多测试时间。', context: '【表达不同意见】委婉反对' },
+      { role: 'A', english: "That's a fair point. Could we circle back to this after the engineering update?", chinese: '有道理。我们能否在工程团队更新后再回到这个议题？', context: '【推进议程】提议搁置争议' },
+      { role: 'B', english: "Absolutely. Let's move on to the next item—marketing budget.", chinese: '当然可以。我们进入下一项——营销预算。', context: '【推进议程】同意进入下一议题' },
     ],
   },
   airport_checkin: {
@@ -118,45 +217,104 @@ const SCENES_DATA: Record<string, {
       icon: 'Airplane',
       category: '旅行',
       description: '机场值机、行李托运、座位选择等场景',
-      keywords: ['机场', '值机', '登机', '行李', '托运', 'airport', 'checkin', 'flight', 'luggage'],
+      keywords: ['机场', '值机', '登机', '行李', '托运', 'airport', 'checkin', 'flight', 'luggage', '飞机', '航站楼', '登机口', '安检', '海关', '出境'],
+      stages: [
+        { stage: '办理值机', stageEn: 'At the Check-in Counter' },
+        { stage: '行李托运', stageEn: 'Checking Baggage' },
+        { stage: '选择座位', stageEn: 'Choosing Seats' },
+        { stage: '转机相关', stageEn: 'Connecting Flights' },
+        { stage: '登机口信息', stageEn: 'Gate & Boarding Info' },
+      ],
     },
-    briefIntroduction: '机场值机是出国旅行的第一步，需要与值机人员清晰沟通目的地、行李数量、座位偏好等信息。',
-    keyPhrases: [
-      { english: "I'd like to check in, please.", chinese: '我想办理值机。', context: '开始办理' },
-      { english: "Here's my passport and booking confirmation.", chinese: '这是我的护照和预订确认单。', context: '出示证件' },
-      { english: "I have two bags to check in.", chinese: '我有两件行李要托运。', context: '托运行李' },
-      { english: "Is this bag within the weight limit?", chinese: '这个行李在重量限制内吗？', context: '询问重量' },
-      { english: "Can I have a window seat, please?", chinese: '请给我一个靠窗的座位好吗？', context: '选择座位' },
-      { english: "I'd prefer an aisle seat.", chinese: '我想要靠过道的座位。', context: '选择座位' },
-      { english: "Are there any exit row seats available?", chinese: '有没有紧急出口的座位？', context: '特殊座位' },
-      { english: "What's my boarding gate?", chinese: '我的登机口是哪个？', context: '询问登机口' },
-      { english: "What time is boarding?", chinese: '什么时候开始登机？', context: '登机时间' },
-      { english: "Is my flight on time?", chinese: '我的航班准点吗？', context: '航班动态' },
+    briefIntroduction: '机场值机流程固定，从柜台沟通到行李托运、座位选择，下方按实际流程分组，找到你正在办理的环节直接套用。',
+    keyPhrasesGrouped: [
+      {
+        stage: '办理值机',
+        stageEn: 'At the Check-in Counter',
+        description: '刚到值机柜台与工作人员对话时',
+        phrases: [
+          { english: "I'd like to check in, please.", chinese: '我想办理值机。', whenToUse: '柜台工作人员目光投向你时的第一句', speaker: '乘客' },
+          { english: "Here's my passport and booking confirmation.", chinese: '这是我的护照和预订确认单。', whenToUse: '工作人员要证件时递过去时说', speaker: '乘客' },
+          { english: "I'm flying to [目的地] today.", chinese: '我今天飞[目的地]。', whenToUse: '工作人员询问目的地时', speaker: '乘客' },
+          { english: "I have an e-ticket under the name [姓名].", chinese: '我有一张电子票，名字是[姓名]。', whenToUse: '没打纸质票时', speaker: '乘客' },
+        ],
+      },
+      {
+        stage: '行李托运',
+        stageEn: 'Checking Baggage',
+        description: '关于行李托运的对话',
+        phrases: [
+          { english: "I have two bags to check in.", chinese: '我有两件行李要托运。', whenToUse: '告知托运行李数量', speaker: '乘客' },
+          { english: "Is this bag within the weight limit?", chinese: '这个行李在重量限制内吗？', whenToUse: '担心超重时提前问', speaker: '乘客' },
+          { english: "Does my carry-on meet the size requirement?", chinese: '我的随身行李符合尺寸要求吗？', whenToUse: '不确定行李箱能否带上飞机时', speaker: '乘客' },
+          { english: "How much is the excess baggage fee?", chinese: '超重行李费多少钱？', whenToUse: '确实超重了，询问费用', speaker: '乘客' },
+          { english: "I have a laptop/valuables in my carry-on.", chinese: '我随身行李里有电脑/贵重物品。', whenToUse: '安检时主动说明', speaker: '乘客' },
+        ],
+      },
+      {
+        stage: '选择座位',
+        stageEn: 'Choosing Seats',
+        description: '选座位时使用',
+        phrases: [
+          { english: "Can I have a window seat, please?", chinese: '请给我一个靠窗的座位好吗？', whenToUse: '明确表达座位偏好', speaker: '乘客' },
+          { english: "I'd prefer an aisle seat.", chinese: '我想要靠过道的座位。', whenToUse: '想要靠过道（方便起身）', speaker: '乘客' },
+          { english: "Are there any exit row seats available?", chinese: '有没有紧急出口的座位？', whenToUse: '想要腿部空间大的座位（需能协助撤离）', speaker: '乘客' },
+          { english: "Could we have seats together, please?", chinese: '可以给我们挨在一起的座位吗？', whenToUse: '多人一起出行时', speaker: '乘客' },
+        ],
+      },
+      {
+        stage: '转机相关',
+        stageEn: 'Connecting Flights',
+        description: '有中转航班时特别重要',
+        phrases: [
+          { english: "I'm connecting to [航班号/目的地]. Is my luggage checked through?", chinese: '我要转机去[目的地]，我的行李是直挂的吗？', whenToUse: '值机时必须确认的关键问题', speaker: '乘客' },
+          { english: "Do I need to collect my luggage and re-check it?", chinese: '我需要提取行李并重新托运吗？', whenToUse: '确认转机是否需要重新托运行李', speaker: '乘客' },
+          { english: "Do I need to go through immigration and customs here?", chinese: '我需要在这里过入境和海关吗？', whenToUse: '国际转国际时确认是否要过境', speaker: '乘客' },
+          { english: "Where is the transfer desk?", chinese: '转机柜台在哪里？', whenToUse: '需要在中转机场办理手续时', speaker: '乘客' },
+          { english: "How long is my connection time?", chinese: '我的转机时间有多久？', whenToUse: '确认转机时间是否充裕', speaker: '乘客' },
+        ],
+      },
+      {
+        stage: '登机口信息',
+        stageEn: 'Gate & Boarding Info',
+        description: '询问登机相关信息',
+        phrases: [
+          { english: "What's my boarding gate?", chinese: '我的登机口是哪个？', whenToUse: '值机最后确认登机口', speaker: '乘客' },
+          { english: "What time is boarding?", chinese: '什么时候开始登机？', whenToUse: '确认登机时间', speaker: '乘客' },
+          { english: "Is my flight on time?", chinese: '我的航班准点吗？', whenToUse: '担心延误时', speaker: '乘客' },
+          { english: "Could you please tell me where Gate [号] is?", chinese: '你能告诉我[号]登机口在哪里吗？', whenToUse: '进安检后找不到登机口时问工作人员', speaker: '乘客' },
+        ],
+      },
     ],
+    keyPhrases: [],
     commonPatterns: [
       {
         pattern: "Could you please tell me where + [地点] is?",
         example: "Could you please tell me where Gate B12 is?",
         translation: "你能告诉我B12登机口在哪里吗？",
-        explanation: "礼貌地询问地点信息。"
+        explanation: "礼貌地询问地点信息。",
+        whenToUse: "在机场找不到任何地点时都能用",
       },
       {
         pattern: "I'm connecting to + [航班号/目的地]. Is my luggage checked through?",
         example: "I'm connecting to Flight DL123 to New York. Is my luggage checked through?",
         translation: "我要转机搭乘DL123航班去纽约，我的行李是直挂的吗？",
-        explanation: "转机旅客确认行李是否直挂目的地。"
+        explanation: "转机旅客确认行李是否直挂目的地。",
+        whenToUse: "转机时值机必须问的问题",
       },
       {
         pattern: "Do I need to + [动作]?",
         example: "Do I need to collect my luggage and re-check it?",
         translation: "我需要提取行李并重新托运吗？",
-        explanation: "确认是否需要做某事。"
+        explanation: "确认是否需要做某事。",
+        whenToUse: "不确定流程时用于确认",
       },
       {
         pattern: "Here's my + [物品].",
         example: "Here's my ID and e-ticket reference.",
         translation: "这是我的身份证和电子票号。",
-        explanation: "向工作人员出示证件或票据的简洁表达。"
+        explanation: "向工作人员出示证件或票据的简洁表达。",
+        whenToUse: "递上任何证件、票据时",
       },
     ],
     tips: [
@@ -166,14 +324,14 @@ const SCENES_DATA: Record<string, {
       { title: '值机相关词汇', content: 'carry-on baggage (随身行李)、checked baggage (托运行李)、baggage tag (行李牌)、boarding pass (登机牌)、jet bridge (廊桥)、tarmac (停机坪)。' },
     ],
     sampleDialogue: [
-      { role: 'A', english: "Good morning! I'd like to check in, please.", chinese: '早上好！我想办理值机。' },
-      { role: 'B', english: "Good morning! May I see your passport and ticket, please?", chinese: '早上好！请出示您的护照和机票好吗？' },
-      { role: 'A', english: "Certainly. Here's my passport. I have one suitcase to check in and a carry-on.", chinese: '当然可以。这是我的护照。我有一件行李箱要托运，还有一件随身行李。' },
-      { role: 'B', english: "Where are you flying to today?", chinese: '您今天要飞往哪里？' },
-      { role: 'A', english: "I'm flying to San Francisco, with a connection in Tokyo.", chinese: '我飞往旧金山，在东京转机。' },
-      { role: 'B', english: "Would you prefer a window or aisle seat?", chinese: '您想要靠窗还是靠过道的座位？' },
-      { role: 'A', english: "A window seat, please. And could you tell me if my luggage is checked through to my final destination?", chinese: '请给我靠窗座位。你能告诉我我的行李是直挂到最终目的地吗？' },
-      { role: 'B', english: "Yes, your bags will be checked straight through. Your gate is C18, boarding starts at 10:45.", chinese: '是的，您的行李将直挂。您的登机口是C18，10:45开始登机。' },
+      { role: 'A', english: "Good morning! I'd like to check in, please.", chinese: '早上好！我想办理值机。', context: '【办理值机】乘客开场' },
+      { role: 'B', english: "Good morning! May I see your passport and ticket, please?", chinese: '早上好！请出示您的护照和机票好吗？', context: '【办理值机】工作人员要证件' },
+      { role: 'A', english: "Certainly. Here's my passport. I have one suitcase to check in and a carry-on.", chinese: '当然可以。这是我的护照。我有一件行李箱要托运，还有一件随身行李。', context: '【行李托运】说明行李情况' },
+      { role: 'B', english: "Where are you flying to today?", chinese: '您今天要飞往哪里？', context: '【办理值机】确认目的地' },
+      { role: 'A', english: "I'm flying to San Francisco, with a connection in Tokyo.", chinese: '我飞往旧金山，在东京转机。', context: '【转机相关】说明转机' },
+      { role: 'B', english: "Would you prefer a window or aisle seat?", chinese: '您想要靠窗还是靠过道的座位？', context: '【选择座位】询问偏好' },
+      { role: 'A', english: "A window seat, please. And could you tell me if my luggage is checked through to my final destination?", chinese: '请给我靠窗座位。你能告诉我我的行李是直挂到最终目的地吗？', context: '【转机相关】确认行李直挂' },
+      { role: 'B', english: "Yes, your bags will be checked straight through. Your gate is C18, boarding starts at 10:45.", chinese: '是的，您的行李将直挂。您的登机口是C18，10:45开始登机。', context: '【登机口信息】告知登机信息' },
     ],
   },
   tv_series_slang: {
@@ -184,60 +342,109 @@ const SCENES_DATA: Record<string, {
       icon: 'VideoPlay',
       category: '娱乐',
       description: '理解美剧中常见的俚语、口语和流行表达',
-      keywords: ['美剧', '俚语', '口语', '英语', '电影', 'tv', 'slang', 'movie', 'drama'],
+      keywords: ['美剧', '俚语', '口语', '电影', 'tv', 'slang', 'movie', 'drama', '流行语', '追剧', '看剧', '娱乐', 'native speaker', '地道'],
+      stages: [
+        { stage: '日常打招呼', stageEn: 'Everyday Greetings' },
+        { stage: '表达情绪态度', stageEn: 'Expressing Emotions & Attitudes' },
+        { stage: '年轻人流行语', stageEn: 'Youth / Gen Z Slang' },
+        { stage: '社交互动', stageEn: 'Social Interactions' },
+      ],
     },
-    briefIntroduction: '美剧中充斥着大量俚语、缩写和非正式表达，这些是教科书不会教的内容。掌握这些地道表达能帮助你更好地理解剧情，也能让你的英语更自然。',
-    keyPhrases: [
-      { english: "What's up?", chinese: '怎么样？/ 最近好吗？', context: '日常打招呼，比 How are you 更随意' },
-      { english: "No biggie.", chinese: '没什么大不了的。', context: '表示事情不重要' },
-      { english: "I'm beat.", chinese: '我累死了。', context: '口语表达疲惫' },
-      { english: "It's a piece of cake.", chinese: '小菜一碟。', context: '形容事情很容易' },
-      { english: "Hang on a sec.", chinese: '稍等一下。', context: '让对方等一下' },
-      { english: "You're kidding, right?", chinese: '你在开玩笑吧？', context: '表示难以置信' },
-      { english: "I'm in.", chinese: '我加入/我同意。', context: '表示愿意参与' },
-      { english: "Let's call it a day.", chinese: '今天就到这里吧。', context: '结束当天活动或工作' },
-      { english: "Spill the tea!", chinese: '快爆料！', context: 'tea=gossip，让对方分享八卦' },
-      { english: "That's a vibe.", chinese: '这氛围不错。', context: 'vibe=氛围/感觉，表示赞赏' },
+    briefIntroduction: '美剧中的俚语按使用场景分类，下方标注了每个词的情绪色彩和使用对象，避免在正式场合说错。',
+    keyPhrasesGrouped: [
+      {
+        stage: '日常打招呼',
+        stageEn: 'Everyday Greetings',
+        description: '朋友、熟人之间日常见面',
+        phrases: [
+          { english: "What's up?", chinese: '怎么样？/ 最近好吗？', whenToUse: '非常随意的打招呼，用于朋友、同辈之间，正式场合绝对不用', speaker: '年轻人/朋友之间' },
+          { english: "Hey! Long time no see.", chinese: '嘿！好久不见。', whenToUse: '很久没见的朋友偶遇时', speaker: '任何人（非正式）' },
+          { english: "How's it going?", chinese: '最近咋样？', whenToUse: "和 How are you 类似但更随意，不需要真的回答细节", speaker: '朋友/同事之间' },
+          { english: "Yo!", chinese: '哟！', whenToUse: '非常街头的打招呼，特别熟的朋友之间', speaker: '年轻人' },
+        ],
+      },
+      {
+        stage: '表达情绪态度',
+        stageEn: 'Expressing Emotions & Attitudes',
+        description: '表达各种情绪时的地道说法',
+        phrases: [
+          { english: "I'm beat.", chinese: '我累死了。', whenToUse: '忙碌一天后表达极度疲惫', speaker: '任何人（非正式）' },
+          { english: "No biggie.", chinese: '没什么大不了的。', whenToUse: '别人道歉或感谢时，表示没关系', speaker: '任何人（非正式）' },
+          { english: "It's a piece of cake.", chinese: '小菜一碟。', whenToUse: '形容某事非常容易', speaker: '任何人（非正式）' },
+          { english: "You're kidding, right?", chinese: '你在开玩笑吧？', whenToUse: '表示难以置信或震惊', speaker: '任何人' },
+          { english: "I'm in.", chinese: '我加入/我同意。', whenToUse: '朋友提议活动时，表示愿意参加', speaker: '任何人' },
+          { english: "Let's call it a day.", chinese: '今天就到这里吧。', whenToUse: '工作、学习或活动进行了一段时间后提议结束', speaker: '任何人' },
+        ],
+      },
+      {
+        stage: '年轻人流行语',
+        stageEn: 'Youth / Gen Z Slang',
+        description: 'Z世代年轻人常用，可能会让长辈困惑',
+        phrases: [
+          { english: "Spill the tea!", chinese: '快爆料！', whenToUse: '催促对方分享八卦 (tea = gossip)', speaker: '年轻女性之间最常见' },
+          { english: "That's a vibe.", chinese: '这氛围不错。', whenToUse: 'vibe = 氛围/感觉，表示赞赏某个环境或音乐', speaker: '年轻人' },
+          { english: "I low-key / high-key + [动词/形容词]", chinese: '我暗自/超 + [动词/形容词]', whenToUse: 'low-key = 低调地、有点；high-key = 高调地、非常', speaker: '年轻人' },
+          { english: "Bet.", chinese: '行/说定了/那就走着瞧。', whenToUse: '根据语境不同：可以表示同意，也可以表示挑战', speaker: '年轻人' },
+          { english: "No cap.", chinese: '没骗你/真的。', whenToUse: 'cap = 说谎，no cap = 我保证没撒谎', speaker: '年轻人' },
+          { english: "That's sick.", chinese: '太酷了/太棒了。', whenToUse: 'sick 在俚语中是褒义词，等于 cool 或 awesome', speaker: '年轻人' },
+        ],
+      },
+      {
+        stage: '社交互动',
+        stageEn: 'Social Interactions',
+        description: '社交对话中的高频俚语',
+        phrases: [
+          { english: "Hang on a sec.", chinese: '稍等一下。', whenToUse: '让对方等一下，比 wait a minute 更随意', speaker: '任何人' },
+          { english: "I feel you.", chinese: '我懂你的感受。', whenToUse: '表示深刻理解并认同对方的心情', speaker: '任何人（非正式）' },
+          { english: "It is what it is.", chinese: '事已至此，就这样吧。', whenToUse: '表示无奈但接受无法改变的现实', speaker: '任何人' },
+          { english: "Fair enough.", chinese: '有道理/好吧。', whenToUse: '对方的说法你不完全同意，但也无法反驳时', speaker: '任何人' },
+        ],
+      },
     ],
+    keyPhrases: [],
     commonPatterns: [
       {
         pattern: "I feel you / I feel that.",
         example: "- This homework is so annoying. - I feel you.",
         translation: "——这作业太烦了。——我懂你的感受。",
-        explanation: "表示理解和认同对方的感受，非常地道的口语表达。"
+        explanation: "表示理解和认同对方的感受，非常地道的口语表达。",
+        whenToUse: "朋友抱怨或倾诉时，表达共情",
       },
       {
         pattern: "It is what it is.",
         example: "We lost the game. Oh well, it is what it is.",
         translation: "我们输了比赛。唉，事已至此，就这样吧。",
-        explanation: "表示接受无法改变的现状，无奈但释然。"
+        explanation: "表示接受无法改变的现状，无奈但释然。",
+        whenToUse: "事情不顺但无法挽回时",
       },
       {
         pattern: "Low-key / High-key + [形容词/动词]",
         example: "I low-key love this song. / I high-key want to go there.",
         translation: "我偷偷喜欢这首歌。/ 我超想去那里。",
-        explanation: "low-key=低调/有点/暗自；high-key=高调/非常。年轻人常用的修饰词。"
+        explanation: "low-key=低调/有点/暗自；high-key=高调/非常。年轻人常用的修饰词。",
+        whenToUse: "非正式场合，表达感受的程度",
       },
       {
         pattern: "Bet.",
         example: "- I'll finish this by tomorrow. - Bet.",
         translation: "——我明天前完成这个。——行，那就这么说定了。",
-        explanation: "可以表示同意、确认、或者『那就走着瞧』的挑战语气，根据语境判断。"
+        explanation: "可以表示同意、确认、或者『那就走着瞧』的挑战语气，根据语境判断。",
+        whenToUse: "朋友之间确认约定或挑战时",
       },
     ],
     tips: [
       { title: '常见俚语和缩写', content: 'GOAT (Greatest Of All Time 史上最佳)、SUS (suspicious 可疑的)、Cap (说谎)、No Cap (没骗你)、Slay (表现超棒)、Flex (炫耀)、Vibe (氛围/感觉)、Stan (狂热粉丝)。' },
       { title: '理解语境是关键', content: '同一个词在不同语境意思完全不同。例如 "sick" 可以是"生病的"也可以是"超酷的"；"bad" 在俚语中可能是"好的"意思。注意观察上下文。' },
       { title: '语气和重音', content: '口语表达很大程度依赖语气。例如 "Really?" 升调表示惊讶，降调表示怀疑。看剧时注意演员的语调和表情。' },
-      { title: '积累建议', content: '建议选一部贴近生活的现代剧（如《老友记》《摩登家庭》）反复看，把不认识的俚语记下来，配合场景理解。不要一开始就看太文艺或太古老的剧。' },
+      { title: '俚语使用注意⚠️', content: '俚语只能用于非正式场合。面试、见客户、和长辈说话时请换回标准英语。不确定时，宁可说标准英语也不要用错俚语。' },
     ],
     sampleDialogue: [
-      { role: 'A', english: "Hey, did you watch the new episode last night?", chinese: '嘿，你昨晚看新一集了吗？' },
-      { role: 'B', english: "Oh my god, yes! That ending was crazy. Low-key did not see that coming.", chinese: '我的天，看了！结局太疯狂了。真是没想到。' },
-      { role: 'A', english: "Right? When Mike found out... I was shook. Spill the tea—what did you think?", chinese: '对吧？当Mike发现的时候……我震惊了。快说说你怎么看？' },
-      { role: 'B', english: "I feel you. Honestly thought it was a dream at first. But it is what it is. Bet the next episode is even crazier.", chinese: '我懂你。说实话一开始我还以为是做梦。但事已至此。赌下一集更疯狂。' },
-      { role: 'A', english: "No cap. Hey, wanna watch it together this weekend? My place?", chinese: '真的。嘿，这周末一起看不？去我家？' },
-      { role: 'B', english: "I'm in! That sounds sick. Let's call it—7pm Saturday.", chinese: '我来！听起来超棒。就这么定了——周六晚上7点。' },
+      { role: 'A', english: "Hey, did you watch the new episode last night?", chinese: '嘿，你昨晚看新一集了吗？', context: '【打招呼】朋友见面聊天' },
+      { role: 'B', english: "Oh my god, yes! That ending was crazy. Low-key did not see that coming.", chinese: '我的天，看了！结局太疯狂了。真是没想到。', context: '【年轻人流行语】low-key = 暗自' },
+      { role: 'A', english: "Right? When Mike found out... I was shook. Spill the tea—what did you think?", chinese: '对吧？当Mike发现的时候……我震惊了。快说说你怎么看？', context: '【年轻人流行语】spill the tea = 爆料' },
+      { role: 'B', english: "I feel you. Honestly thought it was a dream at first. But it is what it is. Bet the next episode is even crazier.", chinese: '我懂你。说实话一开始我还以为是做梦。但事已至此。赌下一集更疯狂。', context: '【社交互动】表达理解和无奈' },
+      { role: 'A', english: "No cap. Hey, wanna watch it together this weekend? My place?", chinese: '真的。嘿，这周末一起看不？去我家？', context: '【年轻人流行语】no cap = 真的' },
+      { role: 'B', english: "I'm in! That sounds sick. Let's call it—7pm Saturday.", chinese: '我来！听起来超棒。就这么定了——周六晚上7点。', context: '【年轻人流行语】sick = 超酷' },
     ],
   },
   restaurant_ordering: {
@@ -248,45 +455,108 @@ const SCENES_DATA: Record<string, {
       icon: 'KnifeFork',
       category: '生活',
       description: '国外餐厅点餐、询问菜品、特殊要求、结账',
-      keywords: ['餐厅', '点餐', '吃饭', '菜单', '订餐', 'restaurant', 'food', 'menu', 'dinner'],
+      keywords: ['餐厅', '点餐', '吃饭', '菜单', '订餐', 'restaurant', 'food', 'menu', 'dinner', '吃饭', '点菜', '西餐', '用餐'],
+      stages: [
+        { stage: '入座', stageEn: 'Getting Seated' },
+        { stage: '看菜单与咨询', stageEn: 'Consulting the Menu' },
+        { stage: '点餐', stageEn: 'Placing the Order' },
+        { stage: '用餐中', stageEn: 'During the Meal' },
+        { stage: '结账与打包', stageEn: 'Paying & Taking Away' },
+      ],
     },
-    briefIntroduction: '在国外餐厅用餐，需要掌握从入座、看菜单、点餐、特殊要求到结账的全流程表达。礼貌和清晰是关键。',
-    keyPhrases: [
-      { english: "We'd like a table for two, please.", chinese: '我们想要一张两人桌。', context: '入座' },
-      { english: "Do you have any reservations?", chinese: '你们有预订吗？', context: '服务员询问' },
-      { english: "Could we see the menu, please?", chinese: '请给我们菜单好吗？', context: '要菜单' },
-      { english: "What do you recommend?", chinese: '你推荐什么？', context: '询问推荐' },
-      { english: "Is this dish spicy?", chinese: '这道菜辣吗？', context: '询问口味' },
-      { english: "I'll have the grilled salmon, please.", chinese: '请给我来一份烤三文鱼。', context: '正式点餐' },
-      { english: "I'm allergic to peanuts.", chinese: '我对花生过敏。', context: '食物过敏' },
-      { english: "Could I get that without onions, please?", chinese: '那份能不放洋葱吗？', context: '特殊要求' },
-      { english: "Check, please. / Can we have the bill?", chinese: '请结账。', context: '买单' },
-      { english: "Could you pack this to go?", chinese: '能帮我打包带走吗？', context: '打包' },
+    briefIntroduction: '餐厅用餐按入座→看菜单→点餐→用餐→结账的流程分组，找到你当前环节直接使用。',
+    keyPhrasesGrouped: [
+      {
+        stage: '入座',
+        stageEn: 'Getting Seated',
+        description: '刚进餐厅与领位员沟通时',
+        phrases: [
+          { english: "We'd like a table for two, please.", chinese: '我们想要一张两人桌。', whenToUse: '进门后直接告诉领位员人数', speaker: '顾客' },
+          { english: "Do you have any reservations?", chinese: '你们有预订吗？', whenToUse: '服务员通常会先问你', speaker: '服务员' },
+          { english: "Yes, under the name [姓名].", chinese: '有的，名字是[姓名]。', whenToUse: '有预订时报上预订姓名', speaker: '顾客' },
+          { english: "How long is the wait?", chinese: '要等多久？', whenToUse: '餐厅满座时询问等待时间', speaker: '顾客' },
+          { english: "Could we get a booth, please?", chinese: '可以给我们一个卡座吗？', whenToUse: '有偏好的座位类型时', speaker: '顾客' },
+        ],
+      },
+      {
+        stage: '看菜单与咨询',
+        stageEn: 'Consulting the Menu',
+        description: '研究菜单、询问菜品时',
+        phrases: [
+          { english: "Could we see the menu, please?", chinese: '请给我们菜单好吗？', whenToUse: '坐下后菜单还没拿来时', speaker: '顾客' },
+          { english: "What do you recommend?", chinese: '你推荐什么？', whenToUse: '不知道点什么，让服务员推荐招牌菜', speaker: '顾客' },
+          { english: "Is this dish spicy?", chinese: '这道菜辣吗？', whenToUse: '对口味有要求时', speaker: '顾客' },
+          { english: "How is the [菜品] prepared?", chinese: '这个[菜品]是怎么做的？', whenToUse: '想了解烹饪方式（煎/烤/煮等）', speaker: '顾客' },
+          { english: "What are today's specials?", chinese: '今天的特供菜是什么？', whenToUse: '询问当日厨师推荐', speaker: '顾客' },
+          { english: "Does this contain nuts/dairy/gluten?", chinese: '这个含坚果/乳制品/麸质吗？', whenToUse: '有过敏或忌口时必须问清楚', speaker: '顾客' },
+        ],
+      },
+      {
+        stage: '点餐',
+        stageEn: 'Placing the Order',
+        description: '正式点菜时',
+        phrases: [
+          { english: "I'll have the [菜品名称], please.", chinese: '请给我来一份[菜品名称]。', whenToUse: '最标准的点餐说法', speaker: '顾客' },
+          { english: "I'll go with the [菜品名称].", chinese: '我就点[菜品名称]吧。', whenToUse: '更随意的点餐说法', speaker: '顾客' },
+          { english: "I'm allergic to peanuts.", chinese: '我对花生过敏。', whenToUse: '有食物过敏时务必提前说明', speaker: '顾客' },
+          { english: "Could I get that without onions, please?", chinese: '那份能不放洋葱吗？', whenToUse: '对菜品有特殊要求（不加某样东西）', speaker: '顾客' },
+          { english: "For here or to go?", chinese: '在这儿吃还是带走？', whenToUse: '快餐店服务员会问', speaker: '服务员' },
+          { english: "I'll have it medium rare, please.", chinese: '请做三分熟。', whenToUse: '点牛排时说明熟度（rare/medium rare/medium/medium well/well done）', speaker: '顾客' },
+        ],
+      },
+      {
+        stage: '用餐中',
+        stageEn: 'During the Meal',
+        description: '用餐过程中需要服务时',
+        phrases: [
+          { english: "Excuse me, could we get some more water?", chinese: '打扰一下，能再给我们加点水吗？', whenToUse: '需要加水或其他东西时', speaker: '顾客' },
+          { english: "Would you mind bringing us some extra napkins?", chinese: '能麻烦再给我们拿一些餐巾纸吗？', whenToUse: '礼貌请求额外物品', speaker: '顾客' },
+          { english: "This is delicious. Compliments to the chef.", chinese: '太好吃了。请向主厨转达赞美。', whenToUse: '对菜品非常满意时，很地道的说法', speaker: '顾客' },
+          { english: "I'm sorry, but this isn't what I ordered.", chinese: '抱歉，这不是我点的菜。', whenToUse: '上错菜时', speaker: '顾客' },
+        ],
+      },
+      {
+        stage: '结账与打包',
+        stageEn: 'Paying & Taking Away',
+        description: '结束用餐准备离开时',
+        phrases: [
+          { english: "Check, please. / Can we have the bill?", chinese: '请结账。', whenToUse: '招呼服务员来买单（两种都常用）', speaker: '顾客' },
+          { english: "Could we get separate checks?", chinese: '可以分开结账吗？', whenToUse: '和朋友吃饭各付各的', speaker: '顾客' },
+          { english: "Do you accept credit cards?", chinese: '你们收信用卡吗？', whenToUse: '确认付款方式', speaker: '顾客' },
+          { english: "Could you pack this to go?", chinese: '能帮我打包带走吗？', whenToUse: '吃不完要打包', speaker: '顾客' },
+          { english: "What's your return policy?", chinese: '（如果是商店）退换货政策是什么？', whenToUse: '购物时', speaker: '顾客' },
+        ],
+      },
     ],
+    keyPhrases: [],
     commonPatterns: [
       {
         pattern: "I'll go with + [菜品名称].",
         example: "I'll go with the chef's special.",
         translation: "我来一份主厨特色菜。",
-        explanation: "点菜时的轻松说法，比 I'll have 更随意。"
+        explanation: "点菜时的轻松说法，比 I'll have 更随意。",
+        whenToUse: "正式/非正式餐厅点餐都能用",
       },
       {
         pattern: "How is the + [菜品] prepared?",
         example: "How is the steak prepared here?",
         translation: "你们这里的牛排是怎么做的？",
-        explanation: "询问菜品的烹饪方式。"
+        explanation: "询问菜品的烹饪方式。",
+        whenToUse: "关心烹饪方法或口味时",
       },
       {
         pattern: "Would you mind + [动词ing]?",
         example: "Would you mind bringing us some extra napkins?",
         translation: "能麻烦再给我们拿一些餐巾纸吗？",
-        explanation: "非常礼貌地提出请求。"
+        explanation: "非常礼貌地提出请求。",
+        whenToUse: "需要服务员帮忙时的最佳说法",
       },
       {
         pattern: "That was delicious. Compliments to the chef.",
         example: "That was delicious. Compliments to the chef.",
         translation: "太好吃了。请向主厨转达赞美。",
-        explanation: "对菜品表示满意和赞美的地道说法。"
+        explanation: "对菜品表示满意和赞美的地道说法。",
+        whenToUse: "对菜品满意时说，会让服务员非常开心",
       },
     ],
     tips: [
@@ -296,14 +566,14 @@ const SCENES_DATA: Record<string, {
       { title: '常见菜单词汇', content: 'appetizer/starter（开胃菜）、main course/entrée（主菜）、side dish（配菜）、dessert（甜点）、beverage（饮料）、soup of the day（当日例汤）、today\'s special（今日特供）。' },
     ],
     sampleDialogue: [
-      { role: 'A', english: "Good evening! Do you have a reservation?", chinese: '晚上好！请问有预订吗？' },
-      { role: 'B', english: "Yes, under the name Smith. A table for two, please.", chinese: '有的，名字是Smith。请给我们一张两人桌。' },
-      { role: 'A', english: "Right this way. Here are your menus. Can I get you started with something to drink?", chinese: '这边请。这是菜单。先来点喝的吗？' },
-      { role: 'B', english: "I'll have a glass of red wine, please. And do you have any non-alcoholic options?", chinese: '请给我一杯红酒。你们有无酒精饮品吗？' },
-      { role: 'A', english: "Certainly. We have sparkling water, soft drinks, and fresh juices. Are you ready to order?", chinese: '当然有。我们有气泡水、软饮和鲜榨果汁。准备好点菜了吗？' },
-      { role: 'B', english: "Yes. I'll go with the ribeye steak, medium rare. And my friend will have the grilled salmon. Could we get that with no salt, please?", chinese: '好了。我要肋眼牛排，三分熟。我朋友要烤三文鱼。那份能不放盐吗？' },
-      { role: 'A', english: "Absolutely. Anything else?", chinese: '没问题。还要别的吗？' },
-      { role: 'B', english: "Just a side of steamed vegetables, please. Thank you.", chinese: '再来一份蒸蔬菜就好。谢谢。' },
+      { role: 'A', english: "Good evening! Do you have a reservation?", chinese: '晚上好！请问有预订吗？', context: '【入座】服务员询问' },
+      { role: 'B', english: "Yes, under the name Smith. A table for two, please.", chinese: '有的，名字是Smith。请给我们一张两人桌。', context: '【入座】顾客回答' },
+      { role: 'A', english: "Right this way. Here are your menus. Can I get you started with something to drink?", chinese: '这边请。这是菜单。先来点喝的吗？', context: '【看菜单与咨询】引导入座并询问饮料' },
+      { role: 'B', english: "I'll have a glass of red wine, please. And do you have any non-alcoholic options?", chinese: '请给我一杯红酒。你们有无酒精饮品吗？', context: '【点餐】点饮料' },
+      { role: 'A', english: "Certainly. We have sparkling water, soft drinks, and fresh juices. Are you ready to order?", chinese: '当然有。我们有气泡水、软饮和鲜榨果汁。准备好点菜了吗？', context: '【点餐】询问是否可以点菜' },
+      { role: 'B', english: "Yes. I'll go with the ribeye steak, medium rare. And my friend will have the grilled salmon. Could we get that with no salt, please?", chinese: '好了。我要肋眼牛排，三分熟。我朋友要烤三文鱼。那份能不放盐吗？', context: '【点餐】正式点菜，带特殊要求' },
+      { role: 'A', english: "Absolutely. Anything else?", chinese: '没问题。还要别的吗？', context: '【点餐】确认' },
+      { role: 'B', english: "Just a side of steamed vegetables, please. Thank you.", chinese: '再来一份蒸蔬菜就好。谢谢。', context: '【点餐】加配菜' },
     ],
   },
   job_interview: {
@@ -314,45 +584,115 @@ const SCENES_DATA: Record<string, {
       icon: 'User',
       category: '职场',
       description: '英语面试自我介绍、回答问题、反问环节',
-      keywords: ['面试', '求职', '工作', '招聘', 'interview', 'job', 'career', 'resume'],
+      keywords: ['面试', '求职', '工作', '招聘', 'interview', 'job', 'career', 'resume', '找工作', '应聘', 'hr', 'offer'],
+      stages: [
+        { stage: '开场寒暄', stageEn: 'Opening & Small Talk' },
+        { stage: '自我介绍', stageEn: 'Self-Introduction' },
+        { stage: '回答经验能力问题', stageEn: 'Experience & Skills' },
+        { stage: '回答优缺点等行为问题', stageEn: 'Behavioral Questions' },
+        { stage: '表达动机与反问', stageEn: 'Motivation & Your Questions' },
+        { stage: '结束收尾', stageEn: 'Closing' },
+      ],
     },
-    briefIntroduction: '英语面试需要展现专业能力和沟通技巧。清晰的自我介绍、有条理的回答、恰当的反问都能加分。',
-    keyPhrases: [
-      { english: "Thank you for having me today.", chinese: '感谢您今天邀请我来面试。', context: '开场感谢' },
-      { english: "I'd be happy to tell you about myself.", chinese: '我很乐意介绍一下我自己。', context: '自我介绍' },
-      { english: "I have 5 years of experience in marketing.", chinese: '我有5年的市场营销经验。', context: '介绍经验' },
-      { english: "My greatest strength is problem-solving.", chinese: '我最大的优势是解决问题的能力。', context: '回答优势' },
-      { english: "I'm working on improving my public speaking skills.", chinese: '我正在努力提升公众演讲能力。', context: '回答劣势' },
-      { english: "In my previous role, I led a team of 8 people.", chinese: '在上一份工作中，我带领了一个8人的团队。', context: '描述过往经历' },
-      { english: "I'm particularly interested in this role because...", chinese: '我对这个职位特别感兴趣是因为...', context: '表达动机' },
-      { english: "Where do you see the company in the next 5 years?", chinese: '您认为公司未来5年的发展方向是什么？', context: '反问面试官' },
-      { english: "What are the next steps in the interview process?", chinese: '面试流程的下一步是什么？', context: '询问后续' },
-      { english: "I look forward to hearing from you.", chinese: '期待您的回复。', context: '结束语' },
+    briefIntroduction: '面试流程固定，下方按面试环节分组，提前准备好每个环节的表达能显著提升表现。',
+    keyPhrasesGrouped: [
+      {
+        stage: '开场寒暄',
+        stageEn: 'Opening & Small Talk',
+        description: '刚进公司，正式面试前的交流',
+        phrases: [
+          { english: "Thank you for having me today.", chinese: '感谢您今天邀请我来面试。', whenToUse: '见到面试官时的第一句话，握手时说', speaker: '应聘者' },
+          { english: "It's a pleasure to meet you.", chinese: '很高兴见到您。', whenToUse: '和面试官打招呼', speaker: '应聘者' },
+          { english: "Thanks for taking the time to meet with me.", chinese: '感谢您抽时间见我。', whenToUse: '表达礼貌', speaker: '应聘者' },
+          { english: "Your office is really nice.", chinese: '你们办公室真不错。', whenToUse: '寒暄时可以适当赞美', speaker: '应聘者' },
+        ],
+      },
+      {
+        stage: '自我介绍',
+        stageEn: 'Self-Introduction',
+        description: '经典的 "Tell me about yourself" 环节',
+        phrases: [
+          { english: "I'd be happy to tell you about myself.", chinese: '我很乐意介绍一下我自己。', whenToUse: '面试官让你自我介绍时的开场', speaker: '应聘者' },
+          { english: "I have [X] years of experience in [领域].", chinese: '我在[领域]有[X]年的经验。', whenToUse: '自我介绍的核心句之一', speaker: '应聘者' },
+          { english: "Most recently, I've been working at [公司] as a [职位].", chinese: '最近我在[公司]担任[职位]。', whenToUse: '介绍最近的工作经历', speaker: '应聘者' },
+          { english: "My background is mainly in [领域], but I also have experience in [另一领域].", chinese: '我的背景主要在[领域]，但我也有[另一领域]的经验。', whenToUse: '展示复合背景', speaker: '应聘者' },
+        ],
+      },
+      {
+        stage: '回答经验能力问题',
+        stageEn: 'Experience & Skills',
+        description: '询问过往经历和专业技能时',
+        phrases: [
+          { english: "In my previous role, I led a team of [X] people.", chinese: '在上一份工作中，我带领了一个[X]人的团队。', whenToUse: '展示管理经验', speaker: '应聘者' },
+          { english: "My greatest strength is problem-solving.", chinese: '我最大的优势是解决问题的能力。', whenToUse: '回答"What are your strengths?"', speaker: '应聘者' },
+          { english: "I'm particularly skilled at [技能], which I developed while [某段经历].", chinese: '我特别擅长[技能]，这是我在[某段经历]中培养的。', whenToUse: '把技能和具体经历结合', speaker: '应聘者' },
+          { english: "One project I'm proud of is...", chinese: '我引以为豪的一个项目是...', whenToUse: '引入一个成功案例', speaker: '应聘者' },
+        ],
+      },
+      {
+        stage: '回答优缺点等行为问题',
+        stageEn: 'Behavioral Questions',
+        description: 'STAR法则回答行为面试题',
+        phrases: [
+          { english: "Let me think of an example from my last project.", chinese: '让我想一个上一个项目中的例子。', whenToUse: '需要回忆具体案例时，给自己思考时间', speaker: '应聘者' },
+          { english: "That's a great question. Let me think...", chinese: '这个问题很好。让我想一想...', whenToUse: '需要时间组织回答时的过渡语', speaker: '应聘者' },
+          { english: "I'm working on improving my public speaking skills.", chinese: '我正在努力提升公众演讲能力。', whenToUse: '回答弱点时，说一个真实但在改进中的弱点', speaker: '应聘者' },
+          { english: "I used to struggle with [某弱点], but I've started [改进方法] and it's helped a lot.", chinese: '我过去在[某弱点]上有困难，但我已经开始[改进方法]，效果很好。', whenToUse: '弱点问题的最佳回答结构', speaker: '应聘者' },
+        ],
+      },
+      {
+        stage: '表达动机与反问',
+        stageEn: 'Motivation & Your Questions',
+        description: '"Why are you interested in this role?" 和你反问面试官',
+        phrases: [
+          { english: "I'm particularly interested in this role because...", chinese: '我对这个职位特别感兴趣是因为...', whenToUse: '回答为什么申请这个职位', speaker: '应聘者' },
+          { english: "I believe my experience in [领域] aligns well with this role.", chinese: '我相信我在[领域]的经验与这个职位非常匹配。', whenToUse: '说明你和职位的契合度', speaker: '应聘者' },
+          { english: "Where do you see the company in the next 5 years?", chinese: '您认为公司未来5年的发展方向是什么？', whenToUse: '高质量反问问题之一', speaker: '应聘者' },
+          { english: "What does success look like in this role in the first year?", chinese: '这个职位第一年怎样算成功？', whenToUse: '非常专业的反问问题', speaker: '应聘者' },
+          { english: "Can you tell me about the team I'd be working with?", chinese: '能介绍一下我将共事的团队吗？', whenToUse: '了解团队情况', speaker: '应聘者' },
+        ],
+      },
+      {
+        stage: '结束收尾',
+        stageEn: 'Closing',
+        description: '面试即将结束时',
+        phrases: [
+          { english: "What are the next steps in the interview process?", chinese: '面试流程的下一步是什么？', whenToUse: '面试结束前询问流程', speaker: '应聘者' },
+          { english: "When can I expect to hear from you?", chinese: '我什么时候能收到回复？', whenToUse: '询问结果时间', speaker: '应聘者' },
+          { english: "I look forward to hearing from you.", chinese: '期待您的回复。', whenToUse: '最后的告别语', speaker: '应聘者' },
+          { english: "Thank you again for this opportunity. I really appreciate your time.", chinese: '再次感谢这个机会。非常感谢您的时间。', whenToUse: '真诚收尾，离开前说', speaker: '应聘者' },
+        ],
+      },
     ],
+    keyPhrases: [],
     commonPatterns: [
       {
         pattern: "Using the STAR method: Situation + Task + Action + Result",
         example: "In my previous job (Situation), I was tasked with improving customer retention (Task). I implemented a new feedback system (Action), which increased retention by 25% (Result).",
         translation: "在我之前的工作中（情境），我被指派提升客户留存率（任务）。我实施了一套新的反馈系统（行动），将留存率提高了25%（结果）。",
-        explanation: "回答行为面试问题的黄金法则：用具体案例说明能力。"
+        explanation: "回答行为面试问题的黄金法则：用具体案例说明能力。",
+        whenToUse: "回答 'Tell me about a time when...' 类问题时",
       },
       {
         pattern: "I'm excited about the opportunity to + [动词].",
         example: "I'm excited about the opportunity to contribute to your team's growth.",
         translation: "我很期待能为团队的发展做出贡献。",
-        explanation: "表达对职位的热情和期待。"
+        explanation: "表达对职位的热情和期待。",
+        whenToUse: "回答 'Why do you want this job?' 时",
       },
       {
         pattern: "That's a great question. Let me think...",
         example: "That's a great question. Let me think about an example from my last project.",
         translation: "这个问题很好。让我想一想我上一个项目中的例子。",
-        explanation: "需要思考时的过渡语，避免沉默尴尬，也展现你在认真思考。"
+        explanation: "需要思考时的过渡语，避免沉默尴尬，也展现你在认真思考。",
+        whenToUse: "被问到需要组织答案的问题时",
       },
       {
         pattern: "I believe my experience in + [领域] aligns well with this role.",
         example: "I believe my experience in project management aligns well with this role.",
         translation: "我相信我在项目管理方面的经验与这个职位非常匹配。",
-        explanation: "说明自身经验与岗位要求的契合度。"
+        explanation: "说明自身经验与岗位要求的契合度。",
+        whenToUse: "总结为什么你是合适的候选人",
       },
     ],
     tips: [
@@ -362,14 +702,14 @@ const SCENES_DATA: Record<string, {
       { title: '避免的表达', content: '避免过于口语化的俚语（like, kinda, gonna）、避免过于绝对（"I\'m the best at..."）、避免否定前雇主或同事（即使是真的）。' },
     ],
     sampleDialogue: [
-      { role: 'A', english: "Good morning. Thanks for coming in today. Could you start by telling us a little about yourself?", chinese: '早上好。感谢你今天来面试。可以先简单介绍一下你自己吗？' },
-      { role: 'B', english: "Thank you for having me. I'm a product manager with 6 years of experience in the tech industry. In my previous role at XYZ Company, I led the launch of three successful mobile apps.", chinese: '感谢邀请。我是一名在科技行业有6年经验的产品经理。在之前的XYZ公司，我主导了三个成功的移动应用的发布。' },
-      { role: 'A', english: "That's impressive. Can you tell us about a time you overcame a significant challenge?", chinese: '很厉害。能说说你克服重大挑战的一次经历吗？' },
-      { role: 'B', english: "That's a great question. Let me think... In my last project, our team was falling behind schedule. I organized daily standups and re-prioritized tasks. We ended up launching on time and 10% under budget.", chinese: '这个问题很好。让我想想……在上一个项目中，我们团队进度落后了。我组织了每日站会并重新排定任务优先级。最终我们按时发布，还比预算节省了10%。' },
-      { role: 'A', english: "Excellent. Why are you interested in this position?", chinese: '很好。你为什么对这个职位感兴趣？' },
-      { role: 'B', english: "I've followed your company for a long time and I'm excited about the opportunity to work on products that reach millions of users. My experience in scaling products aligns well with what you're looking for.", chinese: '我关注贵公司很久了，我很期待能有机会为数百万用户做产品。我在产品规模化方面的经验与你们的需求很契合。' },
-      { role: 'A', english: "Great. Do you have any questions for us?", chinese: '好的。你有什么想问我们的吗？' },
-      { role: 'B', english: "Yes. What does success look like for this role in the first six months? And could you tell me about the team I'd be working with?", chinese: '有的。这个职位在前6个月怎样算成功？还有能介绍一下我将共事的团队吗？' },
+      { role: 'A', english: "Good morning. Thanks for coming in today. Could you start by telling us a little about yourself?", chinese: '早上好。感谢你今天来面试。可以先简单介绍一下你自己吗？', context: '【自我介绍】面试官开场问题' },
+      { role: 'B', english: "Thank you for having me. I'm a product manager with 6 years of experience in the tech industry. In my previous role at XYZ Company, I led the launch of three successful mobile apps.", chinese: '感谢邀请。我是一名在科技行业有6年经验的产品经理。在之前的XYZ公司，我主导了三个成功的移动应用的发布。', context: '【自我介绍】应聘者回答' },
+      { role: 'A', english: "That's impressive. Can you tell us about a time you overcame a significant challenge?", chinese: '很厉害。能说说你克服重大挑战的一次经历吗？', context: '【行为问题】STAR法则适用问题' },
+      { role: 'B', english: "That's a great question. Let me think... In my last project, our team was falling behind schedule. I organized daily standups and re-prioritized tasks. We ended up launching on time and 10% under budget.", chinese: '这个问题很好。让我想想……在上一个项目中，我们团队进度落后了。我组织了每日站会并重新排定任务优先级。最终我们按时发布，还比预算节省了10%。', context: '【行为问题】用STAR法则回答' },
+      { role: 'A', english: "Excellent. Why are you interested in this position?", chinese: '很好。你为什么对这个职位感兴趣？', context: '【表达动机】经典问题' },
+      { role: 'B', english: "I've followed your company for a long time and I'm excited about the opportunity to work on products that reach millions of users. My experience in scaling products aligns well with what you're looking for.", chinese: '我关注贵公司很久了，我很期待能有机会为数百万用户做产品。我在产品规模化方面的经验与你们的需求很契合。', context: '【表达动机】表达热情和匹配度' },
+      { role: 'A', english: "Great. Do you have any questions for us?", chinese: '好的。你有什么想问我们的吗？', context: '【反问环节】面试官询问' },
+      { role: 'B', english: "Yes. What does success look like for this role in the first six months? And could you tell me about the team I'd be working with?", chinese: '有的。这个职位在前6个月怎样算成功？还有能介绍一下我将共事的团队吗？', context: '【反问环节】高质量反问问题' },
     ],
   },
   shopping: {
@@ -380,45 +720,107 @@ const SCENES_DATA: Record<string, {
       icon: 'ShoppingBag',
       category: '生活',
       description: '国外商场购物、询问尺码价格、试穿、打折',
-      keywords: ['购物', '逛街', '买东西', '衣服', '商场', 'shopping', 'clothes', 'store', 'mall'],
+      keywords: ['购物', '逛街', '买东西', '衣服', '商场', 'shopping', 'clothes', 'store', 'mall', '买衣服', '商店', 'outlet', '折扣'],
+      stages: [
+        { stage: '进店与闲逛', stageEn: 'Entering & Browsing' },
+        { stage: '询问尺码颜色价格', stageEn: 'Asking About Products' },
+        { stage: '试穿', stageEn: 'Trying On' },
+        { stage: '询问折扣与付款', stageEn: 'Discounts & Payment' },
+        { stage: '退换货', stageEn: 'Returns & Exchanges' },
+      ],
     },
-    briefIntroduction: '在国外购物需要掌握询问尺码、颜色、价格、折扣、退换货等常用表达。',
-    keyPhrases: [
-      { english: "I'm just looking around, thanks.", chinese: '我只是随便看看，谢谢。', context: '店员招呼时礼貌拒绝' },
-      { english: "Can I help you find anything?", chinese: '需要帮忙找什么吗？', context: '店员询问' },
-      { english: "Do you have this in a smaller size?", chinese: '这个有小一码的吗？', context: '询问尺码' },
-      { english: "Does this come in other colors?", chinese: '这个有其他颜色吗？', context: '询问颜色' },
-      { english: "Where are the fitting rooms?", chinese: '试衣间在哪里？', context: '找试衣间' },
-      { english: "How does this look on me?", chinese: '我穿这个好看吗？', context: '询问意见' },
-      { english: "Is this on sale?", chinese: '这个打折吗？', context: '询问促销' },
-      { english: "Do you offer a student discount?", chinese: '你们有学生折扣吗？', context: '询问折扣' },
-      { english: "I'll take this one.", chinese: '我要这件。', context: '决定购买' },
-      { english: "What's your return policy?", chinese: '你们的退换货政策是什么？', context: '退换货' },
+    briefIntroduction: '购物流程按进店→咨询→试穿→付款→退换货分组，特别是退换货政策一定要提前问清楚。',
+    keyPhrasesGrouped: [
+      {
+        stage: '进店与闲逛',
+        stageEn: 'Entering & Browsing',
+        description: '刚进店，店员上来招呼时',
+        phrases: [
+          { english: "I'm just looking around, thanks.", chinese: '我只是随便看看，谢谢。', whenToUse: '店员招呼 "Can I help you?" 时的标准回答', speaker: '顾客' },
+          { english: "I'm looking for a [物品].", chinese: '我在找一个[物品]。', whenToUse: '有明确想买的东西时', speaker: '顾客' },
+          { english: "Can I help you find anything?", chinese: '需要帮忙找什么吗？', whenToUse: '店员通常会问的第一句话', speaker: '店员' },
+          { english: "I'll let you know if I need anything.", chinese: '有需要我会叫你的。', whenToUse: '礼貌拒绝店员帮助，但不关上沟通的门', speaker: '顾客' },
+        ],
+      },
+      {
+        stage: '询问尺码颜色价格',
+        stageEn: 'Asking About Products',
+        description: '看中某样东西，想问具体信息时',
+        phrases: [
+          { english: "Do you have this in a smaller size?", chinese: '这个有小一码的吗？', whenToUse: '问不同尺码', speaker: '顾客' },
+          { english: "Does this come in other colors?", chinese: '这个有其他颜色吗？', whenToUse: '问是否有其他颜色', speaker: '顾客' },
+          { english: "How much is this?", chinese: '这个多少钱？', whenToUse: '没看到价格标签时', speaker: '顾客' },
+          { english: "Do you have anything similar but + [不同点]?", chinese: '你们有类似但 + [不同点] 的吗？', whenToUse: '在已看的款式基础上提出其他需求（如更便宜/更正式等）', speaker: '顾客' },
+          { english: "Is this real leather/genuine?", chinese: '这个是真皮/正品吗？', whenToUse: '怀疑材质或真伪时', speaker: '顾客' },
+        ],
+      },
+      {
+        stage: '试穿',
+        stageEn: 'Trying On',
+        description: '试穿衣服鞋子时',
+        phrases: [
+          { english: "Can I try this on?", chinese: '我能试一下吗？', whenToUse: '询问是否可以试穿', speaker: '顾客' },
+          { english: "Where are the fitting rooms?", chinese: '试衣间在哪里？', whenToUse: '找试衣间', speaker: '顾客' },
+          { english: "How does this look on me?", chinese: '我穿这个好看吗？', whenToUse: '问同伴或店员的意见', speaker: '顾客' },
+          { english: "It's a bit too tight/loose. Do you have a size [M/L]?", chinese: '有点太紧/松了。你们有[M/L]码吗？', whenToUse: '尺码不合适时', speaker: '顾客' },
+          { english: "This doesn't fit me very well.", chinese: '这个不太合身。', whenToUse: '委婉表示不合适', speaker: '顾客' },
+        ],
+      },
+      {
+        stage: '询问折扣与付款',
+        stageEn: 'Discounts & Payment',
+        description: '决定购买到付款的环节',
+        phrases: [
+          { english: "Is this on sale?", chinese: '这个打折吗？', whenToUse: '询问是否在促销', speaker: '顾客' },
+          { english: "Do you offer a student discount?", chinese: '你们有学生折扣吗？', whenToUse: '有学生证时问', speaker: '顾客' },
+          { english: "Are there any promotions going on right now?", chinese: '现在有什么促销活动吗？', whenToUse: '更广泛地问有没有优惠', speaker: '顾客' },
+          { english: "I'll take this one.", chinese: '我要这件。', whenToUse: '决定购买时', speaker: '顾客' },
+          { english: "Can I pay by credit card?", chinese: '我可以用信用卡付款吗？', whenToUse: '确认付款方式', speaker: '顾客' },
+          { english: "Can I pay with Apple Pay/Alipay?", chinese: '我可以用 Apple Pay/支付宝 付款吗？', whenToUse: '问是否支持特定支付方式', speaker: '顾客' },
+        ],
+      },
+      {
+        stage: '退换货',
+        stageEn: 'Returns & Exchanges',
+        description: '询问退换货政策或办理退换时',
+        phrases: [
+          { english: "What's your return policy?", chinese: '你们的退换货政策是什么？', whenToUse: '购买前提前了解，或者购买后需要退换时', speaker: '顾客' },
+          { english: "How many days do I have to return this?", chinese: '退换期限是多少天？', whenToUse: '确认退货期限', speaker: '顾客' },
+          { english: "Do I need the receipt?", chinese: '需要小票吗？', whenToUse: '确认退货凭证', speaker: '顾客' },
+          { english: "Can I exchange this for a different size?", chinese: '我可以换一个不同尺码吗？', whenToUse: '尺码不合适换货时', speaker: '顾客' },
+          { english: "I'd like to return this, please.", chinese: '我想退货。', whenToUse: '正式办理退货', speaker: '顾客' },
+        ],
+      },
     ],
+    keyPhrases: [],
     commonPatterns: [
       {
         pattern: "I'm looking for + [物品].",
         example: "I'm looking for a casual dress for summer.",
         translation: "我在找夏天穿的休闲连衣裙。",
-        explanation: "明确表达你想买什么。"
+        explanation: "明确表达你想买什么。",
+        whenToUse: "进店后直接告诉店员你的需求",
       },
       {
         pattern: "Do you have anything similar but + [不同点]?",
         example: "Do you have anything similar but less expensive?",
         translation: "你们有类似但便宜一点的吗？",
-        explanation: "在已有款式基础上提出其他需求。"
+        explanation: "在已有款式基础上提出其他需求。",
+        whenToUse: "对看中的某样东西不完全满意时",
       },
       {
         pattern: "It's a bit too + [形容词]. Do you have...?",
         example: "It's a bit too tight. Do you have a size M?",
         translation: "有点太紧了。你们有中号的吗？",
-        explanation: "说明不合适并提出具体需求。"
+        explanation: "说明不合适并提出具体需求。",
+        whenToUse: "试穿后觉得不合适时",
       },
       {
         pattern: "I think I'll pass on this one. Thank you anyway.",
         example: "I think I'll pass on this one. Thank you anyway.",
         translation: "这件我就不买了。还是谢谢你。",
-        explanation: "礼貌地拒绝购买，不买也保持礼貌。"
+        explanation: "礼貌地拒绝购买，不买也保持礼貌。",
+        whenToUse: "试穿或看完后决定不买时",
       },
     ],
     tips: [
@@ -428,59 +830,102 @@ const SCENES_DATA: Record<string, {
       { title: '退换货须知', content: "问清楚 return policy：return window（退换期限，常见30天）、receipt required（是否需要小票）、store credit vs refund（是退到礼品卡还是原路退回）。保留好小票！" },
     ],
     sampleDialogue: [
-      { role: 'A', english: "Hi there! Can I help you find anything today?", chinese: '你好！需要帮忙找点什么吗？' },
-      { role: 'B', english: "Hi! I'm just looking around for now, thanks. But I might need help with sizes later.", chinese: '你好！我先随便看看，谢谢。不过等下可能需要你帮忙看看尺码。' },
-      { role: 'A', english: "Sure thing, just let me know. Oh, and just so you know—we're having a 30% off sale on all summer items.", chinese: '好的，随时叫我。对了说一下，所有夏季商品都打7折哦。' },
-      { role: 'B', english: "Oh, that's great! Actually, could I try this jacket on? Do you have it in a medium?", chinese: '哦，太好了！对了，我能试一下这件夹克吗？有中号吗？' },
-      { role: 'A', english: "Let me check. Yes, here you go. The fitting rooms are right over there, by the wall.", chinese: '我看看。有的，给你。试衣间就在那边，靠墙的位置。' },
-      { role: 'B', english: "Thanks. Hmm... it's a bit too big. Do you have anything similar but a size smaller?", chinese: '谢谢。嗯……有点太大了。你们有类似但小一号的吗？' },
-      { role: 'A', english: "We have this style in a small. Would you like to try it?", chinese: '这款我们有小号。你想试试吗？' },
-      { role: 'B', english: "Perfect! Yes, please. Also, what's your return policy just in case?", chinese: '太好了！麻烦你。另外，想问下你们的退换货政策是怎样的？以防万一。' },
+      { role: 'A', english: "Hi there! Can I help you find anything today?", chinese: '你好！需要帮忙找点什么吗？', context: '【进店与闲逛】店员招呼' },
+      { role: 'B', english: "Hi! I'm just looking around for now, thanks. But I might need help with sizes later.", chinese: '你好！我先随便看看，谢谢。不过等下可能需要你帮忙看看尺码。', context: '【进店与闲逛】礼貌拒绝' },
+      { role: 'A', english: "Sure thing, just let me know. Oh, and just so you know—we're having a 30% off sale on all summer items.", chinese: '好的，随时叫我。对了说一下，所有夏季商品都打7折哦。', context: '【询问折扣与付款】店员告知促销' },
+      { role: 'B', english: "Oh, that's great! Actually, could I try this jacket on? Do you have it in a medium?", chinese: '哦，太好了！对了，我能试一下这件夹克吗？有中号吗？', context: '【试穿】询问尺码和试穿' },
+      { role: 'A', english: "Let me check. Yes, here you go. The fitting rooms are right over there, by the wall.", chinese: '我看看。有的，给你。试衣间就在那边，靠墙的位置。', context: '【试穿】店员指引' },
+      { role: 'B', english: "Thanks. Hmm... it's a bit too big. Do you have anything similar but a size smaller?", chinese: '谢谢。嗯……有点太大了。你们有类似但小一号的吗？', context: '【询问尺码颜色价格】说明不合适' },
+      { role: 'A', english: "We have this style in a small. Would you like to try it?", chinese: '这款我们有小号。你想试试吗？', context: '【询问尺码颜色价格】店员提供选择' },
+      { role: 'B', english: "Perfect! Yes, please. Also, what's your return policy just in case?", chinese: '太好了！麻烦你。另外，想问下你们的退换货政策是怎样的？以防万一。', context: '【退换货】询问退换政策' },
     ],
   },
 };
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  business_meeting: ['会议', '开会', '商务', '同事', '团队', 'work', 'meeting', 'conference', 'office', '职场', '汇报'],
-  airport_checkin: ['机场', '值机', '登机', '行李', '托运', 'airport', 'checkin', 'flight', 'luggage', '飞机', '航站楼', '登机口'],
-  tv_series_slang: ['美剧', '俚语', '口语', '电影', 'tv', 'slang', 'movie', 'drama', '流行语', '追剧', '看剧', '娱乐'],
-  restaurant_ordering: ['餐厅', '点餐', '吃饭', '菜单', '订餐', 'restaurant', 'food', 'menu', 'dinner', '吃饭', '点菜', '西餐'],
-  job_interview: ['面试', '求职', '工作', '招聘', 'interview', 'job', 'career', 'resume', '找工作', '应聘'],
-  shopping: ['购物', '逛街', '买东西', '衣服', '商场', 'shopping', 'clothes', 'store', 'mall', '买衣服', '商店'],
+  business_meeting: ['会议', '开会', '商务', '同事', '团队', 'work', 'meeting', 'conference', 'office', '职场', '汇报', '例会', '老板', '客户', 'presentation', '讨论'],
+  airport_checkin: ['机场', '值机', '登机', '行李', '托运', 'airport', 'checkin', 'flight', 'luggage', '飞机', '航站楼', '登机口', '安检', '海关', '出境', '转机', '机票'],
+  tv_series_slang: ['美剧', '俚语', '口语', '电影', 'tv', 'slang', 'movie', 'drama', '流行语', '追剧', '看剧', '娱乐', 'native speaker', '地道', 'native', '老外'],
+  restaurant_ordering: ['餐厅', '点餐', '吃饭', '菜单', '订餐', 'restaurant', 'food', 'menu', 'dinner', '点菜', '西餐', '用餐', '吃饭', 'lunch', 'breakfast', 'brunch'],
+  job_interview: ['面试', '求职', '工作', '招聘', 'interview', 'job', 'career', 'resume', '找工作', '应聘', 'hr', 'offer', '简历', '跳槽', 'offer'],
+  shopping: ['购物', '逛街', '买东西', '衣服', '商场', 'shopping', 'clothes', 'store', 'mall', '买衣服', '商店', 'outlet', '折扣', '超市', 'grocery', '买鞋', '包包'],
 };
 
-const DEFAULT_RESPONSE = {
-  briefIntroduction: '这是一个常见的英语交流场景。以下是一些通用的实用表达和句式，帮助你在类似场景下更自信地沟通。',
+const DEFAULT_RESPONSE: {
+  briefIntroduction: string;
+  keyPhrases: ScenePhrase[];
+  keyPhrasesGrouped: ScenePhraseGroup[];
+  commonPatterns: ScenePattern[];
+  tips: SceneTip[];
+  sampleDialogue: { role: 'A' | 'B'; english: string; chinese: string; context?: string }[];
+} = {
+  briefIntroduction: '没能精准匹配到你的具体场景。下方提供了一些通用英语表达，也可以尝试补充更具体的信息（比如"在机场遇到什么问题？""会议中你是主持人还是参会者？"）来获取更精准的内容。',
   keyPhrases: [
-    { english: "Excuse me, could you help me?", chinese: '打扰一下，能帮我吗？' },
-    { english: "Could you repeat that, please?", chinese: '能重复一下吗？' },
-    { english: "I'm sorry, I didn't quite catch that.", chinese: '抱歉，我没太听懂。' },
-    { english: "How do you say this in English?", chinese: '这个用英语怎么说？' },
-    { english: "Can you write that down for me?", chinese: '能帮我写下来吗？' },
-    { english: "Thank you so much for your help.", chinese: '非常感谢你的帮助。' },
-    { english: "I appreciate it.", chinese: '非常感谢。' },
-    { english: "No problem at all.", chinese: '完全没问题。' },
-    { english: "Could you speak a bit slower, please?", chinese: '能说慢一点吗？' },
-    { english: "I'm still learning English.", chinese: '我还在学习英语。' },
+    { english: "Excuse me, could you help me?", chinese: '打扰一下，能帮我吗？', whenToUse: '任何需要寻求帮助的场合', speaker: '你' },
+    { english: "Could you repeat that, please?", chinese: '能重复一下吗？', whenToUse: '没听清对方说的话', speaker: '你' },
+    { english: "I'm sorry, I didn't quite catch that.", chinese: '抱歉，我没太听懂。', whenToUse: '没听懂，比 I don\'t understand 更礼貌', speaker: '你' },
+    { english: "How do you say this in English?", chinese: '这个用英语怎么说？', whenToUse: '想问某个词或句子的英语说法', speaker: '你' },
+    { english: "Can you write that down for me?", chinese: '能帮我写下来吗？', whenToUse: '怕记不住，让对方写下来', speaker: '你' },
+    { english: "Thank you so much for your help.", chinese: '非常感谢你的帮助。', whenToUse: '对方帮完你之后', speaker: '你' },
+    { english: "I appreciate it.", chinese: '非常感谢。', whenToUse: '更随意的感谢', speaker: '你' },
+    { english: "No problem at all.", chinese: '完全没问题。', whenToUse: '回应别人的感谢', speaker: '任何人' },
+    { english: "Could you speak a bit slower, please?", chinese: '能说慢一点吗？', whenToUse: '对方语速太快时', speaker: '你' },
+    { english: "I'm still learning English.", chinese: '我还在学习英语。', whenToUse: '提前说明，让对方对你更有耐心', speaker: '你' },
+  ],
+  keyPhrasesGrouped: [
+    {
+      stage: '寻求帮助',
+      stageEn: 'Asking for Help',
+      description: '需要别人帮忙时',
+      phrases: [
+        { english: "Excuse me, could you help me?", chinese: '打扰一下，能帮我吗？', whenToUse: '任何需要寻求帮助的场合', speaker: '你' },
+        { english: "Could you do me a favor?", chinese: '能帮我个忙吗？', whenToUse: '请别人帮具体的小忙', speaker: '你' },
+      ],
+    },
+    {
+      stage: '听不懂时',
+      stageEn: 'When You Don\'t Understand',
+      description: '沟通遇到障碍时',
+      phrases: [
+        { english: "Could you repeat that, please?", chinese: '能重复一下吗？', whenToUse: '没听清', speaker: '你' },
+        { english: "I'm sorry, I didn't quite catch that.", chinese: '抱歉，我没太听懂。', whenToUse: '没听懂', speaker: '你' },
+        { english: "Could you speak a bit slower, please?", chinese: '能说慢一点吗？', whenToUse: '对方语速太快', speaker: '你' },
+        { english: "Can you write that down for me?", chinese: '能帮我写下来吗？', whenToUse: '怕记不住', speaker: '你' },
+      ],
+    },
+    {
+      stage: '感谢与回应',
+      stageEn: 'Thanks & Responses',
+      description: '表达感谢和回应感谢',
+      phrases: [
+        { english: "Thank you so much for your help.", chinese: '非常感谢你的帮助。', whenToUse: '对方帮完你之后', speaker: '你' },
+        { english: "I appreciate it.", chinese: '非常感谢。', whenToUse: '更随意的感谢', speaker: '你' },
+        { english: "No problem at all.", chinese: '完全没问题。', whenToUse: '回应别人的感谢', speaker: '任何人' },
+        { english: "You're welcome.", chinese: '不客气。', whenToUse: '最标准的回应感谢', speaker: '任何人' },
+      ],
+    },
   ],
   commonPatterns: [
     {
       pattern: "Could you please + [动词原形]?",
       example: "Could you please show me the way?",
       translation: "你能给我指路吗？",
-      explanation: "最通用的礼貌请求句型，几乎可以用在任何需要帮助的场合。"
+      explanation: "最通用的礼貌请求句型，几乎可以用在任何需要帮助的场合。",
+      whenToUse: "任何需要请别人帮忙做某事时",
     },
     {
       pattern: "I would like to + [动词].",
       example: "I would like to ask a question.",
       translation: "我想问一个问题。",
-      explanation: "比 I want to 更加正式和礼貌的表达。"
+      explanation: "比 I want to 更加正式和礼貌的表达。",
+      whenToUse: "正式或半正式场合表达需求",
     },
     {
       pattern: "Do you know if/whether + [从句]?",
       example: "Do you know if there's a restroom nearby?",
       translation: "你知道附近有没有洗手间吗？",
-      explanation: "礼貌地询问信息。"
+      explanation: "礼貌地询问信息。",
+      whenToUse: "打听不确定的信息时",
     },
   ],
   tips: [
@@ -490,14 +935,17 @@ const DEFAULT_RESPONSE = {
     { title: '随身工具', content: '可以提前下载翻译App（如Google翻译），支持离线翻译和语音翻译，在关键时刻非常有用。' },
   ],
   sampleDialogue: [
-    { role: 'A', english: "Excuse me, could you help me? I'm a bit lost.", chinese: '打扰一下，能帮我吗？我有点迷路了。' },
-    { role: 'B', english: "Of course! Where are you trying to go?", chinese: '当然可以！你想去哪里？' },
-    { role: 'A', english: "I'm looking for the subway station. Could you point me in the right direction?", chinese: '我在找地铁站。能告诉我怎么走吗？' },
-    { role: 'B', english: "Sure! Go straight for two blocks, then turn left. You'll see it on your right.", chinese: '好的！直走两个街区，然后左转。你就能看到它在右手边。' },
-    { role: 'A', english: "Thank you so much! I really appreciate it.", chinese: '非常感谢！太谢谢你了。' },
-    { role: 'B', english: "No problem at all! Have a good day.", chinese: '不客气！祝你今天愉快。' },
+    { role: 'A', english: "Excuse me, could you help me? I'm a bit lost.", chinese: '打扰一下，能帮我吗？我有点迷路了。', context: '【寻求帮助】问路' },
+    { role: 'B', english: "Of course! Where are you trying to go?", chinese: '当然可以！你想去哪里？', context: '【寻求帮助】对方回应' },
+    { role: 'A', english: "I'm looking for the subway station. Could you point me in the right direction?", chinese: '我在找地铁站。能告诉我怎么走吗？', context: '【寻求帮助】说明需求' },
+    { role: 'B', english: "Sure! Go straight for two blocks, then turn left. You'll see it on your right.", chinese: '好的！直走两个街区，然后左转。你就能看到它在右手边。', context: '【寻求帮助】对方指路' },
+    { role: 'A', english: "Thank you so much! I really appreciate it.", chinese: '非常感谢！太谢谢你了。', context: '【感谢与回应】表达感谢' },
+    { role: 'B', english: "No problem at all! Have a good day.", chinese: '不客气！祝你今天愉快。', context: '【感谢与回应】对方回应' },
   ],
 };
+
+const AMBIGUOUS_THRESHOLD = 1;
+const GOOD_MATCH_THRESHOLD = 3;
 
 @Injectable()
 export class SceneEnglishService {
@@ -533,12 +981,39 @@ export class SceneEnglishService {
       .map(s => s.info);
   }
 
+  private getMatchReasons(description: string, sceneId: string): string[] {
+    const reasons: string[] = [];
+    const lower = description.toLowerCase();
+    const keywords = CATEGORY_KEYWORDS[sceneId] || [];
+    for (const kw of keywords) {
+      if (lower.includes(kw.toLowerCase())) {
+        reasons.push(kw);
+        if (reasons.length >= 3) break;
+      }
+    }
+    return reasons;
+  }
+
+  private buildCandidate(sceneId: string, score: number, description: string): SceneCandidate {
+    const info = SCENES_DATA[sceneId].info;
+    return {
+      id: info.id,
+      name: info.name,
+      nameEn: info.nameEn,
+      icon: info.icon,
+      description: info.description,
+      matchScore: score,
+      matchReasons: this.getMatchReasons(description, sceneId),
+    };
+  }
+
   query(sceneDescription: string): SceneEnglishResponse {
     const trimmed = sceneDescription.trim();
     const lower = trimmed.toLowerCase();
 
     let matchedSceneId: string | null = null;
     let bestScore = 0;
+    const allScores: { id: string; score: number }[] = [];
 
     for (const [id, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
       let score = 0;
@@ -547,6 +1022,7 @@ export class SceneEnglishService {
           score += 1;
         }
       }
+      allScores.push({ id, score });
       if (score > bestScore) {
         bestScore = score;
         matchedSceneId = id;
@@ -561,24 +1037,51 @@ export class SceneEnglishService {
       }
     }
 
-    if (matchedSceneId && bestScore > 0) {
+    allScores.sort((a, b) => b.score - a.score);
+
+    const isAmbiguous = bestScore <= AMBIGUOUS_THRESHOLD;
+
+    if (matchedSceneId && bestScore > AMBIGUOUS_THRESHOLD) {
       const scene = SCENES_DATA[matchedSceneId];
+      const candidates = allScores
+        .filter(s => s.id !== matchedSceneId && s.score > 0)
+        .slice(0, 3)
+        .map(s => this.buildCandidate(s.id, s.score, trimmed));
+
       return {
         sceneName: scene.info.name,
         sceneNameEn: scene.info.nameEn,
         briefIntroduction: scene.briefIntroduction,
+        matchedScore: bestScore,
+        isAmbiguous: false,
+        candidateScenes: candidates.length > 0 ? candidates : undefined,
         keyPhrases: scene.keyPhrases,
+        keyPhrasesGrouped: scene.keyPhrasesGrouped,
         commonPatterns: scene.commonPatterns,
         tips: scene.tips,
         sampleDialogue: scene.sampleDialogue,
       };
     }
 
+    const candidateScenes = allScores
+      .filter(s => s.score > 0)
+      .slice(0, 5)
+      .map(s => this.buildCandidate(s.id, s.score, trimmed));
+
+    const clarificationHint = candidateScenes.length > 0
+      ? '你是不是在找以上某个场景？点击卡片可直接查看，或补充更多细节（如"在机场的哪个环节？""会议中你是主持人还是参会者？"）以获得更精准的匹配。'
+      : '可以尝试补充更多具体细节，例如：你在什么地点？对方是什么人？你想达成什么目的？（例如："在国外餐厅想点牛排，要五分熟"）';
+
     return {
       sceneName: '通用英语交流',
       sceneNameEn: 'General English Communication',
       briefIntroduction: DEFAULT_RESPONSE.briefIntroduction,
+      matchedScore: bestScore,
+      isAmbiguous: true,
+      candidateScenes: candidateScenes.length > 0 ? candidateScenes : undefined,
+      clarificationHint,
       keyPhrases: DEFAULT_RESPONSE.keyPhrases,
+      keyPhrasesGrouped: DEFAULT_RESPONSE.keyPhrasesGrouped,
       commonPatterns: DEFAULT_RESPONSE.commonPatterns,
       tips: DEFAULT_RESPONSE.tips,
       sampleDialogue: DEFAULT_RESPONSE.sampleDialogue,
@@ -592,7 +1095,10 @@ export class SceneEnglishService {
       sceneName: scene.info.name,
       sceneNameEn: scene.info.nameEn,
       briefIntroduction: scene.briefIntroduction,
+      matchedScore: 999,
+      isAmbiguous: false,
       keyPhrases: scene.keyPhrases,
+      keyPhrasesGrouped: scene.keyPhrasesGrouped,
       commonPatterns: scene.commonPatterns,
       tips: scene.tips,
       sampleDialogue: scene.sampleDialogue,

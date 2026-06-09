@@ -15,21 +15,22 @@
       </template>
 
       <el-alert
-        title="描述你所处的具体场景，快速获取实用英语表达"
+        title="越具体的场景描述，得到的表达越精准"
         type="info"
         :closable="false"
         show-icon
         class="intro-alert"
       >
         <template #default>
-          <p>💡 试试输入："和外国同事开会"、"在机场值机"、"看美剧听不懂俚语"、"餐厅点餐"、"求职面试"、"国外购物逛街"</p>
+          <p>💡 <strong>模糊描述</strong>："我要出国" → 可能返回通用表达；<strong>具体描述</strong>："在洛杉矶机场值机，有两件行李要托运，想选靠窗座位" → 精准命中机场值机并定位到对应环节</p>
+          <p style="margin-top:6px;">推荐直接点击下方场景卡片，或输入如："和外国同事开会，我需要做汇报"、"在纽约餐厅点牛排，五分熟"</p>
         </template>
       </el-alert>
 
       <div class="search-section">
         <el-input
           v-model="sceneDescription"
-          placeholder="输入你所处的场景，如：和外国同事开会、在机场值机..."
+          placeholder="请具体描述：地点 + 你的角色 + 想做什么（如：在国外餐厅想点一份三分熟牛排）"
           size="large"
           clearable
           @keydown.enter="handleQuery"
@@ -74,6 +75,43 @@
     </el-card>
 
     <div v-if="result" class="result-section">
+      <el-card v-if="result.isAmbiguous" class="ambiguous-card">
+        <el-result icon="question" title="场景描述不够具体" sub-title="为了给你更精准的表达，请选择你实际所在的场景，或补充更多细节">
+          <template #extra>
+            <div v-if="result.candidateScenes && result.candidateScenes.length > 0" class="candidate-section">
+              <div class="candidate-title">
+                <el-icon><Compass /></el-icon>
+                <span>根据你输入的关键词，可能是以下场景：</span>
+              </div>
+              <div class="candidate-grid">
+                <div
+                  v-for="candidate in result.candidateScenes"
+                  :key="candidate.id"
+                  class="candidate-card"
+                  @click="selectCandidate(candidate)"
+                >
+                  <div class="candidate-header">
+                    <el-icon :size="22" :color="tagColorMap[getCategory(candidate.id)] || '#165DFF'">
+                      <component :is="getIconComponent(candidate.icon)" />
+                    </el-icon>
+                    <div class="candidate-name">{{ candidate.name }}</div>
+                  </div>
+                  <div class="candidate-desc">{{ candidate.description }}</div>
+                  <div class="candidate-reasons">
+                    <el-tag v-for="reason in candidate.matchReasons" :key="reason" size="small" type="warning" effect="light">
+                      匹配: {{ reason }}
+                    </el-tag>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="clarification-hint">
+              <el-alert :title="result.clarificationHint || '补充更多细节以获得更精准的匹配'" type="warning" :closable="false" show-icon />
+            </div>
+          </template>
+        </el-result>
+      </el-card>
+
       <el-card class="result-card" v-loading="loading">
         <template #header>
           <div class="result-header">
@@ -84,6 +122,14 @@
               <span>{{ result.sceneName }}</span>
               <el-tag size="small" type="success" effect="light">
                 {{ result.sceneNameEn }}
+              </el-tag>
+              <el-tag v-if="!result.isAmbiguous" size="small" type="primary" effect="dark" style="margin-left:8px;">
+                <el-icon><CircleCheck /></el-icon>
+                <span style="margin-left:2px;">精准匹配</span>
+              </el-tag>
+              <el-tag v-else size="small" type="warning" effect="light" style="margin-left:8px;">
+                <el-icon><Warning /></el-icon>
+                <span style="margin-left:2px;">通用表达</span>
               </el-tag>
             </div>
             <div class="result-actions">
@@ -106,29 +152,72 @@
 
         <el-tabs v-model="activeTab" class="result-tabs">
           <el-tab-pane label="🎯 关键表达" name="phrases">
-            <div class="phrases-grid">
-              <div
-                v-for="(phrase, idx) in result.keyPhrases"
-                :key="idx"
-                class="phrase-card"
-                :class="{ speaking: currentlySpeakingId === 'phrase-' + idx }"
-                @click="speakText(phrase.english, 'phrase-' + idx)"
-              >
-                <div class="phrase-header">
-                  <span class="phrase-number">{{ idx + 1 }}</span>
-                  <el-tag v-if="phrase.context" size="small" type="info" effect="plain">
-                    {{ phrase.context }}
-                  </el-tag>
+            <template v-if="result.keyPhrasesGrouped && result.keyPhrasesGrouped.length > 0">
+              <div v-for="(group, gIdx) in result.keyPhrasesGrouped" :key="gIdx" class="phrase-group">
+                <div class="group-header">
+                  <el-icon :size="18" color="#165DFF"><Aim /></el-icon>
+                  <span class="group-stage">{{ group.stage }}</span>
+                  <span class="group-stage-en">{{ group.stageEn }}</span>
                 </div>
-                <div class="phrase-english">
-                  "{{ phrase.english }}"
-                  <el-icon class="speak-icon" size="14" color="#165DFF"><VideoPlay /></el-icon>
-                </div>
-                <div class="phrase-chinese">
-                  {{ phrase.chinese }}
+                <div class="group-desc">{{ group.description }}</div>
+                <div class="phrases-grid">
+                  <div
+                    v-for="(phrase, idx) in group.phrases"
+                    :key="gIdx + '-' + idx"
+                    class="phrase-card"
+                    :class="{ speaking: currentlySpeakingId === 'phrase-' + gIdx + '-' + idx }"
+                    @click="speakText(phrase.english, 'phrase-' + gIdx + '-' + idx)"
+                  >
+                    <div class="phrase-header">
+                      <span class="phrase-number">{{ idx + 1 }}</span>
+                      <el-tag v-if="phrase.speaker" size="small" type="success" effect="plain">
+                        {{ phrase.speaker }}说
+                      </el-tag>
+                    </div>
+                    <div class="phrase-english">
+                      "{{ phrase.english }}"
+                      <el-icon class="speak-icon" size="14" color="#165DFF"><VideoPlay /></el-icon>
+                    </div>
+                    <div class="phrase-chinese">
+                      {{ phrase.chinese }}
+                    </div>
+                    <div v-if="phrase.whenToUse" class="phrase-when">
+                      <el-icon size="12" color="#e6a23c"><Clock /></el-icon>
+                      <span>什么时候说：{{ phrase.whenToUse }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </template>
+            <template v-else>
+              <div class="phrases-grid">
+                <div
+                  v-for="(phrase, idx) in result.keyPhrases"
+                  :key="idx"
+                  class="phrase-card"
+                  :class="{ speaking: currentlySpeakingId === 'phrase-' + idx }"
+                  @click="speakText(phrase.english, 'phrase-' + idx)"
+                >
+                  <div class="phrase-header">
+                    <span class="phrase-number">{{ idx + 1 }}</span>
+                    <el-tag v-if="phrase.speaker" size="small" type="success" effect="plain">
+                      {{ phrase.speaker }}说
+                    </el-tag>
+                  </div>
+                  <div class="phrase-english">
+                    "{{ phrase.english }}"
+                    <el-icon class="speak-icon" size="14" color="#165DFF"><VideoPlay /></el-icon>
+                  </div>
+                  <div class="phrase-chinese">
+                    {{ phrase.chinese }}
+                  </div>
+                  <div v-if="phrase.whenToUse" class="phrase-when">
+                    <el-icon size="12" color="#e6a23c"><Clock /></el-icon>
+                    <span>什么时候说：{{ phrase.whenToUse }}</span>
+                  </div>
+                </div>
+              </div>
+            </template>
           </el-tab-pane>
 
           <el-tab-pane label="📝 常见句式" name="patterns">
@@ -141,6 +230,10 @@
                 <div class="pattern-header">
                   <el-icon :size="18" color="#722ed1"><EditPen /></el-icon>
                   <span class="pattern-title">句式 {{ idx + 1 }}</span>
+                  <el-tag v-if="pattern.whenToUse" size="small" type="warning" effect="plain" style="margin-left:auto;">
+                    <el-icon><Clock /></el-icon>
+                    <span style="margin-left:2px;">{{ pattern.whenToUse }}</span>
+                  </el-tag>
                 </div>
                 <div class="pattern-body">
                   <div class="pattern-row">
@@ -206,6 +299,10 @@
                   </el-avatar>
                 </div>
                 <div class="dialogue-bubble-wrapper">
+                  <div v-if="line.context" class="dialogue-context">
+                    <el-icon size="12"><InfoFilled /></el-icon>
+                    <span>{{ line.context }}</span>
+                  </div>
                   <div
                     class="dialogue-bubble"
                     :class="{ speaking: currentlySpeakingId === 'dialogue-' + idx }"
@@ -248,12 +345,17 @@ import {
   KnifeFork,
   ShoppingBag,
   VideoPlay as VideoPlayIcon,
+  Compass,
+  CircleCheck,
+  Aim,
+  Clock,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
   sceneEnglishApi,
   type SceneInfo,
   type SceneEnglishResponse,
+  type SceneCandidate,
 } from '@/api/sceneEnglish'
 
 const loading = ref(false)
@@ -270,6 +372,15 @@ const tagTypeMap: Record<string, '' | 'success' | 'warning' | 'info' | 'danger' 
   '生活': 'info',
 }
 
+const tagColorMap: Record<string, string> = {
+  '职场': '#165DFF',
+  '旅行': '#67c23a',
+  '娱乐': '#e6a23c',
+  '生活': '#13c2c2',
+}
+
+const sceneCategoryMap: Record<string, string> = {}
+
 const iconComponents: Record<string, any> = {
   Briefcase,
   Airplane,
@@ -278,16 +389,27 @@ const iconComponents: Record<string, any> = {
   User,
   VideoPlay: VideoPlayIcon,
   ChatLineRound,
+  Compass,
+  CircleCheck,
+  Aim,
+  Clock,
 }
 
 const getIconComponent = (iconName: string) => {
   return iconComponents[iconName] || ChatLineRound
 }
 
+const getCategory = (sceneId: string) => {
+  return sceneCategoryMap[sceneId] || '生活'
+}
+
 const loadScenes = async () => {
   try {
     const res = await sceneEnglishApi.getAllScenes()
     allScenes.value = res.data
+    for (const scene of res.data) {
+      sceneCategoryMap[scene.id] = scene.category
+    }
   } catch (e) {
     console.error('加载场景列表失败', e)
   }
@@ -305,7 +427,11 @@ const handleQuery = async () => {
     const res = await sceneEnglishApi.query(description)
     result.value = res.data
     activeTab.value = 'phrases'
-    ElMessage.success(`已为你匹配「${res.data.sceneName}」场景`)
+    if (res.data.isAmbiguous) {
+      ElMessage.warning('场景描述不够具体，请选择或补充更多细节')
+    } else {
+      ElMessage.success(`已精准匹配「${res.data.sceneName}」场景`)
+    }
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || '查询失败，请重试')
   } finally {
@@ -320,6 +446,21 @@ const selectScene = async (scene: SceneInfo) => {
     const res = await sceneEnglishApi.getSceneById(scene.id)
     result.value = res.data
     activeTab.value = 'phrases'
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || '加载场景失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+const selectCandidate = async (candidate: SceneCandidate) => {
+  sceneDescription.value = candidate.name
+  loading.value = true
+  try {
+    const res = await sceneEnglishApi.getSceneById(candidate.id)
+    result.value = res.data
+    activeTab.value = 'phrases'
+    ElMessage.success(`已切换到「${candidate.name}」场景`)
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || '加载场景失败')
   } finally {
@@ -371,12 +512,20 @@ const speakAllPhrases = () => {
   if (!result.value) return
   window.speechSynthesis.cancel()
 
-  const phrases = result.value.keyPhrases.map(p => p.english)
+  let allPhrases: string[] = []
+  if (result.value.keyPhrasesGrouped && result.value.keyPhrasesGrouped.length > 0) {
+    for (const group of result.value.keyPhrasesGrouped) {
+      allPhrases = allPhrases.concat(group.phrases.map(p => p.english))
+    }
+  } else {
+    allPhrases = result.value.keyPhrases.map(p => p.english)
+  }
+
   let index = 0
 
   const speakNext = () => {
-    if (index < phrases.length) {
-      speakText(phrases[index])
+    if (index < allPhrases.length) {
+      speakText(allPhrases[index])
       index++
       setTimeout(speakNext, 2500)
     }
@@ -809,5 +958,160 @@ onUnmounted(() => {
   font-size: 13px;
   color: #909399;
   line-height: 1.6;
+}
+
+.dialogue-context {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #165DFF;
+  background: #ecf5ff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.ambiguous-card {
+  margin-bottom: 20px;
+}
+
+.ambiguous-card :deep(.el-result) {
+  padding: 20px 20px 10px;
+}
+
+.ambiguous-card :deep(.el-result__title) {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.candidate-section {
+  margin-top: 16px;
+}
+
+.candidate-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.candidate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.candidate-card {
+  border: 2px solid #ebeef5;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.25s;
+  background: #fff;
+  text-align: left;
+}
+
+.candidate-card:hover {
+  border-color: #165DFF;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(22, 93, 255, 0.12);
+}
+
+.candidate-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.candidate-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.candidate-desc {
+  font-size: 13px;
+  color: #606266;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.candidate-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.clarification-hint {
+  margin-top: 16px;
+}
+
+.phrase-group {
+  margin-bottom: 28px;
+}
+
+.phrase-group:last-child {
+  margin-bottom: 0;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.group-stage {
+  font-size: 17px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.group-stage-en {
+  font-size: 13px;
+  color: #909399;
+  font-weight: 500;
+}
+
+.group-desc {
+  font-size: 13px;
+  color: #606266;
+  margin-bottom: 14px;
+  padding-left: 26px;
+  line-height: 1.6;
+}
+
+.phrase-when {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #ebeef5;
+  font-size: 12px;
+  color: #e6a23c;
+  line-height: 1.6;
+}
+
+.pattern-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #faf5ff 0%, #f5f0ff 100%);
+  border-bottom: 1px solid #ebeef5;
+}
+
+.pattern-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #722ed1;
 }
 </style>

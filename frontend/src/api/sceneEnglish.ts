@@ -9,6 +9,15 @@ export interface ScenePhrase {
   english: string
   chinese: string
   context?: string
+  whenToUse?: string
+  speaker?: string
+}
+
+export interface ScenePhraseGroup {
+  stage: string
+  stageEn: string
+  description: string
+  phrases: ScenePhrase[]
 }
 
 export interface ScenePattern {
@@ -16,6 +25,7 @@ export interface ScenePattern {
   example: string
   translation: string
   explanation: string
+  whenToUse?: string
 }
 
 export interface SceneTip {
@@ -23,14 +33,29 @@ export interface SceneTip {
   content: string
 }
 
+export interface SceneCandidate {
+  id: string
+  name: string
+  nameEn: string
+  icon: string
+  description: string
+  matchScore: number
+  matchReasons: string[]
+}
+
 export interface SceneEnglishResponse {
   sceneName: string
   sceneNameEn: string
   briefIntroduction: string
+  matchedScore: number
+  isAmbiguous: boolean
+  candidateScenes?: SceneCandidate[]
+  clarificationHint?: string
   keyPhrases: ScenePhrase[]
+  keyPhrasesGrouped?: ScenePhraseGroup[]
   commonPatterns: ScenePattern[]
   tips: SceneTip[]
-  sampleDialogue: { role: 'A' | 'B'; english: string; chinese: string }[]
+  sampleDialogue: { role: 'A' | 'B'; english: string; chinese: string; context?: string }[]
 }
 
 export interface SceneInfo {
@@ -41,6 +66,7 @@ export interface SceneInfo {
   category: string
   description: string
   keywords: string[]
+  stages?: { stage: string; stageEn: string }[]
 }
 
 export const sceneEnglishApi = {
