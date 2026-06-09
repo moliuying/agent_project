@@ -21,6 +21,7 @@ import { WorldRecordModule } from './world-record/world-record.module';
 import { DinosaurQaModule } from './dinosaur-qa/dinosaur-qa.module';
 import { FoodCalorieModule } from './food-calorie/food-calorie.module';
 import { LiteratureQaModule } from './literature-qa/literature-qa.module';
+import { CookingQaModule } from './cooking-qa/cooking-qa.module';
 import * as path from 'path';
 
 @Module({
@@ -51,6 +52,7 @@ import * as path from 'path';
     DinosaurQaModule,
     FoodCalorieModule,
     LiteratureQaModule,
+    CookingQaModule,
   ],
 })
 export class AppModule {}

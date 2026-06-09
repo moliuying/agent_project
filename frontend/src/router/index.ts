@@ -160,6 +160,11 @@ const routes: RouteRecordRaw[] = [
         path: '/literature-qa',
         name: 'LiteratureQa',
         component: () => import('@/views/LiteratureQa.vue')
+      },
+      {
+        path: '/cooking-qa',
+        name: 'CookingQa',
+        component: () => import('@/views/CookingQa.vue')
       }
     ]
   }

@@ -261,6 +261,15 @@
                 <p>文学解读·读书会讨论·阅读笔记</p>
               </el-card>
             </el-col>
+            <el-col :span="6">
+              <el-card shadow="hover" @click="navigateTo('/cooking-qa')" class="feature-card">
+                <el-icon :size="40" color="#e6a23c">
+                  <Reading />
+                </el-icon>
+                <h3>烹饪问题解答</h3>
+                <p>AI专业厨师·做菜技巧·新手学厨</p>
+              </el-card>
+            </el-col>
           </el-row>
         </div>
       </div>
