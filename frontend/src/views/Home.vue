@@ -1,355 +1,364 @@
 <template>
   <div class="home-page">
-    <el-card class="welcome-card">
-      <template #header>
-        <div class="card-header">
-          <span>欢迎使用菜单管理系统</span>
-        </div>
-      </template>
-      <div class="welcome-content">
-        <el-icon :size="80" color="#165DFF">
-          <HomeFilled />
-        </el-icon>
-        <h2>系统首页</h2>
-        <p>这是一个基于 Vue3 + NestJS + SQLite 的全栈管理系统</p>
-        <el-divider />
-        <div class="features">
-          <el-row :gutter="20">
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/loan-calculator')" class="feature-card">
-                <el-icon :size="40" color="#165DFF">
-                  <Money />
-                </el-icon>
-                <h3>贷款试算</h3>
-                <p>房贷/车贷/公积金计算</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/holiday-calendar')" class="feature-card">
-                <el-icon :size="40" color="#67c23a">
-                  <Calendar />
-                </el-icon>
-                <h3>节假日查询</h3>
-                <p>法定节假日与调休查询</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/audio-clipper')" class="feature-card">
-                <el-icon :size="40" color="#e6a23c">
-                  <Headset />
-                </el-icon>
-                <h3>音频剪辑</h3>
-                <p>在线音频剪切工具</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/ip-lookup')" class="feature-card">
-                <el-icon :size="40" color="#f56c6c">
-                  <Location />
-                </el-icon>
-                <h3>IP地址查询</h3>
-                <p>IP归属地信息查询</p>
-              </el-card>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20" style="margin-top: 20px">
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/word-counter')" class="feature-card">
-                <el-icon :size="40" color="#722ed1">
-                  <Edit />
-                </el-icon>
-                <h3>字数统计</h3>
-                <p>文本字数详细统计</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/random-picker')" class="feature-card">
-                <el-icon :size="40" color="#13c2c2">
-                  <Cpu />
-                </el-icon>
-                <h3>随机选择</h3>
-                <p>随机选择/抽奖工具</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/code-deobfuscator')" class="feature-card">
-                <el-icon :size="40" color="#eb2f96">
-                  <Monitor />
-                </el-icon>
-                <h3>代码反混淆</h3>
-                <p>JS代码混淆还原工具</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/grid-paper')" class="feature-card">
-                <el-icon :size="40" color="#fa8c16">
-                  <Grid />
-                </el-icon>
-                <h3>格子纸生成</h3>
-                <p>方格/点阵/康奈尔笔记模板</p>
-              </el-card>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20" style="margin-top: 20px">
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/idiom-chain')" class="feature-card">
-                <el-icon :size="40" color="#eb2f96">
-                  <ChatDotRound />
-                </el-icon>
-                <h3>成语接龙对战</h3>
-                <p>AI 智能接龙，挑战你的词汇量</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/formula-ocr')" class="feature-card">
-                <el-icon :size="40" color="#165DFF">
-                  <Camera />
-                </el-icon>
-                <h3>拍照识别公式</h3>
-                <p>数学物理化学公式智能识别</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/ai-art-prompts')" class="feature-card">
-                <el-icon :size="40" color="#722ed1">
-                  <MagicStick />
-                </el-icon>
-                <h3>AI 绘画提示词</h3>
-                <p>精选提示词快速上手</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/thesis-writer')" class="feature-card">
-                <el-icon :size="40" color="#e6a23c">
-                  <Reading />
-                </el-icon>
-                <h3>论文辅助写作</h3>
-                <p>学术论文内容自动生成</p>
-              </el-card>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20" style="margin-top: 20px">
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/excel-formula')" class="feature-card">
-                <el-icon :size="40" color="#165DFF">
-                  <DataBoard />
-                </el-icon>
-                <h3>Excel公式查询</h3>
-                <p>智能匹配函数与示例公式</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/image-to-prompt')" class="feature-card">
-                <el-icon :size="40" color="#722ed1">
-                  <PictureFilled />
-                </el-icon>
-                <h3>图片转提示词</h3>
-                <p>AI 分析图片生成绘画提示词</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/picture-writing')" class="feature-card">
-                <el-icon :size="40" color="#f56c6c">
-                  <Reading />
-                </el-icon>
-                <h3>看图写话</h3>
-                <p>AI 分析图片生成小学生作文</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/system/menu')" class="feature-card">
-                <el-icon :size="40" color="#909399">
-                  <Setting />
-                </el-icon>
-                <h3>系统设置</h3>
-                <p>菜单与系统管理</p>
-              </el-card>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20" style="margin-top: 20px">
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/word-ocr')" class="feature-card">
-                <el-icon :size="40" color="#13c2c2">
-                  <Camera />
-                </el-icon>
-                <h3>拍照识别单词</h3>
-                <p>OCR识别单词·音标·例句</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/english-conversation')" class="feature-card">
-                <el-icon :size="40" color="#722ed1">
-                  <ChatDotRound />
-                </el-icon>
-                <h3>英语口语对话</h3>
-                <p>AI 英语对话·场景练习·口语提升</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/poetry-recommendation')" class="feature-card">
-                <el-icon :size="40" color="#eb2f96">
-                  <Reading />
-                </el-icon>
-                <h3>诗词推荐</h3>
-                <p>描述心情场景·智能匹配经典诗句</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/scene-english')" class="feature-card">
-                <el-icon :size="40" color="#165DFF">
-                  <ChatLineSquare />
-                </el-icon>
-                <h3>场景化英语表达</h3>
-                <p>真实场景英语表达·实用句式·口语速查</p>
-              </el-card>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20" style="margin-top: 20px">
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/outfit-recognition')" class="feature-card">
-                <el-icon :size="40" color="#eb2f96">
-                  <CameraFilled />
-                </el-icon>
-                <h3>拍照识别穿搭</h3>
-                <p>AI 识别衣物·搭配建议·同款推荐</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/world-record')" class="feature-card">
-                <el-icon :size="40" color="#13c2c2">
-                  <Trophy />
-                </el-icon>
-                <h3>世界之最知识问答</h3>
-                <p>AI智能问答·百科知识·趣味冷知识</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/dinosaur-qa')" class="feature-card">
-                <el-icon :size="40" color="#165DFF">
-                  <Reading />
-                </el-icon>
-                <h3>恐龙知识问答</h3>
-                <p>AI古生物专家·科普学习·亲子教育</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/food-calorie')" class="feature-card">
-                <el-icon :size="40" color="#67c23a">
-                  <CameraFilled />
-                </el-icon>
-                <h3>拍照识别食物热量</h3>
-                <p>AI识别食物·热量估算·营养分析</p>
-              </el-card>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20" style="margin-top: 20px">
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/number-divination')" class="feature-card">
-                <el-icon :size="40" color="#722ed1">
-                  <MagicStick />
-                </el-icon>
-                <h3>数字占卜问答</h3>
-                <p>输入1-1314数字·获得心灵启示</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/literature-qa')" class="feature-card">
-                <el-icon :size="40" color="#eb2f96">
-                  <Reading />
-                </el-icon>
-                <h3>文学作品问答</h3>
-                <p>文学解读·读书会讨论·阅读笔记</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/cooking-qa')" class="feature-card">
-                <el-icon :size="40" color="#e6a23c">
-                  <Reading />
-                </el-icon>
-                <h3>烹饪问题解答</h3>
-                <p>AI专业厨师·做菜技巧·新手学厨</p>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" @click="navigateTo('/object-recognition')" class="feature-card">
-                <el-icon :size="40" color="#722ed1">
-                  <CameraFilled />
-                </el-icon>
-                <h3>拍照识别万物</h3>
-                <p>AI识别物体·百科知识·探索发现</p>
-              </el-card>
-            </el-col>
-          </el-row>
+    <el-card class="welcome-card" shadow="never">
+      <div class="hero-section">
+        <div class="hero-content">
+          <h1>在线工具平台</h1>
+          <p class="hero-desc">精选 {{ totalTools }} 款实用小工具，助力高效工作与生活</p>
+          <el-input
+            v-model="searchKeyword"
+            class="search-input"
+            placeholder="搜索工具名称或功能描述..."
+            size="large"
+            clearable
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
         </div>
       </div>
     </el-card>
+
+    <el-tabs
+      v-model="activeCategory"
+      class="category-tabs"
+      type="card"
+      stretch
+    >
+      <el-tab-pane
+        label="全部"
+        name="all"
+      >
+        <template #label>
+          <span class="tab-label">
+            <el-icon><Menu /></el-icon>
+            <span>全部</span>
+            <el-tag size="small" type="info" effect="plain">{{ totalTools }}</el-tag>
+          </span>
+        </template>
+      </el-tab-pane>
+      <el-tab-pane
+        v-for="category in toolCategories"
+        :key="category.id"
+        :label="category.name"
+        :name="category.id"
+      >
+        <template #label>
+          <span class="tab-label">
+            <el-icon :color="category.color"><component :is="category.icon" /></el-icon>
+            <span>{{ category.name }}</span>
+            <el-tag size="small" type="info" effect="plain">{{ category.tools.length }}</el-tag>
+          </span>
+        </template>
+      </el-tab-pane>
+    </el-tabs>
+
+    <div v-if="searchKeyword" class="search-result-header">
+      <el-alert
+        :title="'搜索 \"' + searchKeyword + '\" 找到 ' + filteredTools.length + ' 个工具'"
+        type="success"
+        :closable="false"
+        show-icon
+      />
+    </div>
+
+    <div v-if="activeCategory !== 'all' && !searchKeyword" class="category-info">
+      <div class="category-info-content">
+        <el-icon :size="32" :color="currentCategory?.color">
+          <component :is="currentCategory?.icon" />
+        </el-icon>
+        <div>
+          <h3>{{ currentCategory?.name }}</h3>
+          <p>{{ currentCategory?.description }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="filteredTools.length > 0" class="tools-grid">
+      <el-card
+        v-for="tool in filteredTools"
+        :key="tool.path"
+        shadow="hover"
+        class="tool-card"
+        @click="navigateTo(tool.path)"
+      >
+        <div class="tool-icon" :style="{ backgroundColor: tool.color + '15' }">
+          <el-icon :size="36" :color="tool.color">
+            <component :is="tool.icon" />
+          </el-icon>
+        </div>
+        <div class="tool-info">
+          <h4>{{ tool.name }}</h4>
+          <p>{{ tool.description }}</p>
+        </div>
+        <div class="tool-arrow">
+          <el-icon><ArrowRight /></el-icon>
+        </div>
+      </el-card>
+    </div>
+
+    <el-empty
+      v-else
+      description="暂无匹配的工具"
+      class="empty-state"
+    >
+      <el-button type="primary" @click="clearSearch">清除搜索</el-button>
+    </el-empty>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { Search, ArrowRight } from '@element-plus/icons-vue'
+import {
+  toolCategories,
+  getAllTools,
+  searchTools,
+  getCategoryById,
+  type ToolItem
+} from '@/data/tools'
 
 const router = useRouter()
+const searchKeyword = ref('')
+const activeCategory = ref('all')
+
+const totalTools = computed(() => getAllTools().length)
+
+const currentCategory = computed(() => getCategoryById(activeCategory.value))
+
+const filteredTools = computed((): ToolItem[] => {
+  if (searchKeyword.value) {
+    return searchTools(searchKeyword.value)
+  }
+  if (activeCategory.value === 'all') {
+    return getAllTools()
+  }
+  return currentCategory.value?.tools || []
+})
 
 const navigateTo = (path: string) => {
   router.push(path)
+}
+
+const clearSearch = () => {
+  searchKeyword.value = ''
 }
 </script>
 
 <style scoped>
 .home-page {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .welcome-card {
-  max-width: 1200px;
+  border: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.welcome-card :deep(.el-card__body) {
+  padding: 0;
+}
+
+.hero-section {
+  padding: 48px 40px;
+  text-align: center;
+  color: #fff;
+}
+
+.hero-content {
+  max-width: 600px;
   margin: 0 auto;
 }
 
-.card-header {
+.hero-content h1 {
+  margin: 0 0 12px;
+  font-size: 32px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.hero-desc {
+  margin: 0 0 28px;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.search-input {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  padding: 6px 16px;
+}
+
+.category-tabs {
+  background: #fff;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+.category-tabs :deep(.el-tabs__header) {
+  margin: 0;
+  border: none;
+}
+
+.category-tabs :deep(.el-tabs__nav) {
+  gap: 4px;
+  border: none;
+}
+
+.category-tabs :deep(.el-tabs__item) {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 16px;
+  height: 52px;
+}
+
+.category-tabs :deep(.el-tabs__item.is-active) {
+  background: #f5f7fa !important;
+  border-bottom: 2px solid #165DFF !important;
+}
+
+.tab-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.tab-label .el-tag {
+  margin-left: 4px;
+}
+
+.search-result-header {
+  margin-bottom: 4px;
+}
+
+.category-info {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px 24px;
+}
+
+.category-info-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.category-info-content h3 {
+  margin: 0 0 4px;
   font-size: 18px;
-  font-weight: bold;
+  color: #303133;
 }
 
-.welcome-content {
-  text-align: center;
-  padding: 40px 20px;
+.category-info-content p {
+  margin: 0;
+  font-size: 14px;
+  color: #909399;
 }
 
-.welcome-content h2 {
-  margin: 20px 0 10px;
-  color: #2c3e50;
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
 }
 
-.welcome-content p {
-  color: #606266;
-  margin-bottom: 30px;
-}
-
-.features {
-  margin-top: 30px;
-}
-
-.features .el-card {
-  text-align: center;
-  padding: 20px;
+.tool-card {
   cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #ebeef5;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tool-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+  border-color: #dcdfe6;
+}
+
+.tool-card :deep(.el-card__body) {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tool-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tool-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-info h4 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.tool-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #909399;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.tool-arrow {
+  color: #c0c4cc;
+  flex-shrink: 0;
   transition: all 0.3s;
 }
 
-.features .el-card:hover {
-  transform: translateY(-5px);
+.tool-card:hover .tool-arrow {
+  color: #165DFF;
+  transform: translateX(4px);
 }
 
-.features h3 {
-  margin: 15px 0 10px;
-  color: #2c3e50;
-  font-size: 16px;
+.empty-state {
+  background: #fff;
+  border-radius: 8px;
+  padding: 60px 0;
 }
 
-.features p {
-  color: #909399;
-  font-size: 14px;
-  margin: 0;
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 32px 20px;
+  }
+
+  .hero-content h1 {
+    font-size: 24px;
+  }
+
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tab-label span {
+    display: none;
+  }
 }
 </style>
