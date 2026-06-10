@@ -185,6 +185,11 @@ const routes: RouteRecordRaw[] = [
         path: '/electric-guitar',
         name: 'ElectricGuitar',
         component: () => import('@/views/ElectricGuitar.vue')
+      },
+      {
+        path: '/hand-drum',
+        name: 'HandDrum',
+        component: () => import('@/views/HandDrum.vue')
       }
     ]
   }

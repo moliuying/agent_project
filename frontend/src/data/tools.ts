@@ -316,6 +316,18 @@ export const toolCategories: ToolCategory[] = [
         rating: 4.9,
         usageCount: 89670,
         qualityLevel: 'excellent'
+      },
+      {
+        name: '在线手鼓演奏',
+        path: '/hand-drum',
+        icon: 'Headset',
+        color: '#CD853F',
+        description: '非洲手鼓·打击乐组·节奏练习·实时音效',
+        tags: ['趣味娱乐', '音乐学习'],
+        hot: true,
+        rating: 4.9,
+        usageCount: 78560,
+        qualityLevel: 'excellent'
       }
     ]
   },
