@@ -170,6 +170,11 @@ const routes: RouteRecordRaw[] = [
         path: '/object-recognition',
         name: 'ObjectRecognition',
         component: () => import('@/views/ObjectRecognition.vue')
+      },
+      {
+        path: '/artistic-qrcode',
+        name: 'ArtisticQRCode',
+        component: () => import('@/views/ArtisticQRCode.vue')
       }
     ]
   }

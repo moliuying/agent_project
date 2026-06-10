@@ -112,6 +112,18 @@ export const toolCategories: ToolCategory[] = [
         rating: 4.8,
         usageCount: 112340,
         qualityLevel: 'excellent'
+      },
+      {
+        name: '艺术二维码生成',
+        path: '/artistic-qrcode',
+        icon: 'Grid',
+        color: '#eb2f96',
+        description: '二维码与艺术图案融合·品牌宣传素材',
+        tags: ['创意应用', 'AI 生成'],
+        hot: true,
+        rating: 4.9,
+        usageCount: 145670,
+        qualityLevel: 'excellent'
       }
     ]
   },
