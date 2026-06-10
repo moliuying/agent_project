@@ -304,6 +304,18 @@ export const toolCategories: ToolCategory[] = [
         rating: 4.5,
         usageCount: 54320,
         qualityLevel: 'good'
+      },
+      {
+        name: '在线电吉他',
+        path: '/electric-guitar',
+        icon: 'Headset',
+        color: '#e6a23c',
+        description: '鼠标键盘弹奏·实时音效·和弦练习',
+        tags: ['趣味娱乐', '音乐学习'],
+        hot: true,
+        rating: 4.9,
+        usageCount: 89670,
+        qualityLevel: 'excellent'
       }
     ]
   },

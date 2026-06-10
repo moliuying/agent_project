@@ -180,6 +180,11 @@ const routes: RouteRecordRaw[] = [
         path: '/whiteboard',
         name: 'Whiteboard',
         component: () => import('@/views/Whiteboard.vue')
+      },
+      {
+        path: '/electric-guitar',
+        name: 'ElectricGuitar',
+        component: () => import('@/views/ElectricGuitar.vue')
       }
     ]
   }
