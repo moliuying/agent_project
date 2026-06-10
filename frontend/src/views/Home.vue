@@ -87,6 +87,16 @@
             <div class="tool-info">
               <h4>{{ tool.name }}</h4>
               <p>{{ tool.description }}</p>
+              <div class="hot-tool-stats">
+                <span class="stat-item">
+                  <el-icon><Star /></el-icon>
+                  {{ tool.rating }}
+                </span>
+                <span class="stat-item">
+                  <el-icon><User /></el-icon>
+                  {{ formatUsageCount(tool.usageCount) }}次
+                </span>
+              </div>
             </div>
           </el-card>
         </div>
@@ -125,7 +135,152 @@
       </div>
     </template>
 
+    <div v-if="filteredTools.length > 0" class="sort-filter-bar">
+      <div class="sort-options">
+        <span class="sort-label">排序：</span>
+        <el-radio-group v-model="sortType" size="small">
+          <el-radio-button value="hot">综合热度</el-radio-button>
+          <el-radio-button value="rating">评分最高</el-radio-button>
+          <el-radio-button value="usage">使用最多</el-radio-button>
+          <el-radio-button value="name">名称排序</el-radio-button>
+        </el-radio-group>
+      </div>
+      <div class="filter-stats">
+        <span>共 <b>{{ filteredTools.length }}</b> 个工具</span>
+        <span v-if="excellentCount > 0" class="stat excellent">
+          <el-icon color="#f56c6c"><Medal /></el-icon>
+          精选 {{ excellentCount }}
+        </span>
+        <span v-if="goodCount > 0" class="stat good">
+          <el-icon color="#e6a23c"><CircleCheck /></el-icon>
+          优质 {{ goodCount }}
+        </span>
+      </div>
+    </div>
+
     <template v-if="filteredTools.length > 0">
+      <div v-if="excellentTools.length > 0 && sortType === 'hot'" class="quality-section excellent-section">
+        <div class="quality-section-header">
+          <div class="quality-title">
+            <el-tag type="danger" effect="dark" size="large" round>精选推荐</el-tag>
+            <span class="quality-desc">经过用户验证的高质量工具，体验优秀</span>
+          </div>
+          <span class="quality-count">{{ excellentTools.length }} 款</span>
+        </div>
+        <div class="tools-grid">
+          <el-card
+            v-for="tool in excellentTools"
+            :key="tool.path"
+            shadow="hover"
+            class="tool-card excellent-card"
+            @click="navigateTo(tool.path)"
+          >
+            <div class="quality-badge excellent">精选</div>
+            <div class="tool-icon" :style="{ backgroundColor: tool.color + '15' }">
+              <el-icon :size="36" :color="tool.color">
+                <component :is="tool.icon" />
+              </el-icon>
+            </div>
+            <div class="tool-info">
+              <div class="tool-title-row">
+                <h4>{{ tool.name }}</h4>
+                <el-tag v-if="tool.hot" type="danger" size="small" effect="dark" class="hot-tag">
+                  HOT
+                </el-tag>
+              </div>
+              <p>{{ tool.description }}</p>
+              <div class="tool-meta">
+                <div class="tool-stats">
+                  <span class="stat-item">
+                    <el-icon color="#f56c6c"><Star /></el-icon>
+                    {{ tool.rating }}
+                  </span>
+                  <span class="stat-item">
+                    <el-icon color="#67c23a"><View /></el-icon>
+                    {{ formatUsageCount(tool.usageCount) }}
+                  </span>
+                </div>
+                <div class="tool-tags">
+                  <el-tag
+                    v-for="tag in tool.tags.slice(0, 2)"
+                    :key="tag"
+                    size="small"
+                    effect="plain"
+                    class="tool-tag"
+                  >
+                    {{ tag }}
+                  </el-tag>
+                </div>
+              </div>
+            </div>
+            <div class="tool-arrow">
+              <el-icon><ArrowRight /></el-icon>
+            </div>
+          </el-card>
+        </div>
+      </div>
+
+      <div v-if="goodTools.length > 0 && sortType === 'hot'" class="quality-section good-section">
+        <div class="quality-section-header">
+          <div class="quality-title">
+            <el-tag type="warning" effect="dark" size="large" round>优质工具</el-tag>
+            <span class="quality-desc">口碑良好，功能稳定可靠</span>
+          </div>
+          <span class="quality-count">{{ goodTools.length }} 款</span>
+        </div>
+        <div class="tools-grid">
+          <el-card
+            v-for="tool in goodTools"
+            :key="tool.path"
+            shadow="hover"
+            class="tool-card good-card"
+            @click="navigateTo(tool.path)"
+          >
+            <div class="quality-badge good">优质</div>
+            <div class="tool-icon" :style="{ backgroundColor: tool.color + '15' }">
+              <el-icon :size="36" :color="tool.color">
+                <component :is="tool.icon" />
+              </el-icon>
+            </div>
+            <div class="tool-info">
+              <div class="tool-title-row">
+                <h4>{{ tool.name }}</h4>
+                <el-tag v-if="tool.hot" type="danger" size="small" effect="dark" class="hot-tag">
+                  HOT
+                </el-tag>
+              </div>
+              <p>{{ tool.description }}</p>
+              <div class="tool-meta">
+                <div class="tool-stats">
+                  <span class="stat-item">
+                    <el-icon color="#f56c6c"><Star /></el-icon>
+                    {{ tool.rating }}
+                  </span>
+                  <span class="stat-item">
+                    <el-icon color="#67c23a"><View /></el-icon>
+                    {{ formatUsageCount(tool.usageCount) }}
+                  </span>
+                </div>
+                <div class="tool-tags">
+                  <el-tag
+                    v-for="tag in tool.tags.slice(0, 2)"
+                    :key="tag"
+                    size="small"
+                    effect="plain"
+                    class="tool-tag"
+                  >
+                    {{ tag }}
+                  </el-tag>
+                </div>
+              </div>
+            </div>
+            <div class="tool-arrow">
+              <el-icon><ArrowRight /></el-icon>
+            </div>
+          </el-card>
+        </div>
+      </div>
+
       <div
         v-for="group in groupedTools"
         :key="group.letter"
@@ -144,12 +299,19 @@
         </div>
         <div v-show="!collapsedGroups.includes(group.letter)" class="tools-grid">
           <el-card
-            v-for="tool in group.tools"
+            v-for="tool in (sortType === 'hot' ? normalTools : group.tools)"
             :key="tool.path"
             shadow="hover"
             class="tool-card"
             @click="navigateTo(tool.path)"
           >
+            <div
+              v-if="tool.qualityLevel !== 'normal'"
+              class="quality-badge"
+              :class="tool.qualityLevel"
+            >
+              {{ getQualityBadge(tool.qualityLevel).text }}
+            </div>
             <div class="tool-icon" :style="{ backgroundColor: tool.color + '15' }">
               <el-icon :size="36" :color="tool.color">
                 <component :is="tool.icon" />
@@ -163,16 +325,28 @@
                 </el-tag>
               </div>
               <p>{{ tool.description }}</p>
-              <div class="tool-tags">
-                <el-tag
-                  v-for="tag in tool.tags.slice(0, 3)"
-                  :key="tag"
-                  size="small"
-                  effect="plain"
-                  class="tool-tag"
-                >
-                  {{ tag }}
-                </el-tag>
+              <div class="tool-meta">
+                <div class="tool-stats">
+                  <span class="stat-item">
+                    <el-icon color="#f56c6c"><Star /></el-icon>
+                    {{ tool.rating }}
+                  </span>
+                  <span class="stat-item">
+                    <el-icon color="#67c23a"><View /></el-icon>
+                    {{ formatUsageCount(tool.usageCount) }}
+                  </span>
+                </div>
+                <div class="tool-tags">
+                  <el-tag
+                    v-for="tag in tool.tags.slice(0, 2)"
+                    :key="tag"
+                    size="small"
+                    effect="plain"
+                    class="tool-tag"
+                  >
+                    {{ tag }}
+                  </el-tag>
+                </div>
               </div>
             </div>
             <div class="tool-arrow">
@@ -196,7 +370,17 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, ArrowRight, ArrowDown, HotWater } from '@element-plus/icons-vue'
+import {
+  Search,
+  ArrowRight,
+  ArrowDown,
+  HotWater,
+  Star,
+  User,
+  View,
+  Medal,
+  CircleCheck
+} from '@element-plus/icons-vue'
 import {
   toolCategories,
   getAllTools,
@@ -205,7 +389,11 @@ import {
   getCategoryById,
   getToolsByCategoryAndTag,
   getFirstLetter,
-  type ToolItem
+  sortTools,
+  getQualityBadge,
+  formatUsageCount,
+  type ToolItem,
+  type SortType
 } from '@/data/tools'
 
 interface ToolGroup {
@@ -217,13 +405,14 @@ const router = useRouter()
 const searchKeyword = ref('')
 const activeCategory = ref('all')
 const activeSubTag = ref('all')
+const sortType = ref<SortType>('hot')
 const collapsedGroups = ref<string[]>([])
 
 const totalTools = computed(() => getAllTools().length)
-const hotTools = computed(() => getHotTools())
+const hotTools = computed(() => sortTools(getHotTools(), 'hot').slice(0, 8))
 const currentCategory = computed(() => getCategoryById(activeCategory.value))
 
-const filteredTools = computed((): ToolItem[] => {
+const baseFilteredTools = computed((): ToolItem[] => {
   if (searchKeyword.value) {
     return searchTools(searchKeyword.value)
   }
@@ -233,7 +422,33 @@ const filteredTools = computed((): ToolItem[] => {
   return getToolsByCategoryAndTag(activeCategory.value, activeSubTag.value)
 })
 
+const filteredTools = computed((): ToolItem[] => {
+  return sortTools(baseFilteredTools.value, sortType.value)
+})
+
+const excellentTools = computed(() =>
+  filteredTools.value.filter(t => t.qualityLevel === 'excellent')
+)
+const goodTools = computed(() =>
+  filteredTools.value.filter(t => t.qualityLevel === 'good')
+)
+const normalTools = computed(() =>
+  filteredTools.value.filter(t => t.qualityLevel === 'normal')
+)
+
+const excellentCount = computed(() =>
+  baseFilteredTools.value.filter(t => t.qualityLevel === 'excellent').length
+)
+const goodCount = computed(() =>
+  baseFilteredTools.value.filter(t => t.qualityLevel === 'good').length
+)
+
 const groupedTools = computed((): ToolGroup[] => {
+  if (sortType.value === 'hot') {
+    return normalTools.value.length > 0
+      ? [{ letter: '其他工具', tools: normalTools.value }]
+      : []
+  }
   const groups = new Map<string, ToolItem[]>()
   filteredTools.value.forEach(tool => {
     const letter = getFirstLetter(tool.name)
@@ -273,6 +488,7 @@ const resetFilters = () => {
   searchKeyword.value = ''
   activeCategory.value = 'all'
   activeSubTag.value = 'all'
+  sortType.value = 'hot'
 }
 </script>
 
@@ -281,7 +497,7 @@ const resetFilters = () => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .welcome-card {
@@ -294,7 +510,7 @@ const resetFilters = () => {
 }
 
 .hero-section {
-  padding: 40px 40px;
+  padding: 36px 40px;
   text-align: center;
   color: #fff;
 }
@@ -305,15 +521,15 @@ const resetFilters = () => {
 }
 
 .hero-content h1 {
-  margin: 0 0 10px;
-  font-size: 28px;
+  margin: 0 0 8px;
+  font-size: 26px;
   font-weight: 600;
   color: #fff;
 }
 
 .hero-desc {
-  margin: 0 0 24px;
-  font-size: 15px;
+  margin: 0 0 20px;
+  font-size: 14px;
   opacity: 0.9;
 }
 
@@ -348,7 +564,7 @@ const resetFilters = () => {
   border: none !important;
   background: transparent !important;
   padding: 0 14px;
-  height: 48px;
+  height: 46px;
 }
 
 .category-tabs :deep(.el-tabs__item.is-active) {
@@ -368,20 +584,20 @@ const resetFilters = () => {
 }
 
 .search-result-header {
-  margin-bottom: -8px;
+  margin-bottom: -4px;
 }
 
 .hot-section {
   background: #fff;
   border-radius: 8px;
-  padding: 20px 24px;
+  padding: 18px 24px;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .section-header h3 {
@@ -389,7 +605,7 @@ const resetFilters = () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 17px;
+  font-size: 16px;
   color: #303133;
 }
 
@@ -400,7 +616,7 @@ const resetFilters = () => {
 
 .hot-tools-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 12px;
 }
 
@@ -419,7 +635,7 @@ const resetFilters = () => {
 }
 
 .hot-tool-card :deep(.el-card__body) {
-  padding: 16px;
+  padding: 14px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -439,8 +655,8 @@ const resetFilters = () => {
 }
 
 .hot-tool-card .tool-icon {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -454,14 +670,14 @@ const resetFilters = () => {
 }
 
 .hot-tool-card .tool-info h4 {
-  margin: 0 0 4px;
+  margin: 0 0 3px;
   font-size: 14px;
   font-weight: 600;
   color: #303133;
 }
 
 .hot-tool-card .tool-info p {
-  margin: 0;
+  margin: 0 0 6px;
   font-size: 12px;
   color: #909399;
   line-height: 1.4;
@@ -470,10 +686,28 @@ const resetFilters = () => {
   white-space: nowrap;
 }
 
+.hot-tool-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.hot-tool-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: #606266;
+}
+
+.hot-tool-stats .stat-item .el-icon {
+  font-size: 12px;
+  color: #e6a23c;
+}
+
 .category-info {
   background: #fff;
   border-radius: 8px;
-  padding: 20px 24px 0;
+  padding: 16px 24px 0;
 }
 
 .category-info-content {
@@ -484,13 +718,13 @@ const resetFilters = () => {
 
 .category-info-content h3 {
   margin: 0 0 4px;
-  font-size: 18px;
+  font-size: 17px;
   color: #303133;
 }
 
 .category-info-content p {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: #909399;
 }
 
@@ -498,7 +732,7 @@ const resetFilters = () => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 16px 0 20px;
+  padding: 14px 0 18px;
   margin-top: 4px;
   border-top: 1px solid #f0f2f5;
 }
@@ -507,6 +741,95 @@ const resetFilters = () => {
   cursor: pointer;
   transition: all 0.2s;
   user-select: none;
+}
+
+.sort-filter-bar {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sort-options {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sort-label {
+  font-size: 13px;
+  color: #606266;
+}
+
+.filter-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: #606266;
+}
+
+.filter-stats b {
+  color: #165DFF;
+  font-weight: 600;
+}
+
+.filter-stats .stat {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+}
+
+.filter-stats .stat.excellent {
+  color: #f56c6c;
+}
+
+.filter-stats .stat.good {
+  color: #e6a23c;
+}
+
+.quality-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px 20px 20px;
+}
+
+.quality-section.excellent-section {
+  background: linear-gradient(180deg, #fff5f5 0%, #fff 100%);
+  border: 1px solid #ffe4e4;
+}
+
+.quality-section.good-section {
+  background: linear-gradient(180deg, #fffbf0 0%, #fff 100%);
+  border: 1px solid #faecd8;
+}
+
+.quality-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.quality-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quality-desc {
+  font-size: 12px;
+  color: #909399;
+}
+
+.quality-count {
+  font-size: 12px;
+  color: #909399;
 }
 
 .letter-group {
@@ -518,7 +841,7 @@ const resetFilters = () => {
 .letter-header {
   display: flex;
   align-items: center;
-  padding: 12px 20px;
+  padding: 10px 20px;
   cursor: pointer;
   user-select: none;
   transition: background-color 0.2s;
@@ -540,20 +863,21 @@ const resetFilters = () => {
 }
 
 .letter {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #165DFF;
-  width: 28px;
-  height: 28px;
+  min-width: 56px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #ecf5ff;
   border-radius: 6px;
+  padding: 0 10px;
 }
 
 .group-count {
-  font-size: 13px;
+  font-size: 12px;
   color: #909399;
 }
 
@@ -566,7 +890,7 @@ const resetFilters = () => {
 
 .tools-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 12px;
   padding: 0 20px 20px;
 }
@@ -577,6 +901,7 @@ const resetFilters = () => {
   border: 1px solid #ebeef5;
   border-radius: 10px;
   overflow: hidden;
+  position: relative;
 }
 
 .tool-card:hover {
@@ -585,16 +910,47 @@ const resetFilters = () => {
   border-color: #dcdfe6;
 }
 
+.tool-card.excellent-card {
+  border: 1px solid #ffd1d1;
+  background: linear-gradient(135deg, #fffafa 0%, #fff 100%);
+}
+
+.tool-card.good-card {
+  border: 1px solid #faecd8;
+  background: linear-gradient(135deg, #fffcf5 0%, #fff 100%);
+}
+
 .tool-card :deep(.el-card__body) {
-  padding: 16px;
+  padding: 14px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+}
+
+.quality-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  line-height: 1.4;
+}
+
+.quality-badge.excellent {
+  background: linear-gradient(135deg, #f56c6c, #eb2f96);
+  color: #fff;
+}
+
+.quality-badge.good {
+  background: linear-gradient(135deg, #e6a23c, #f0a020);
+  color: #fff;
 }
 
 .tool-icon {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -610,7 +966,7 @@ const resetFilters = () => {
 .tool-title-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 4px;
 }
 
@@ -623,9 +979,9 @@ const resetFilters = () => {
 
 .hot-tag {
   padding: 0 5px;
-  height: 18px;
+  height: 16px;
   font-size: 10px;
-  line-height: 16px;
+  line-height: 14px;
 }
 
 .tool-info p {
@@ -638,6 +994,30 @@ const resetFilters = () => {
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
+}
+
+.tool-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tool-stats {
+  display: flex;
+  gap: 10px;
+}
+
+.tool-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: #606266;
+}
+
+.tool-stats .stat-item .el-icon {
+  font-size: 12px;
 }
 
 .tool-tags {
@@ -673,11 +1053,11 @@ const resetFilters = () => {
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: 28px 16px;
+    padding: 24px 16px;
   }
 
   .hero-content h1 {
-    font-size: 22px;
+    font-size: 20px;
   }
 
   .tools-grid {
@@ -686,7 +1066,7 @@ const resetFilters = () => {
   }
 
   .hot-tools-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .tab-label span {
@@ -695,6 +1075,14 @@ const resetFilters = () => {
 
   .letter-header {
     padding: 10px 14px;
+  }
+
+  .sort-filter-bar {
+    padding: 10px 14px;
+  }
+
+  .filter-stats {
+    display: none;
   }
 }
 </style>

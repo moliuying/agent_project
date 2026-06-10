@@ -6,6 +6,9 @@ export interface ToolItem {
   description: string
   tags: string[]
   hot?: boolean
+  rating: number
+  usageCount: number
+  qualityLevel: 'excellent' | 'good' | 'normal'
 }
 
 export interface ToolCategory {
@@ -17,6 +20,8 @@ export interface ToolCategory {
   subTags: string[]
   tools: ToolItem[]
 }
+
+export type SortType = 'hot' | 'rating' | 'usage' | 'name'
 
 export const toolCategories: ToolCategory[] = [
   {
@@ -34,7 +39,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#165DFF',
         description: '数学物理化学公式智能识别',
         tags: ['拍照识别', 'OCR 识别'],
-        hot: true
+        hot: true,
+        rating: 4.9,
+        usageCount: 128560,
+        qualityLevel: 'excellent'
       },
       {
         name: '图片转提示词',
@@ -43,7 +51,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#722ed1',
         description: 'AI 分析图片生成绘画提示词',
         tags: ['AI 生成', '创意应用'],
-        hot: true
+        hot: true,
+        rating: 4.8,
+        usageCount: 98230,
+        qualityLevel: 'excellent'
       },
       {
         name: '看图写话',
@@ -51,7 +62,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Reading',
         color: '#f56c6c',
         description: 'AI 分析图片生成小学生作文',
-        tags: ['AI 生成', '创意应用']
+        tags: ['AI 生成', '创意应用'],
+        rating: 4.5,
+        usageCount: 35670,
+        qualityLevel: 'good'
       },
       {
         name: '拍照识别单词',
@@ -60,7 +74,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#13c2c2',
         description: 'OCR识别单词·音标·例句',
         tags: ['拍照识别', 'OCR 识别'],
-        hot: true
+        hot: true,
+        rating: 4.7,
+        usageCount: 87450,
+        qualityLevel: 'excellent'
       },
       {
         name: '拍照识别穿搭',
@@ -68,7 +85,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'CameraFilled',
         color: '#eb2f96',
         description: 'AI 识别衣物·搭配建议·同款推荐',
-        tags: ['拍照识别', '创意应用']
+        tags: ['拍照识别', '创意应用'],
+        rating: 4.3,
+        usageCount: 28900,
+        qualityLevel: 'good'
       },
       {
         name: '拍照识别食物热量',
@@ -76,7 +96,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'CameraFilled',
         color: '#67c23a',
         description: 'AI识别食物·热量估算·营养分析',
-        tags: ['拍照识别']
+        tags: ['拍照识别'],
+        rating: 4.6,
+        usageCount: 56230,
+        qualityLevel: 'good'
       },
       {
         name: '拍照识别万物',
@@ -85,7 +108,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#722ed1',
         description: 'AI识别物体·百科知识·探索发现',
         tags: ['拍照识别'],
-        hot: true
+        hot: true,
+        rating: 4.8,
+        usageCount: 112340,
+        qualityLevel: 'excellent'
       }
     ]
   },
@@ -104,7 +130,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#722ed1',
         description: '文本字数详细统计',
         tags: ['文本处理'],
-        hot: true
+        hot: true,
+        rating: 4.9,
+        usageCount: 256800,
+        qualityLevel: 'excellent'
       },
       {
         name: 'AI 文本扩写',
@@ -113,7 +142,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#165DFF',
         description: '智能扩写句子·丰富表达',
         tags: ['AI 写作'],
-        hot: true
+        hot: true,
+        rating: 4.7,
+        usageCount: 89560,
+        qualityLevel: 'excellent'
       },
       {
         name: '论文辅助写作',
@@ -121,7 +153,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Reading',
         color: '#e6a23c',
         description: '学术论文内容自动生成',
-        tags: ['AI 写作']
+        tags: ['AI 写作'],
+        rating: 4.4,
+        usageCount: 42100,
+        qualityLevel: 'good'
       },
       {
         name: '代码反混淆',
@@ -129,7 +164,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Monitor',
         color: '#eb2f96',
         description: 'JS代码混淆还原工具',
-        tags: ['代码工具']
+        tags: ['代码工具'],
+        rating: 4.2,
+        usageCount: 18760,
+        qualityLevel: 'normal'
       },
       {
         name: '成语接龙对战',
@@ -138,7 +176,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#eb2f96',
         description: 'AI 智能接龙，挑战你的词汇量',
         tags: ['趣味互动'],
-        hot: true
+        hot: true,
+        rating: 4.8,
+        usageCount: 145230,
+        qualityLevel: 'excellent'
       }
     ]
   },
@@ -157,7 +198,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#165DFF',
         description: '房贷/车贷/公积金计算',
         tags: ['金融计算'],
-        hot: true
+        hot: true,
+        rating: 4.9,
+        usageCount: 312560,
+        qualityLevel: 'excellent'
       },
       {
         name: '节假日查询',
@@ -166,7 +210,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#67c23a',
         description: '法定节假日与调休查询',
         tags: ['时间查询'],
-        hot: true
+        hot: true,
+        rating: 4.8,
+        usageCount: 198700,
+        qualityLevel: 'excellent'
       },
       {
         name: '随机选择',
@@ -174,7 +221,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Cpu',
         color: '#13c2c2',
         description: '随机选择/抽奖工具',
-        tags: ['随机工具']
+        tags: ['随机工具'],
+        rating: 4.5,
+        usageCount: 67890,
+        qualityLevel: 'good'
       },
       {
         name: 'IP地址查询',
@@ -182,7 +232,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Location',
         color: '#f56c6c',
         description: 'IP归属地信息查询',
-        tags: ['网络查询']
+        tags: ['网络查询'],
+        rating: 4.3,
+        usageCount: 45670,
+        qualityLevel: 'good'
       }
     ]
   },
@@ -201,7 +254,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#722ed1',
         description: '精选提示词快速上手',
         tags: ['AI 创意'],
-        hot: true
+        hot: true,
+        rating: 4.8,
+        usageCount: 176540,
+        qualityLevel: 'excellent'
       },
       {
         name: '数字占卜问答',
@@ -209,7 +265,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'MagicStick',
         color: '#722ed1',
         description: '输入1-1314数字·获得心灵启示',
-        tags: ['趣味占卜']
+        tags: ['趣味占卜'],
+        rating: 4.1,
+        usageCount: 23450,
+        qualityLevel: 'normal'
       },
       {
         name: '世界之最知识问答',
@@ -218,7 +277,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#13c2c2',
         description: 'AI智能问答·百科知识·趣味冷知识',
         tags: ['知识问答'],
-        hot: true
+        hot: true,
+        rating: 4.7,
+        usageCount: 98120,
+        qualityLevel: 'excellent'
       },
       {
         name: '恐龙知识问答',
@@ -226,7 +288,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Reading',
         color: '#165DFF',
         description: 'AI古生物专家·科普学习·亲子教育',
-        tags: ['科普学习', '知识问答']
+        tags: ['科普学习', '知识问答'],
+        rating: 4.5,
+        usageCount: 54320,
+        qualityLevel: 'good'
       }
     ]
   },
@@ -245,7 +310,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#722ed1',
         description: 'AI 英语对话·场景练习·口语提升',
         tags: ['英语学习'],
-        hot: true
+        hot: true,
+        rating: 4.9,
+        usageCount: 234560,
+        qualityLevel: 'excellent'
       },
       {
         name: '诗词推荐',
@@ -253,7 +321,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Reading',
         color: '#eb2f96',
         description: '描述心情场景·智能匹配经典诗句',
-        tags: ['文学诗词']
+        tags: ['文学诗词'],
+        rating: 4.4,
+        usageCount: 38760,
+        qualityLevel: 'good'
       },
       {
         name: '场景化英语表达',
@@ -262,7 +333,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#165DFF',
         description: '真实场景英语表达·实用句式·口语速查',
         tags: ['英语学习'],
-        hot: true
+        hot: true,
+        rating: 4.8,
+        usageCount: 156780,
+        qualityLevel: 'excellent'
       },
       {
         name: '文学作品问答',
@@ -270,7 +344,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Reading',
         color: '#eb2f96',
         description: '文学解读·读书会讨论·阅读笔记',
-        tags: ['文学诗词']
+        tags: ['文学诗词'],
+        rating: 4.3,
+        usageCount: 27890,
+        qualityLevel: 'good'
       },
       {
         name: '烹饪问题解答',
@@ -278,7 +355,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Reading',
         color: '#e6a23c',
         description: 'AI专业厨师·做菜技巧·新手学厨',
-        tags: ['生活百科']
+        tags: ['生活百科'],
+        rating: 4.6,
+        usageCount: 78900,
+        qualityLevel: 'good'
       },
       {
         name: 'Python 代码示例',
@@ -286,7 +366,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Monitor',
         color: '#13c2c2',
         description: '常用 Python 代码片段速查',
-        tags: ['编程学习']
+        tags: ['编程学习'],
+        rating: 4.5,
+        usageCount: 45230,
+        qualityLevel: 'good'
       }
     ]
   },
@@ -305,7 +388,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#e6a23c',
         description: '在线音频剪切工具',
         tags: ['多媒体'],
-        hot: true
+        hot: true,
+        rating: 4.8,
+        usageCount: 187650,
+        qualityLevel: 'excellent'
       },
       {
         name: '格子纸生成',
@@ -313,7 +399,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Grid',
         color: '#fa8c16',
         description: '方格/点阵/康奈尔笔记模板',
-        tags: ['效率办公']
+        tags: ['效率办公'],
+        rating: 4.4,
+        usageCount: 56780,
+        qualityLevel: 'good'
       },
       {
         name: 'WebSocket 调试器',
@@ -321,7 +410,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Connection',
         color: '#165DFF',
         description: 'WebSocket 连接测试与调试工具',
-        tags: ['调试工具']
+        tags: ['调试工具'],
+        rating: 4.3,
+        usageCount: 23450,
+        qualityLevel: 'normal'
       },
       {
         name: 'Excel公式查询',
@@ -330,7 +422,10 @@ export const toolCategories: ToolCategory[] = [
         color: '#165DFF',
         description: '智能匹配函数与示例公式',
         tags: ['效率办公'],
-        hot: true
+        hot: true,
+        rating: 4.9,
+        usageCount: 201230,
+        qualityLevel: 'excellent'
       },
       {
         name: '系统设置',
@@ -338,7 +433,10 @@ export const toolCategories: ToolCategory[] = [
         icon: 'Setting',
         color: '#909399',
         description: '菜单与系统管理',
-        tags: ['系统管理']
+        tags: ['系统管理'],
+        rating: 4.0,
+        usageCount: 12340,
+        qualityLevel: 'normal'
       }
     ]
   }
@@ -350,6 +448,27 @@ export const getAllTools = (): ToolItem[] => {
 
 export const getHotTools = (): ToolItem[] => {
   return getAllTools().filter(tool => tool.hot)
+}
+
+export const getQualityBadge = (level: ToolItem['qualityLevel']): { text: string; color: string } => {
+  switch (level) {
+    case 'excellent':
+      return { text: '精选', color: '#f56c6c' }
+    case 'good':
+      return { text: '优质', color: '#e6a23c' }
+    default:
+      return { text: '可用', color: '#909399' }
+  }
+}
+
+export const formatUsageCount = (count: number): string => {
+  if (count >= 10000) {
+    return (count / 10000).toFixed(1) + 'w'
+  }
+  if (count >= 1000) {
+    return (count / 1000).toFixed(1) + 'k'
+  }
+  return count.toString()
 }
 
 export const searchTools = (keyword: string): ToolItem[] => {
@@ -374,6 +493,26 @@ export const getToolsByCategoryAndTag = (
   if (!category) return []
   if (tag === 'all') return category.tools
   return category.tools.filter(tool => tool.tags.includes(tag))
+}
+
+export const sortTools = (tools: ToolItem[], sortType: SortType): ToolItem[] => {
+  const sorted = [...tools]
+  switch (sortType) {
+    case 'hot':
+      return sorted.sort((a, b) => {
+        if (a.hot && !b.hot) return -1
+        if (!a.hot && b.hot) return 1
+        return b.usageCount - a.usageCount
+      })
+    case 'rating':
+      return sorted.sort((a, b) => b.rating - a.rating)
+    case 'usage':
+      return sorted.sort((a, b) => b.usageCount - a.usageCount)
+    case 'name':
+      return sorted.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
+    default:
+      return sorted
+  }
 }
 
 export const getFirstLetter = (name: string): string => {
