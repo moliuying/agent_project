@@ -1,5 +1,64 @@
 <template>
   <div class="artistic-qrcode">
+    <el-card class="dpi-alert-card">
+      <template #header>
+        <div class="card-header">
+          <el-icon :size="22" color="#e6a23c">
+            <Warning />
+          </el-icon>
+          <span>📐 输出分辨率与尺寸说明（下载前请务必阅读）</span>
+          <el-button
+            size="small"
+            text
+            type="primary"
+            :icon="QuestionFilled"
+            @click="showDpiGuide = true"
+            style="margin-left: auto"
+          >
+            什么是DPI？
+          </el-button>
+        </div>
+      </template>
+      <el-row :gutter="16">
+        <el-col :span="8">
+          <div class="dpi-info-item">
+            <div class="dpi-icon" style="background: #e1f3d8">
+              <el-icon color="#67c23a"><Monitor /></el-icon>
+            </div>
+            <div class="dpi-info-content">
+              <div class="dpi-info-title">屏幕显示 / 社交媒体</div>
+              <div class="dpi-info-desc">推荐 <strong>72 DPI</strong>，像素≥500px 即可</div>
+              <div class="dpi-info-tag">微信/朋友圈/网页/PPT</div>
+            </div>
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="dpi-info-item">
+            <div class="dpi-icon" style="background: #d9ecff">
+              <el-icon color="#165DFF"><Document /></el-icon>
+            </div>
+            <div class="dpi-info-content">
+              <div class="dpi-info-title">普通印刷 / 名片宣传单</div>
+              <div class="dpi-info-desc">推荐 <strong>150 DPI</strong>，物理尺寸≥3cm</div>
+              <div class="dpi-info-tag">名片/海报/传单/展架</div>
+            </div>
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="dpi-info-item">
+            <div class="dpi-icon" style="background: #fde2e2">
+              <el-icon color="#f56c6c"><Printer /></el-icon>
+            </div>
+            <div class="dpi-info-content">
+              <div class="dpi-info-title">高清印刷 / 出版级品质</div>
+              <div class="dpi-info-desc">推荐 <strong>300 DPI</strong>，印刷厂标准要求</div>
+              <div class="dpi-info-tag">画册/包装/户外广告/杂志</div>
+            </div>
+          </div>
+        </el-col>
+      </el-row>
+    </el-card>
+
     <el-card class="guide-card">
       <template #header>
         <div class="card-header">
@@ -10,16 +69,108 @@
         </div>
       </template>
       <el-steps :active="0" finish-status="wait" simple class="guide-steps">
+        <el-step title="选择输出规格" description="根据用途选择DPI和物理尺寸预设" />
         <el-step title="输入内容" description="输入URL链接或任意文字内容" />
         <el-step title="选择风格" description="选择艺术风格或自定义参数" />
-        <el-step title="添加Logo" description="可选：上传中心Logo图片" />
-        <el-step title="下载使用" description="一键下载高清PNG图片" />
+        <el-step title="确认后下载" description="核对输出参数后一键下载高清PNG" />
       </el-steps>
     </el-card>
 
     <el-row :gutter="24">
       <el-col :span="9">
         <el-card class="settings-card">
+          <template #header>
+            <div class="card-header">
+              <el-icon :size="20" color="#e6a23c">
+                <ScaleToOriginal />
+              </el-icon>
+              <span>输出规格（DPI / 尺寸）</span>
+            </div>
+          </template>
+          <el-form label-width="100px">
+            <el-form-item label="用途预设">
+              <el-select v-model="selectedPreset" placeholder="选择用途" @change="applyPreset">
+                <el-option
+                  v-for="p in sizePresets"
+                  :key="p.id"
+                  :label="p.name"
+                  :value="p.id"
+                >
+                  <div class="preset-option">
+                    <span class="preset-name">{{ p.name }}</span>
+                    <span class="preset-spec">{{ p.dpi }} DPI · {{ p.physicalSize }}</span>
+                  </div>
+                </el-option>
+              </el-select>
+              <div class="form-hint">选择预设会自动设置DPI、像素和物理尺寸</div>
+            </el-form-item>
+            <el-form-item label="输出DPI">
+              <el-radio-group v-model="outputDpi" @change="onDpiChange">
+                <el-radio-button :value="72">72</el-radio-button>
+                <el-radio-button :value="96">96</el-radio-button>
+                <el-radio-button :value="150">150</el-radio-button>
+                <el-radio-button :value="200">200</el-radio-button>
+                <el-radio-button :value="300">300</el-radio-button>
+              </el-radio-group>
+              <div class="dpi-hint">
+                <el-tag
+                  size="small"
+                  :type="outputDpi >= 300 ? 'danger' : outputDpi >= 150 ? 'warning' : 'success'"
+                  effect="light"
+                >
+                  {{ dpiLevelText }}
+                </el-tag>
+              </div>
+            </el-form-item>
+            <el-form-item label="物理尺寸">
+              <div class="physical-size-row">
+                <el-input-number
+                  v-model="physicalSizeMm"
+                  :min="10"
+                  :max="500"
+                  :step="5"
+                  size="small"
+                  controls-position="right"
+                  @change="onPhysicalSizeChange"
+                />
+                <span class="unit-text">mm × mm</span>
+                <span class="size-convert">(≈ {{ physicalSizeCm }} cm × {{ physicalSizeCm }} cm)</span>
+              </div>
+              <div class="form-hint">二维码实际印刷后的物理大小（正方形）</div>
+            </el-form-item>
+            <el-form-item label="像素尺寸">
+              <el-slider
+                v-model="qrSize"
+                :min="200"
+                :max="4000"
+                :step="50"
+                show-input
+                size="small"
+                @change="onPixelSizeChange"
+              />
+              <div class="unit-label">
+                {{ qrSize }} × {{ qrSize }} px
+                <span v-if="outputDpi" class="size-convert-inline">
+                  · 对应 {{ physicalSizeMm.toFixed(1) }} mm @ {{ outputDpi }} DPI
+                </span>
+              </div>
+            </el-form-item>
+            <el-divider content-position="left">📏 常用尺寸速查</el-divider>
+            <div class="quick-size-buttons">
+              <el-button
+                v-for="qs in quickSizes"
+                :key="qs.label"
+                size="small"
+                @click="setQuickSize(qs)"
+              >
+                {{ qs.label }}
+                <span class="quick-size-sub">{{ qs.sub }}</span>
+              </el-button>
+            </div>
+          </el-form>
+        </el-card>
+
+        <el-card class="settings-card" style="margin-top: 16px">
           <template #header>
             <div class="card-header">
               <el-icon :size="20" color="#165DFF">
@@ -47,7 +198,9 @@
                 <el-radio-button value="Q">较高 25%</el-radio-button>
                 <el-radio-button value="H">高 30%</el-radio-button>
               </el-radio-group>
-              <div class="form-hint">容错越高，二维码越耐磨损，推荐选择"高"</div>
+              <div class="form-hint">
+                容错越高越耐磨损，印刷用途或添加Logo时请选择"高"
+              </div>
             </el-form-item>
           </el-form>
         </el-card>
@@ -127,18 +280,6 @@
                 @change="generateQR"
               />
             </el-form-item>
-            <el-form-item label="尺寸">
-              <el-slider
-                v-model="qrSize"
-                :min="200"
-                :max="1000"
-                :step="50"
-                show-input
-                size="small"
-                @change="generateQR"
-              />
-              <div class="unit-label">{{ qrSize }} x {{ qrSize }} px</div>
-            </el-form-item>
             <el-form-item label="边距">
               <el-slider
                 v-model="qrMargin"
@@ -212,7 +353,7 @@
               <span>实时预览</span>
               <div class="header-actions">
                 <el-button :icon="Refresh" @click="resetStyle">重置</el-button>
-                <el-button type="primary" :icon="Download" @click="downloadPNG">
+                <el-button type="primary" :icon="Download" @click="confirmDownload">
                   下载 PNG
                 </el-button>
               </div>
@@ -227,11 +368,26 @@
 
           <div class="preview-info">
             <el-tag size="small">风格: {{ currentStyleName }}</el-tag>
-            <el-tag size="small" type="success">尺寸: {{ qrSize }}px</el-tag>
+            <el-tag size="small" type="success">{{ qrSize }}×{{ qrSize }} px</el-tag>
+            <el-tag size="small" :type="outputDpi >= 300 ? 'danger' : outputDpi >= 150 ? 'warning' : 'success'">
+              {{ outputDpi }} DPI
+            </el-tag>
+            <el-tag size="small" type="info">
+              {{ physicalSizeMm }}mm ({{ physicalSizeCm }}cm)
+            </el-tag>
             <el-tag size="small" type="warning" v-if="useGradient">渐变效果</el-tag>
             <el-tag size="small" type="info">容错: {{ errorLevelText }}</el-tag>
             <el-tag size="small" type="danger" v-if="logoImage">含Logo</el-tag>
           </div>
+
+          <el-alert
+            v-if="printWarning"
+            :title="printWarning"
+            type="warning"
+            :closable="false"
+            show-icon
+            class="preview-warning"
+          />
         </el-card>
 
         <el-card class="settings-card" style="margin-top: 16px">
@@ -270,6 +426,98 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <el-dialog v-model="showDpiGuide" title="📐 DPI 与印刷输出指南" width="640px">
+      <div class="dpi-guide-content">
+        <h4>什么是 DPI？</h4>
+        <p>
+          DPI（Dots Per Inch，每英寸点数）表示每英寸长度内的像素点数，是衡量印刷清晰度的标准。
+          <strong>DPI 越高，印刷出来越清晰。</strong>
+        </p>
+        <el-divider />
+        <h4>像素、DPI、物理尺寸的关系</h4>
+        <div class="formula-box">
+          <div class="formula">物理尺寸(mm) = 像素数 ÷ DPI × 25.4</div>
+          <div class="formula">像素数 = 物理尺寸(mm) ÷ 25.4 × DPI</div>
+        </div>
+        <p class="formula-example">
+          例：300 DPI 下，1000 像素 ≈ 84.7 mm；30mm 的二维码在 300 DPI 下需要 354 像素
+        </p>
+        <el-divider />
+        <h4>各场景推荐配置</h4>
+        <el-table :data="dpiRecommendTable" size="small" border>
+          <el-table-column prop="scene" label="使用场景" width="140" />
+          <el-table-column prop="dpi" label="推荐DPI" width="90" align="center" />
+          <el-table-column prop="size" label="建议物理尺寸" width="130" align="center" />
+          <el-table-column prop="pixel" label="最小像素" width="100" align="center" />
+          <el-table-column prop="note" label="说明" />
+        </el-table>
+        <el-divider />
+        <h4>⚠️ 常见误区</h4>
+        <ul class="mistake-list">
+          <li>❌ 只看像素数不看DPI：1000px 在72DPI下约35cm，在300DPI下仅8.5cm</li>
+          <li>❌ 印刷使用72DPI图片：会出现锯齿、模糊，印刷厂通常拒收</li>
+          <li>❌ 二维码太小：印刷建议最小边长≥15mm（约0.6英寸）</li>
+          <li>❌ 用JPG格式保存：请使用PNG格式，避免压缩导致识别失败</li>
+        </ul>
+      </div>
+    </el-dialog>
+
+    <el-dialog v-model="showDownloadConfirm" title="确认下载参数" width="520px">
+      <div class="download-confirm">
+        <div class="confirm-summary">
+          请核对以下输出参数是否符合您的需求：
+        </div>
+        <el-descriptions :column="2" border size="small" class="confirm-desc">
+          <el-descriptions-item label="像素尺寸">
+            <strong>{{ qrSize }} × {{ qrSize }} px</strong>
+          </el-descriptions-item>
+          <el-descriptions-item label="输出DPI">
+            <strong>{{ outputDpi }} DPI</strong>
+            <el-tag
+              size="small"
+              :type="outputDpi >= 300 ? 'danger' : outputDpi >= 150 ? 'warning' : 'success'"
+              style="margin-left: 6px"
+            >
+              {{ dpiLevelText }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="物理尺寸">
+            <strong>{{ physicalSizeMm }} mm</strong>
+            <span class="muted">（{{ physicalSizeCm }} cm）</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="艺术风格">
+            {{ currentStyleName }}
+          </el-descriptions-item>
+          <el-descriptions-item label="容错等级">{{ errorLevelText }}</el-descriptions-item>
+          <el-descriptions-item label="中心Logo">{{ logoImage ? '已添加' : '无' }}</el-descriptions-item>
+        </el-descriptions>
+
+        <el-alert
+          v-if="printWarning"
+          :title="printWarning"
+          type="warning"
+          :closable="false"
+          show-icon
+          style="margin-top: 16px"
+        />
+
+        <el-alert
+          v-if="physicalSizeMm < 15"
+          title="物理尺寸小于15mm，部分扫描设备可能识别困难"
+          type="warning"
+          :closable="false"
+          show-icon
+          style="margin-top: 8px"
+        />
+      </div>
+      <template #footer>
+        <el-button @click="showDownloadConfirm = false">返回修改</el-button>
+        <el-button type="primary" :icon="Download" @click="doDownloadPNG">
+          确认下载
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -286,7 +534,13 @@ import {
   PictureFilled,
   Picture,
   Upload,
-  Delete
+  Delete,
+  Warning,
+  QuestionFilled,
+  Monitor,
+  Document,
+  Printer,
+  ScaleToOriginal
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import QRCode from 'qrcode'
@@ -298,10 +552,27 @@ interface ArtStyle {
   apply: () => void
 }
 
+interface SizePreset {
+  id: string
+  name: string
+  dpi: number
+  physicalSizeMm: number
+  description: string
+}
+
+interface QuickSize {
+  label: string
+  sub: string
+  dpi: number
+  mm: number
+}
+
+const MM_PER_INCH = 25.4
+
 const qrCanvasRef = ref<HTMLCanvasElement | null>(null)
 const qrContent = ref('https://www.example.com')
 const errorLevel = ref<'L' | 'M' | 'Q' | 'H'>('H')
-const qrSize = ref(600)
+const qrSize = ref(1200)
 const qrMargin = ref(10)
 const foregroundColor = ref('#1a1a1a')
 const backgroundColor = ref('#ffffff')
@@ -319,6 +590,58 @@ const logoSize = ref(22)
 const logoPadding = ref(true)
 const currentStyle = ref('classic')
 
+const outputDpi = ref(300)
+const physicalSizeMm = ref(100)
+const selectedPreset = ref('print-business-card')
+const showDpiGuide = ref(false)
+const showDownloadConfirm = ref(false)
+
+const sizePresets: SizePreset[] = reactive([
+  { id: 'screen-social', name: '社交媒体 / 网页分享', dpi: 72, physicalSizeMm: 150, description: '微信、朋友圈、网页、PPT展示' },
+  { id: 'screen-wechat', name: '微信公众号配图', dpi: 96, physicalSizeMm: 100, description: '公众号文章内嵌二维码' },
+  { id: 'print-brochure', name: '普通宣传册 / 传单', dpi: 150, physicalSizeMm: 40, description: '宣传单、折页、海报局部' },
+  { id: 'print-business-card', name: '名片 / 会员卡', dpi: 300, physicalSizeMm: 25, description: '标准名片印刷，约25×25mm' },
+  { id: 'print-poster', name: '高清海报 / 展架', dpi: 300, physicalSizeMm: 80, description: '易拉宝、X展架、户外海报' },
+  { id: 'print-magazine', name: '出版级 / 杂志画册', dpi: 300, physicalSizeMm: 50, description: '杂志、书籍、产品画册' },
+  { id: 'print-large', name: '大型喷绘 / 户外广告', dpi: 150, physicalSizeMm: 300, description: '灯箱、大型广告牌、车身贴' },
+  { id: 'print-package', name: '包装印刷 / 标签', dpi: 300, physicalSizeMm: 35, description: '产品包装、不干胶标签' }
+])
+
+const quickSizes: QuickSize[] = [
+  { label: '名片', sub: '25mm/300dpi', dpi: 300, mm: 25 },
+  { label: '宣传单', sub: '40mm/150dpi', dpi: 150, mm: 40 },
+  { label: '海报', sub: '80mm/300dpi', dpi: 300, mm: 80 },
+  { label: '社交媒体', sub: '500px/72dpi', dpi: 72, mm: 0 },
+  { label: '高清方形', sub: '2000px/300dpi', dpi: 300, mm: 0 }
+]
+
+const dpiRecommendTable = [
+  { scene: '屏幕显示', dpi: '72-96', size: '任意', pixel: '≥500px', note: '网站、APP、PPT、微信' },
+  { scene: '普通印刷', dpi: '150', size: '≥30mm', pixel: '≥177px', note: '传单、海报、展板' },
+  { scene: '高清印刷', dpi: '300', size: '≥20mm', pixel: '≥236px', note: '名片、画册、杂志' },
+  { scene: '出版级', dpi: '300-600', size: '≥15mm', pixel: '≥354px', note: '精装画册、包装' },
+  { scene: '大型喷绘', dpi: '72-150', size: '≥100mm', pixel: '≥283px', note: '户外广告、灯箱' }
+]
+
+const physicalSizeCm = computed(() => (physicalSizeMm.value / 10).toFixed(1))
+
+const dpiLevelText = computed(() => {
+  if (outputDpi.value >= 300) return '印刷级'
+  if (outputDpi.value >= 150) return '普通印刷'
+  if (outputDpi.value >= 96) return '屏幕高清'
+  return '屏幕标准'
+})
+
+const printWarning = computed(() => {
+  if (outputDpi.value < 150 && physicalSizeMm.value >= 30) {
+    return `当前DPI为${outputDpi.value}，物理尺寸${physicalSizeMm.value}mm用于印刷可能不清晰，建议提高DPI至150+`
+  }
+  if (outputDpi.value < 300 && physicalSizeMm.value <= 50 && physicalSizeMm.value >= 15) {
+    return `小尺寸(${physicalSizeMm.value}mm)用于印刷建议使用300DPI，当前${outputDpi.value}DPI可能不够清晰`
+  }
+  return ''
+})
+
 const errorLevelText = computed(() => {
   const map: Record<string, string> = { L: '低 7%', M: '中 15%', Q: '较高 25%', H: '高 30%' }
   return map[errorLevel.value]
@@ -328,6 +651,54 @@ const currentStyleName = computed(() => {
   const style = artStyles.find(s => s.id === currentStyle.value)
   return style?.name || '自定义'
 })
+
+const pxToMm = (px: number, dpi: number) => (px / dpi) * MM_PER_INCH
+const mmToPx = (mm: number, dpi: number) => Math.round((mm / MM_PER_INCH) * dpi)
+
+const onDpiChange = () => {
+  const mm = pxToMm(qrSize.value, outputDpi.value)
+  physicalSizeMm.value = Math.round(mm)
+  selectedPreset.value = ''
+  nextTick(() => generateQR())
+}
+
+const onPhysicalSizeChange = () => {
+  qrSize.value = mmToPx(physicalSizeMm.value, outputDpi.value)
+  selectedPreset.value = ''
+  nextTick(() => generateQR())
+}
+
+const onPixelSizeChange = () => {
+  const mm = pxToMm(qrSize.value, outputDpi.value)
+  physicalSizeMm.value = Math.round(mm)
+  selectedPreset.value = ''
+  nextTick(() => generateQR())
+}
+
+const applyPreset = (presetId: string) => {
+  const preset = sizePresets.find(p => p.id === presetId)
+  if (!preset) return
+  outputDpi.value = preset.dpi
+  physicalSizeMm.value = preset.physicalSizeMm
+  qrSize.value = mmToPx(preset.physicalSizeMm, preset.dpi)
+  ElMessage.success(`已应用「${preset.name}」预设：${preset.dpi} DPI · ${preset.physicalSizeMm}mm`)
+  nextTick(() => generateQR())
+}
+
+const setQuickSize = (qs: QuickSize) => {
+  if (qs.mm > 0) {
+    outputDpi.value = qs.dpi
+    physicalSizeMm.value = qs.mm
+    qrSize.value = mmToPx(qs.mm, qs.dpi)
+  } else {
+    outputDpi.value = qs.dpi
+    const px = parseInt(qs.sub)
+    qrSize.value = px
+    physicalSizeMm.value = Math.round(pxToMm(px, qs.dpi))
+  }
+  selectedPreset.value = ''
+  nextTick(() => generateQR())
+}
 
 const artStyles: ArtStyle[] = reactive([
   {
@@ -497,6 +868,8 @@ const selectStyle = (styleId: string) => {
 const resetStyle = () => {
   selectStyle('classic')
   logoImage.value = ''
+  selectedPreset.value = 'print-business-card'
+  applyPreset('print-business-card')
   ElMessage.success('已重置为默认样式')
 }
 
@@ -609,7 +982,7 @@ const drawPattern = (ctx: CanvasRenderingContext2D) => {
   ctx.strokeStyle = patternColor.value
   ctx.lineWidth = 1
 
-  const size = patternSize.value
+  const size = patternSize.value * (qrSize.value / 600)
 
   switch (bgPattern.value) {
     case 'dots':
@@ -696,8 +1069,6 @@ const drawQRModules = (
   ctx.fillStyle = fillStyle
 
   const marginPx = (qrMargin.value / 100) * qrSize.value
-  const scale = (qrSize.value - marginPx * 2) / (qrWidth - cellSize * 2)
-
   const moduleCount = Math.round((qrWidth - cellSize * 2) / cellSize)
   const actualCellSize = (qrSize.value - marginPx * 2) / moduleCount
 
@@ -866,20 +1237,26 @@ const drawLogo = async (ctx: CanvasRenderingContext2D) => {
   })
 }
 
-const downloadPNG = () => {
-  const canvas = qrCanvasRef.value
-  if (!canvas) return
-
+const confirmDownload = () => {
   if (!qrContent.value.trim()) {
     ElMessage.warning('请先输入二维码内容')
     return
   }
+  showDownloadConfirm.value = true
+}
+
+const doDownloadPNG = () => {
+  const canvas = qrCanvasRef.value
+  if (!canvas) return
 
   const link = document.createElement('a')
-  link.download = `artistic-qrcode-${Date.now()}.png`
+  link.download = `artistic-qrcode-${outputDpi.value}dpi-${physicalSizeMm.value}mm-${Date.now()}.png`
   link.href = canvas.toDataURL('image/png', 1.0)
   link.click()
-  ElMessage.success('高清PNG已下载')
+  showDownloadConfirm.value = false
+  ElMessage.success(
+    `已下载：${qrSize.value}×${qrSize.value}px · ${outputDpi.value}DPI · ${physicalSizeMm.value}mm`
+  )
 }
 
 watch(currentStyle, () => {
@@ -888,6 +1265,7 @@ watch(currentStyle, () => {
 
 onMounted(() => {
   nextTick(() => {
+    applyPreset(selectedPreset.value)
     generateQR()
   })
 })
@@ -897,6 +1275,61 @@ onMounted(() => {
 .artistic-qrcode {
   max-width: 1600px;
   margin: 0 auto;
+}
+
+.dpi-alert-card {
+  margin-bottom: 16px;
+  border: 1px solid #faecd8;
+  background: linear-gradient(to right, #fffbe6, #ffffff);
+}
+
+.dpi-info-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px 4px;
+}
+
+.dpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dpi-icon :deep(.el-icon) {
+  font-size: 20px;
+}
+
+.dpi-info-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dpi-info-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 2px;
+}
+
+.dpi-info-desc {
+  font-size: 12px;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.dpi-info-tag {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #909399;
+  background: #f4f4f5;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 .guide-card {
@@ -927,6 +1360,71 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.physical-size-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.unit-text {
+  font-size: 13px;
+  color: #606266;
+  font-weight: 500;
+}
+
+.size-convert {
+  font-size: 12px;
+  color: #909399;
+}
+
+.size-convert-inline {
+  color: #909399;
+  margin-left: 6px;
+}
+
+.dpi-hint {
+  margin-top: 6px;
+}
+
+.preset-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.preset-name {
+  font-size: 13px;
+  color: #303133;
+  font-weight: 500;
+}
+
+.preset-spec {
+  font-size: 11px;
+  color: #909399;
+}
+
+.quick-size-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-size-buttons .el-button {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  height: auto;
+}
+
+.quick-size-sub {
+  font-size: 10px;
+  color: #909399;
+  font-weight: normal;
 }
 
 .style-grid {
@@ -1002,6 +1500,10 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 
+.preview-warning {
+  margin-top: 16px;
+}
+
 .logo-uploader :deep(.el-upload) {
   border: 2px dashed #d9d9d9;
   border-radius: 8px;
@@ -1046,5 +1548,70 @@ onMounted(() => {
 
 :deep(.el-radio-button) {
   margin-bottom: 8px;
+}
+
+.dpi-guide-content h4 {
+  margin: 16px 0 8px 0;
+  color: #303133;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dpi-guide-content p {
+  margin: 6px 0;
+  color: #606266;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.formula-box {
+  background: #f4f8ff;
+  border: 1px solid #d9ecff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 8px 0;
+}
+
+.formula {
+  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  color: #165DFF;
+  font-weight: 500;
+  line-height: 1.8;
+}
+
+.formula-example {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.mistake-list {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.mistake-list li {
+  color: #606266;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.download-confirm .confirm-summary {
+  font-size: 14px;
+  color: #303133;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.confirm-desc {
+  margin-top: 8px;
+}
+
+.muted {
+  color: #909399;
+  font-weight: normal;
+  margin-left: 4px;
 }
 </style>
