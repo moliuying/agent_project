@@ -2,75 +2,99 @@
   <div class="whiteboard-container">
     <div class="toolbar">
       <div class="toolbar-group">
-        <el-tooltip content="选择/移动 (V)">
-          <el-button
-            :type="currentTool === 'select' ? 'primary' : 'default'"
-            :icon="Pointer"
-            @click="setTool('select')"
-            circle
-          />
-        </el-tooltip>
-        <el-tooltip content="画笔 (P)">
-          <el-button
-            :type="currentTool === 'pen' ? 'primary' : 'default'"
-            :icon="EditPen"
-            @click="setTool('pen')"
-            circle
-          />
-        </el-tooltip>
-        <el-tooltip content="橡皮擦 (E)">
-          <el-button
-            :type="currentTool === 'eraser' ? 'primary' : 'default'"
-            :icon="Delete"
-            @click="setTool('eraser')"
-            circle
-          />
-        </el-tooltip>
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="选择/移动">
+            <el-button
+              :type="currentTool === 'select' ? 'primary' : 'default'"
+              :icon="Pointer"
+              @click="setTool('select')"
+              circle
+            />
+          </el-tooltip>
+          <span class="shortcut-badge">V</span>
+        </div>
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="画笔">
+            <el-button
+              :type="currentTool === 'pen' ? 'primary' : 'default'"
+              :icon="EditPen"
+              @click="setTool('pen')"
+              circle
+            />
+          </el-tooltip>
+          <span class="shortcut-badge">P</span>
+        </div>
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="橡皮擦">
+            <el-button
+              :type="currentTool === 'eraser' ? 'primary' : 'default'"
+              :icon="Delete"
+              @click="setTool('eraser')"
+              circle
+            />
+          </el-tooltip>
+          <span class="shortcut-badge">E</span>
+        </div>
       </div>
 
       <el-divider direction="vertical" />
 
       <div class="toolbar-group">
-        <el-tooltip content="直线 (L)">
-          <el-button
-            :type="currentTool === 'line' ? 'primary' : 'default'"
-            :icon="Minus"
-            @click="setTool('line')"
-            circle
-          />
-        </el-tooltip>
-        <el-tooltip content="箭头 (A)">
-          <el-button
-            :type="currentTool === 'arrow' ? 'primary' : 'default'"
-            :icon="Right"
-            @click="setTool('arrow')"
-            circle
-          />
-        </el-tooltip>
-        <el-tooltip content="矩形 (R)">
-          <el-button
-            :type="currentTool === 'rect' ? 'primary' : 'default'"
-            :icon="Grid"
-            @click="setTool('rect')"
-            circle
-          />
-        </el-tooltip>
-        <el-tooltip content="圆形 (C)">
-          <el-button
-            :type="currentTool === 'circle' ? 'primary' : 'default'"
-            :icon="CircleCheck"
-            @click="setTool('circle')"
-            circle
-          />
-        </el-tooltip>
-        <el-tooltip content="文字 (T)">
-          <el-button
-            :type="currentTool === 'text' ? 'primary' : 'default'"
-            :icon="Edit"
-            @click="setTool('text')"
-            circle
-          />
-        </el-tooltip>
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="直线">
+            <el-button
+              :type="currentTool === 'line' ? 'primary' : 'default'"
+              :icon="Minus"
+              @click="setTool('line')"
+              circle
+            />
+          </el-tooltip>
+          <span class="shortcut-badge">L</span>
+        </div>
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="箭头">
+            <el-button
+              :type="currentTool === 'arrow' ? 'primary' : 'default'"
+              :icon="Right"
+              @click="setTool('arrow')"
+              circle
+            />
+          </el-tooltip>
+          <span class="shortcut-badge">A</span>
+        </div>
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="矩形">
+            <el-button
+              :type="currentTool === 'rect' ? 'primary' : 'default'"
+              :icon="Grid"
+              @click="setTool('rect')"
+              circle
+            />
+          </el-tooltip>
+          <span class="shortcut-badge">R</span>
+        </div>
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="圆形">
+            <el-button
+              :type="currentTool === 'circle' ? 'primary' : 'default'"
+              :icon="CircleCheck"
+              @click="setTool('circle')"
+              circle
+            />
+          </el-tooltip>
+          <span class="shortcut-badge">C</span>
+        </div>
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="文字">
+            <el-button
+              :type="currentTool === 'text' ? 'primary' : 'default'"
+              :icon="Edit"
+              @click="setTool('text')"
+              circle
+            />
+          </el-tooltip>
+          <span class="shortcut-badge">T</span>
+        </div>
       </div>
 
       <el-divider direction="vertical" />
@@ -148,12 +172,18 @@
       <el-divider direction="vertical" />
 
       <div class="toolbar-group">
-        <el-tooltip content="撤销 (Ctrl+Z)">
-          <el-button :icon="RefreshLeft" @click="undo" :disabled="historyIndex <= 0" circle />
-        </el-tooltip>
-        <el-tooltip content="重做 (Ctrl+Y)">
-          <el-button :icon="RefreshRight" @click="redo" :disabled="historyIndex >= history.length - 1" circle />
-        </el-tooltip>
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="撤销">
+            <el-button :icon="RefreshLeft" @click="undo" :disabled="historyIndex <= 0" circle />
+          </el-tooltip>
+          <span class="shortcut-badge shortcut-combo">⌘Z</span>
+        </div>
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="重做">
+            <el-button :icon="RefreshRight" @click="redo" :disabled="historyIndex >= history.length - 1" circle />
+          </el-tooltip>
+          <span class="shortcut-badge shortcut-combo">⌘Y</span>
+        </div>
         <el-tooltip content="清空画布">
           <el-button :icon="DeleteFilled" @click="clearCanvas" type="danger" circle />
         </el-tooltip>
@@ -162,21 +192,30 @@
       <el-divider direction="vertical" />
 
       <div class="toolbar-group">
-        <el-tooltip content="缩小">
-          <el-button :icon="ZoomOut" @click="zoomOut" circle />
-        </el-tooltip>
-        <el-button @click="resetView" size="small">
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="缩小">
+            <el-button :icon="ZoomOut" @click="zoomOut" circle />
+          </el-tooltip>
+          <span class="shortcut-badge shortcut-simple">-</span>
+        </div>
+        <el-button @click="resetView" size="small" class="scale-btn">
           {{ Math.round(scale * 100) }}%
         </el-button>
-        <el-tooltip content="放大">
-          <el-button :icon="ZoomIn" @click="zoomIn" circle />
-        </el-tooltip>
+        <div class="tool-btn-wrapper">
+          <el-tooltip content="放大">
+            <el-button :icon="ZoomIn" @click="zoomIn" circle />
+          </el-tooltip>
+          <span class="shortcut-badge shortcut-simple">+</span>
+        </div>
         <el-tooltip content="重置视图">
           <el-button :icon="FullScreen" @click="resetView" circle />
         </el-tooltip>
       </div>
 
       <div class="toolbar-group toolbar-right">
+        <el-tooltip content="快捷键帮助 (?)">
+          <el-button :icon="QuestionFilled" @click="showShortcutHelp = true" circle />
+        </el-tooltip>
         <el-tooltip content="导出 PNG">
           <el-button :icon="Download" @click="exportPNG" circle />
         </el-tooltip>
@@ -217,14 +256,67 @@
     </div>
 
     <div class="status-bar">
-      <span class="status-item">工具: {{ toolLabels[currentTool] }}</span>
+      <span class="status-item">
+        <el-icon><component :is="getToolIcon(currentTool)" /></el-icon>
+        {{ toolLabels[currentTool] }}
+      </span>
       <span class="status-item">坐标: ({{ Math.round(mousePos.x) }}, {{ Math.round(mousePos.y) }})</span>
       <span class="status-item">缩放: {{ Math.round(scale * 100) }}%</span>
       <span class="status-item">元素: {{ shapes.length }}</span>
       <span class="status-hint">
-        按住空格拖拽可平移画布 · 滚轮缩放 · Ctrl+Z 撤销
+        <el-tag size="small" type="info" effect="plain" class="kbd-hint">空格</el-tag>
+        拖拽平移
+        <el-tag size="small" type="info" effect="plain" class="kbd-hint">滚轮</el-tag>
+        缩放
+        <el-tag size="small" type="info" effect="plain" class="kbd-hint">⌘Z</el-tag>
+        撤销
+        <el-tag size="small" type="info" effect="plain" class="kbd-hint" @click="showShortcutHelp = true">?</el-tag>
+        快捷键
       </span>
     </div>
+
+    <el-dialog v-model="showShortcutHelp" title="⌨️ 快捷键参考" width="600px" class="shortcut-dialog">
+      <div class="shortcut-content">
+        <div class="shortcut-section">
+          <h4>🎨 绘图工具</h4>
+          <div class="shortcut-grid">
+            <div class="shortcut-row"><span class="kbd">V</span><span>选择/移动</span></div>
+            <div class="shortcut-row"><span class="kbd">P</span><span>画笔</span></div>
+            <div class="shortcut-row"><span class="kbd">E</span><span>橡皮擦</span></div>
+            <div class="shortcut-row"><span class="kbd">L</span><span>直线</span></div>
+            <div class="shortcut-row"><span class="kbd">A</span><span>箭头</span></div>
+            <div class="shortcut-row"><span class="kbd">R</span><span>矩形</span></div>
+            <div class="shortcut-row"><span class="kbd">C</span><span>圆形</span></div>
+            <div class="shortcut-row"><span class="kbd">T</span><span>文字</span></div>
+          </div>
+        </div>
+
+        <div class="shortcut-section">
+          <h4>🔧 编辑操作</h4>
+          <div class="shortcut-grid">
+            <div class="shortcut-row"><span class="kbd"><span>⌘</span>+<span>Z</span></span><span>撤销</span></div>
+            <div class="shortcut-row"><span class="kbd"><span>⌘</span>+<span>Y</span></span><span>重做</span></div>
+            <div class="shortcut-row"><span class="kbd">Esc</span><span>取消文字输入</span></div>
+            <div class="shortcut-row"><span class="kbd"><span>⌘</span>+<span>Enter</span></span><span>确认文字输入</span></div>
+          </div>
+        </div>
+
+        <div class="shortcut-section">
+          <h4>🖼️ 画布导航</h4>
+          <div class="shortcut-grid">
+            <div class="shortcut-row"><span class="kbd">空格</span><span>+ 拖拽平移画布</span></div>
+            <div class="shortcut-row"><span class="kbd">滚轮</span><span>缩放画布（以鼠标为中心）</span></div>
+            <div class="shortcut-row"><span class="kbd">+</span><span>放大</span></div>
+            <div class="shortcut-row"><span class="kbd">-</span><span>缩小</span></div>
+            <div class="shortcut-row"><span class="kbd">0</span><span>重置视图 (100%)</span></div>
+            <div class="shortcut-row"><span class="kbd">?</span><span>打开快捷键帮助</span></div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="showShortcutHelp = false">我知道了</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -245,9 +337,11 @@ import {
   ZoomIn,
   ZoomOut,
   FullScreen,
-  Download
+  Download,
+  QuestionFilled
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import type { Component } from 'vue'
 
 type ToolType = 'select' | 'pen' | 'eraser' | 'line' | 'arrow' | 'rect' | 'circle' | 'text'
 
@@ -312,6 +406,21 @@ const toolLabels: Record<ToolType, string> = {
   circle: '圆形',
   text: '文字'
 }
+
+const toolIcons: Record<ToolType, Component> = {
+  select: Pointer,
+  pen: EditPen,
+  eraser: Delete,
+  line: Minus,
+  arrow: Right,
+  rect: Grid,
+  circle: CircleCheck,
+  text: Edit
+}
+
+const getToolIcon = (tool: ToolType): Component => toolIcons[tool]
+
+const showShortcutHelp = ref(false)
 
 const canvasContainerRef = ref<HTMLElement | null>(null)
 const gridCanvasRef = ref<HTMLCanvasElement | null>(null)
@@ -1007,10 +1116,17 @@ const handleKeyDown = (e: KeyboardEvent) => {
     if (e.code === 'KeyZ') {
       e.preventDefault()
       undo()
+      return
     } else if (e.code === 'KeyY') {
       e.preventDefault()
       redo()
+      return
     }
+  }
+  if (e.code === 'Slash' && e.shiftKey) {
+    e.preventDefault()
+    showShortcutHelp.value = true
+    return
   }
   if (textInputVisible.value) return
   switch (e.code) {
@@ -1037,6 +1153,18 @@ const handleKeyDown = (e: KeyboardEvent) => {
       break
     case 'KeyT':
       setTool('text')
+      break
+    case 'Equal':
+    case 'NumpadAdd':
+      zoomIn()
+      break
+    case 'Minus':
+    case 'NumpadSubtract':
+      zoomOut()
+      break
+    case 'Digit0':
+    case 'Numpad0':
+      resetView()
       break
   }
 }
@@ -1204,5 +1332,129 @@ onUnmounted(() => {
 .status-hint {
   margin-left: auto;
   color: #909399;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kbd-hint {
+  cursor: pointer;
+  margin: 0 2px;
+}
+
+.kbd-hint:hover {
+  background-color: #ecf5ff !important;
+  color: #165DFF !important;
+}
+
+.tool-btn-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shortcut-badge {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: linear-gradient(135deg, #165DFF 0%, #4080FF 100%);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(22, 93, 255, 0.4);
+  z-index: 1;
+  pointer-events: none;
+  letter-spacing: 0.3px;
+}
+
+.shortcut-badge.shortcut-combo {
+  font-size: 8px;
+  padding: 0 3px;
+  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%);
+  box-shadow: 0 1px 3px rgba(114, 46, 209, 0.4);
+}
+
+.shortcut-badge.shortcut-simple {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  box-shadow: 0 1px 3px rgba(82, 196, 26, 0.4);
+}
+
+.scale-btn {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-weight: 600;
+  min-width: 60px;
+}
+
+.shortcut-dialog :deep(.el-dialog__body) {
+  padding: 0 20px 10px;
+}
+
+.shortcut-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.shortcut-section h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #303133;
+  font-weight: 600;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 24px;
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.shortcut-row span:last-child {
+  font-size: 13px;
+  color: #606266;
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 8px;
+  background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #d0d7de;
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.kbd span {
+  font-size: 11px;
+}
+
+.kbd + .kbd {
+  margin-left: 2px;
 }
 </style>
