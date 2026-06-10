@@ -88,6 +88,30 @@
             </div>
           </template>
           <el-form label-width="100px">
+            <el-form-item label="画布比例">
+              <div class="ratio-buttons">
+                <el-button
+                  v-for="r in canvasRatioPresets"
+                  :key="r.id"
+                  size="small"
+                  :type="canvasRatio === r.id ? 'primary' : 'default'"
+                  @click="selectCanvasRatio(r.id)"
+                >
+                  <span class="ratio-label">{{ r.label }}</span>
+                  <span class="ratio-sub">{{ r.desc }}</span>
+                </el-button>
+              </div>
+              <div v-if="canvasRatio === 'custom'" class="custom-ratio-input">
+                <el-input-number v-model="customRatioW" :min="1" :max="100" size="small" controls-position="right" @change="updateCustomRatio" />
+                <span class="ratio-colon">:</span>
+                <el-input-number v-model="customRatioH" :min="1" :max="100" size="small" controls-position="right" @change="updateCustomRatio" />
+              </div>
+              <div class="form-hint">
+                <el-tag size="small" type="info" effect="light">
+                  当前：{{ canvasRatioLabel }} · 画布将按此比例输出
+                </el-tag>
+              </div>
+            </el-form-item>
             <el-form-item label="用途预设">
               <el-select v-model="selectedPreset" placeholder="选择用途" @change="applyPreset">
                 <el-option
@@ -98,7 +122,7 @@
                 >
                   <div class="preset-option">
                     <span class="preset-name">{{ p.name }}</span>
-                    <span class="preset-spec">{{ p.dpi }} DPI · {{ p.physicalSize }}</span>
+                    <span class="preset-spec">{{ p.dpi }} DPI · {{ p.sizeMm }}</span>
                   </div>
                 </el-option>
               </el-select>
@@ -122,40 +146,93 @@
                 </el-tag>
               </div>
             </el-form-item>
+            <el-divider content-position="left">🔲 画布尺寸（最终输出大小）</el-divider>
             <el-form-item label="物理尺寸">
-              <div class="physical-size-row">
-                <el-input-number
-                  v-model="physicalSizeMm"
-                  :min="10"
-                  :max="500"
-                  :step="5"
-                  size="small"
-                  controls-position="right"
-                  @change="onPhysicalSizeChange"
-                />
-                <span class="unit-text">mm × mm</span>
-                <span class="size-convert">(≈ {{ physicalSizeCm }} cm × {{ physicalSizeCm }} cm)</span>
+              <div class="canvas-size-row">
+                <div class="size-input-group">
+                  <span class="size-axis-label">宽</span>
+                  <el-input-number
+                    v-model="canvasWidthMm"
+                    :min="10"
+                    :max="1000"
+                    :step="5"
+                    size="small"
+                    controls-position="right"
+                    @change="onCanvasSizeMmChange"
+                  />
+                  <span class="unit-text">mm</span>
+                </div>
+                <span class="size-mul">×</span>
+                <div class="size-input-group">
+                  <span class="size-axis-label">高</span>
+                  <el-input-number
+                    v-model="canvasHeightMm"
+                    :min="10"
+                    :max="1000"
+                    :step="5"
+                    size="small"
+                    controls-position="right"
+                    @change="onCanvasSizeMmChange"
+                  />
+                  <span class="unit-text">mm</span>
+                </div>
               </div>
-              <div class="form-hint">二维码实际印刷后的物理大小（正方形）</div>
+              <div class="size-convert-line">
+                ≈ {{ canvasWidthCm }} cm × {{ canvasHeightCm }} cm
+              </div>
             </el-form-item>
             <el-form-item label="像素尺寸">
-              <el-slider
-                v-model="qrSize"
-                :min="200"
-                :max="4000"
-                :step="50"
-                show-input
-                size="small"
-                @change="onPixelSizeChange"
-              />
-              <div class="unit-label">
-                {{ qrSize }} × {{ qrSize }} px
-                <span v-if="outputDpi" class="size-convert-inline">
-                  · 对应 {{ physicalSizeMm.toFixed(1) }} mm @ {{ outputDpi }} DPI
-                </span>
+              <div class="canvas-size-row">
+                <div class="size-input-group">
+                  <span class="size-axis-label">宽</span>
+                  <el-slider
+                    v-model="canvasWidthPx"
+                    :min="200"
+                    :max="4000"
+                    :step="50"
+                    size="small"
+                    @change="onCanvasSizePxChange"
+                    style="width: 140px; margin-right: 8px"
+                  />
+                  <span class="unit-text">{{ canvasWidthPx }}px</span>
+                </div>
+              </div>
+              <div class="canvas-size-row" style="margin-top: 8px">
+                <div class="size-input-group">
+                  <span class="size-axis-label">高</span>
+                  <el-slider
+                    v-model="canvasHeightPx"
+                    :min="200"
+                    :max="4000"
+                    :step="50"
+                    size="small"
+                    @change="onCanvasSizePxChange"
+                    style="width: 140px; margin-right: 8px"
+                  />
+                  <span class="unit-text">{{ canvasHeightPx }}px</span>
+                </div>
+              </div>
+              <div class="size-convert-line">
+                对应 {{ canvasWidthMm.toFixed(1) }}mm × {{ canvasHeightMm.toFixed(1) }}mm @ {{ outputDpi }} DPI
               </div>
             </el-form-item>
-            <el-divider content-position="left">📏 常用尺寸速查</el-divider>
+            <el-divider content-position="left">🔳 二维码在画布中的设置</el-divider>
+            <el-form-item label="二维码大小">
+              <el-slider
+                v-model="qrScalePercent"
+                :min="10"
+                :max="100"
+                show-input
+                size="small"
+                @change="generateQR"
+              />
+              <div class="unit-label">占画布较小边的 {{ qrScalePercent }}% · 二维码 {{ qrSize }}×{{ qrSize }} px</div>
+            </el-form-item>
+            <el-form-item label="画布填充">
+              <el-color-picker v-model="canvasBgColor" show-alpha @change="generateQR" />
+              <div class="form-hint">画布中二维码以外区域的背景色</div>
+            </el-form-item>
+            <el-divider content-position="left">📏 常用画布速查</el-divider>
             <div class="quick-size-buttons">
               <el-button
                 v-for="qs in quickSizes"
@@ -361,19 +438,28 @@
           </template>
 
           <div class="preview-container">
-            <div class="canvas-wrapper">
-              <canvas ref="qrCanvasRef" :width="qrSize" :height="qrSize"></canvas>
+            <div
+              class="canvas-wrapper"
+              :style="canvasWrapperStyle"
+              :class="{ 'canvas-wrapper-non-square': !isSquareCanvas }"
+            >
+              <canvas ref="qrCanvasRef" :width="canvasWidthPx" :height="canvasHeightPx"></canvas>
+              <div v-if="!isSquareCanvas" class="canvas-aspect-badge">
+                {{ canvasRatioLabel }}
+              </div>
             </div>
           </div>
 
           <div class="preview-info">
-            <el-tag size="small">风格: {{ currentStyleName }}</el-tag>
-            <el-tag size="small" type="success">{{ qrSize }}×{{ qrSize }} px</el-tag>
+            <el-tag size="small" type="primary">🖼️ 画布: {{ canvasWidthPx }}×{{ canvasHeightPx }} px</el-tag>
+            <el-tag size="small" type="info">
+              {{ canvasWidthMm }}×{{ canvasHeightMm }}mm ({{ canvasWidthCm }}×{{ canvasHeightCm }}cm)
+            </el-tag>
+            <el-tag size="small" type="success">
+              🔲 二维码: {{ qrSize }}×{{ qrSize }} px
+            </el-tag>
             <el-tag size="small" :type="outputDpi >= 300 ? 'danger' : outputDpi >= 150 ? 'warning' : 'success'">
               {{ outputDpi }} DPI
-            </el-tag>
-            <el-tag size="small" type="info">
-              {{ physicalSizeMm }}mm ({{ physicalSizeCm }}cm)
             </el-tag>
             <el-tag size="small" type="warning" v-if="useGradient">渐变效果</el-tag>
             <el-tag size="small" type="info">容错: {{ errorLevelText }}</el-tag>
@@ -469,8 +555,13 @@
           请核对以下输出参数是否符合您的需求：
         </div>
         <el-descriptions :column="2" border size="small" class="confirm-desc">
-          <el-descriptions-item label="像素尺寸">
-            <strong>{{ qrSize }} × {{ qrSize }} px</strong>
+          <el-descriptions-item label="画布像素" :span="2">
+            <strong>{{ canvasWidthPx }} × {{ canvasHeightPx }} px</strong>
+            <el-tag size="small" type="primary" style="margin-left: 8px">比例 {{ canvasRatioLabel }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="画布物理尺寸" :span="2">
+            <strong>{{ canvasWidthMm }}mm × {{ canvasHeightMm }}mm</strong>
+            <span class="muted">（{{ canvasWidthCm }}cm × {{ canvasHeightCm }}cm）</span>
           </el-descriptions-item>
           <el-descriptions-item label="输出DPI">
             <strong>{{ outputDpi }} DPI</strong>
@@ -482,15 +573,13 @@
               {{ dpiLevelText }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="物理尺寸">
-            <strong>{{ physicalSizeMm }} mm</strong>
-            <span class="muted">（{{ physicalSizeCm }} cm）</span>
+          <el-descriptions-item label="二维码尺寸">
+            <strong>{{ qrSize }} × {{ qrSize }} px</strong>
+            <span class="muted">（居中显示）</span>
           </el-descriptions-item>
-          <el-descriptions-item label="艺术风格">
-            {{ currentStyleName }}
-          </el-descriptions-item>
+          <el-descriptions-item label="艺术风格">{{ currentStyleName }}</el-descriptions-item>
           <el-descriptions-item label="容错等级">{{ errorLevelText }}</el-descriptions-item>
-          <el-descriptions-item label="中心Logo">{{ logoImage ? '已添加' : '无' }}</el-descriptions-item>
+          <el-descriptions-item label="中心Logo" :span="2">{{ logoImage ? '已添加' : '无' }}</el-descriptions-item>
         </el-descriptions>
 
         <el-alert
@@ -556,7 +645,9 @@ interface SizePreset {
   id: string
   name: string
   dpi: number
-  physicalSizeMm: number
+  sizeMm: string
+  canvasW: number
+  canvasH: number
   description: string
 }
 
@@ -564,7 +655,19 @@ interface QuickSize {
   label: string
   sub: string
   dpi: number
-  mm: number
+  mm?: number
+  px?: number
+  ratio?: string
+  canvasWmm?: number
+  canvasHmm?: number
+}
+
+interface CanvasRatioPreset {
+  id: string
+  label: string
+  desc: string
+  w: number
+  h: number
 }
 
 const MM_PER_INCH = 25.4
@@ -572,7 +675,7 @@ const MM_PER_INCH = 25.4
 const qrCanvasRef = ref<HTMLCanvasElement | null>(null)
 const qrContent = ref('https://www.example.com')
 const errorLevel = ref<'L' | 'M' | 'Q' | 'H'>('H')
-const qrSize = ref(1200)
+const qrSize = ref(1000)
 const qrMargin = ref(10)
 const foregroundColor = ref('#1a1a1a')
 const backgroundColor = ref('#ffffff')
@@ -591,28 +694,47 @@ const logoPadding = ref(true)
 const currentStyle = ref('classic')
 
 const outputDpi = ref(300)
-const physicalSizeMm = ref(100)
+const canvasWidthPx = ref(1200)
+const canvasHeightPx = ref(1200)
+const canvasWidthMm = ref(100)
+const canvasHeightMm = ref(100)
+const canvasRatio = ref('1:1')
+const customRatioW = ref(1)
+const customRatioH = ref(1)
+const qrScalePercent = ref(80)
+const canvasBgColor = ref('#ffffff')
 const selectedPreset = ref('print-business-card')
 const showDpiGuide = ref(false)
 const showDownloadConfirm = ref(false)
 
+const canvasRatioPresets: CanvasRatioPreset[] = reactive([
+  { id: '1:1', label: '1:1', desc: '正方形', w: 1, h: 1 },
+  { id: '4:3', label: '4:3', desc: '横版', w: 4, h: 3 },
+  { id: '3:4', label: '3:4', desc: '竖版', w: 3, h: 4 },
+  { id: '16:9', label: '16:9', desc: '宽屏', w: 16, h: 9 },
+  { id: '9:16', label: '9:16', desc: '手机', w: 9, h: 16 },
+  { id: '3:2', label: '3:2', desc: '卡片', w: 3, h: 2 },
+  { id: 'a4', label: 'A4', desc: '210×297mm', w: 210, h: 297 },
+  { id: 'custom', label: '自定义', desc: '自定义比例', w: 1, h: 1 }
+])
+
 const sizePresets: SizePreset[] = reactive([
-  { id: 'screen-social', name: '社交媒体 / 网页分享', dpi: 72, physicalSizeMm: 150, description: '微信、朋友圈、网页、PPT展示' },
-  { id: 'screen-wechat', name: '微信公众号配图', dpi: 96, physicalSizeMm: 100, description: '公众号文章内嵌二维码' },
-  { id: 'print-brochure', name: '普通宣传册 / 传单', dpi: 150, physicalSizeMm: 40, description: '宣传单、折页、海报局部' },
-  { id: 'print-business-card', name: '名片 / 会员卡', dpi: 300, physicalSizeMm: 25, description: '标准名片印刷，约25×25mm' },
-  { id: 'print-poster', name: '高清海报 / 展架', dpi: 300, physicalSizeMm: 80, description: '易拉宝、X展架、户外海报' },
-  { id: 'print-magazine', name: '出版级 / 杂志画册', dpi: 300, physicalSizeMm: 50, description: '杂志、书籍、产品画册' },
-  { id: 'print-large', name: '大型喷绘 / 户外广告', dpi: 150, physicalSizeMm: 300, description: '灯箱、大型广告牌、车身贴' },
-  { id: 'print-package', name: '包装印刷 / 标签', dpi: 300, physicalSizeMm: 35, description: '产品包装、不干胶标签' }
+  { id: 'screen-social', name: '社交媒体 / 网页分享', dpi: 72, sizeMm: '150×150mm', canvasW: 150, canvasH: 150, description: '微信、朋友圈、网页、PPT展示' },
+  { id: 'screen-wechat', name: '微信公众号配图', dpi: 96, sizeMm: '100×100mm', canvasW: 100, canvasH: 100, description: '公众号文章内嵌二维码' },
+  { id: 'print-brochure', name: '普通宣传册 / 传单', dpi: 150, sizeMm: '210×148mm(A5)', canvasW: 210, canvasH: 148, description: '宣传单、折页、海报局部' },
+  { id: 'print-business-card', name: '名片 / 会员卡', dpi: 300, sizeMm: '90×54mm(名片)', canvasW: 90, canvasH: 54, description: '标准名片印刷，二维码居中' },
+  { id: 'print-poster', name: '高清海报 / 展架', dpi: 300, sizeMm: '420×297mm(A3)', canvasW: 420, canvasH: 297, description: '易拉宝、X展架、户外海报' },
+  { id: 'print-magazine', name: '出版级 / 杂志画册', dpi: 300, sizeMm: '210×297mm(A4)', canvasW: 210, canvasH: 297, description: '杂志、书籍、产品画册' },
+  { id: 'print-large', name: '大型喷绘 / 户外广告', dpi: 150, sizeMm: '600×900mm', canvasW: 600, canvasH: 900, description: '灯箱、大型广告牌、车身贴' },
+  { id: 'print-package', name: '包装印刷 / 标签', dpi: 300, sizeMm: '100×60mm', canvasW: 100, canvasH: 60, description: '产品包装、不干胶标签' }
 ])
 
 const quickSizes: QuickSize[] = [
-  { label: '名片', sub: '25mm/300dpi', dpi: 300, mm: 25 },
-  { label: '宣传单', sub: '40mm/150dpi', dpi: 150, mm: 40 },
-  { label: '海报', sub: '80mm/300dpi', dpi: 300, mm: 80 },
-  { label: '社交媒体', sub: '500px/72dpi', dpi: 72, mm: 0 },
-  { label: '高清方形', sub: '2000px/300dpi', dpi: 300, mm: 0 }
+  { label: '名片', sub: '90×54mm/300dpi', dpi: 300, canvasWmm: 90, canvasHmm: 54, ratio: '3:2' },
+  { label: 'A4海报', sub: '210×297mm/300dpi', dpi: 300, canvasWmm: 210, canvasHmm: 297, ratio: 'a4' },
+  { label: '公众号', sub: '500×500px/72dpi', dpi: 72, px: 500, ratio: '1:1' },
+  { label: '手机竖版', sub: '1080×1920/96dpi', dpi: 96, px: 1080, ratio: '9:16' },
+  { label: '横幅', sub: '1920×1080/96dpi', dpi: 96, px: 1920, ratio: '16:9' }
 ]
 
 const dpiRecommendTable = [
@@ -623,7 +745,18 @@ const dpiRecommendTable = [
   { scene: '大型喷绘', dpi: '72-150', size: '≥100mm', pixel: '≥283px', note: '户外广告、灯箱' }
 ]
 
-const physicalSizeCm = computed(() => (physicalSizeMm.value / 10).toFixed(1))
+const isSquareCanvas = computed(() => canvasWidthPx.value === canvasHeightPx.value)
+
+const canvasWidthCm = computed(() => (canvasWidthMm.value / 10).toFixed(1))
+const canvasHeightCm = computed(() => (canvasHeightMm.value / 10).toFixed(1))
+
+const canvasRatioLabel = computed(() => {
+  if (canvasRatio.value === 'custom') {
+    return `${customRatioW.value}:${customRatioH.value}（自定义）`
+  }
+  const preset = canvasRatioPresets.find(r => r.id === canvasRatio.value)
+  return preset ? `${preset.label} · ${preset.desc}` : '1:1'
+})
 
 const dpiLevelText = computed(() => {
   if (outputDpi.value >= 300) return '印刷级'
@@ -633,13 +766,28 @@ const dpiLevelText = computed(() => {
 })
 
 const printWarning = computed(() => {
-  if (outputDpi.value < 150 && physicalSizeMm.value >= 30) {
-    return `当前DPI为${outputDpi.value}，物理尺寸${physicalSizeMm.value}mm用于印刷可能不清晰，建议提高DPI至150+`
+  const minMm = Math.min(canvasWidthMm.value, canvasHeightMm.value)
+  if (outputDpi.value < 150 && minMm >= 30) {
+    return `当前DPI为${outputDpi.value}，画布最小边${minMm}mm用于印刷可能不清晰，建议提高DPI至150+`
   }
-  if (outputDpi.value < 300 && physicalSizeMm.value <= 50 && physicalSizeMm.value >= 15) {
-    return `小尺寸(${physicalSizeMm.value}mm)用于印刷建议使用300DPI，当前${outputDpi.value}DPI可能不够清晰`
+  if (outputDpi.value < 300 && minMm <= 50 && minMm >= 15) {
+    return `小尺寸画布(${minMm}mm)用于印刷建议使用300DPI，当前${outputDpi.value}DPI可能不够清晰`
   }
   return ''
+})
+
+const canvasWrapperStyle = computed(() => {
+  const maxPreview = 480
+  let w = canvasWidthPx.value
+  let h = canvasHeightPx.value
+  const scale = Math.min(maxPreview / Math.max(w, h), 1)
+  const displayW = Math.round(w * scale)
+  const displayH = Math.round(h * scale)
+  return {
+    width: `${displayW}px`,
+    height: `${displayH}px`,
+    aspectRatio: `${w} / ${h}`
+  }
 })
 
 const errorLevelText = computed(() => {
@@ -655,22 +803,60 @@ const currentStyleName = computed(() => {
 const pxToMm = (px: number, dpi: number) => (px / dpi) * MM_PER_INCH
 const mmToPx = (mm: number, dpi: number) => Math.round((mm / MM_PER_INCH) * dpi)
 
+const updateQrSizeFromCanvas = () => {
+  const minSide = Math.min(canvasWidthPx.value, canvasHeightPx.value)
+  qrSize.value = Math.round(minSide * (qrScalePercent.value / 100))
+}
+
+const selectCanvasRatio = (ratioId: string) => {
+  canvasRatio.value = ratioId
+  if (ratioId === 'custom') {
+    customRatioW.value = 1
+    customRatioH.value = 1
+    return
+  }
+  const preset = canvasRatioPresets.find(r => r.id === ratioId)
+  if (!preset) return
+  const basePx = canvasWidthPx.value
+  canvasHeightPx.value = Math.round(basePx * (preset.h / preset.w))
+  canvasWidthMm.value = Math.round(pxToMm(canvasWidthPx.value, outputDpi.value))
+  canvasHeightMm.value = Math.round(pxToMm(canvasHeightPx.value, outputDpi.value))
+  updateQrSizeFromCanvas()
+  selectedPreset.value = ''
+  nextTick(() => generateQR())
+}
+
+const updateCustomRatio = () => {
+  if (canvasRatio.value !== 'custom' || customRatioW.value === 0 || customRatioH.value === 0) return
+  const basePx = canvasWidthPx.value
+  canvasHeightPx.value = Math.round(basePx * (customRatioH.value / customRatioW.value))
+  canvasWidthMm.value = Math.round(pxToMm(canvasWidthPx.value, outputDpi.value))
+  canvasHeightMm.value = Math.round(pxToMm(canvasHeightPx.value, outputDpi.value))
+  updateQrSizeFromCanvas()
+  selectedPreset.value = ''
+  nextTick(() => generateQR())
+}
+
 const onDpiChange = () => {
-  const mm = pxToMm(qrSize.value, outputDpi.value)
-  physicalSizeMm.value = Math.round(mm)
+  canvasWidthMm.value = Math.round(pxToMm(canvasWidthPx.value, outputDpi.value))
+  canvasHeightMm.value = Math.round(pxToMm(canvasHeightPx.value, outputDpi.value))
+  updateQrSizeFromCanvas()
   selectedPreset.value = ''
   nextTick(() => generateQR())
 }
 
-const onPhysicalSizeChange = () => {
-  qrSize.value = mmToPx(physicalSizeMm.value, outputDpi.value)
+const onCanvasSizeMmChange = () => {
+  canvasWidthPx.value = mmToPx(canvasWidthMm.value, outputDpi.value)
+  canvasHeightPx.value = mmToPx(canvasHeightMm.value, outputDpi.value)
+  updateQrSizeFromCanvas()
   selectedPreset.value = ''
   nextTick(() => generateQR())
 }
 
-const onPixelSizeChange = () => {
-  const mm = pxToMm(qrSize.value, outputDpi.value)
-  physicalSizeMm.value = Math.round(mm)
+const onCanvasSizePxChange = () => {
+  canvasWidthMm.value = Math.round(pxToMm(canvasWidthPx.value, outputDpi.value))
+  canvasHeightMm.value = Math.round(pxToMm(canvasHeightPx.value, outputDpi.value))
+  updateQrSizeFromCanvas()
   selectedPreset.value = ''
   nextTick(() => generateQR())
 }
@@ -679,23 +865,46 @@ const applyPreset = (presetId: string) => {
   const preset = sizePresets.find(p => p.id === presetId)
   if (!preset) return
   outputDpi.value = preset.dpi
-  physicalSizeMm.value = preset.physicalSizeMm
-  qrSize.value = mmToPx(preset.physicalSizeMm, preset.dpi)
-  ElMessage.success(`已应用「${preset.name}」预设：${preset.dpi} DPI · ${preset.physicalSizeMm}mm`)
+  canvasWidthMm.value = preset.canvasW
+  canvasHeightMm.value = preset.canvasH
+  canvasWidthPx.value = mmToPx(preset.canvasW, preset.dpi)
+  canvasHeightPx.value = mmToPx(preset.canvasH, preset.dpi)
+
+  if (preset.canvasW === preset.canvasH) {
+    canvasRatio.value = '1:1'
+  } else {
+    canvasRatio.value = 'custom'
+    customRatioW.value = preset.canvasW
+    customRatioH.value = preset.canvasH
+  }
+  updateQrSizeFromCanvas()
+  ElMessage.success(`已应用「${preset.name}」预设：${preset.dpi} DPI · ${preset.sizeMm}`)
   nextTick(() => generateQR())
 }
 
 const setQuickSize = (qs: QuickSize) => {
-  if (qs.mm > 0) {
-    outputDpi.value = qs.dpi
-    physicalSizeMm.value = qs.mm
-    qrSize.value = mmToPx(qs.mm, qs.dpi)
-  } else {
-    outputDpi.value = qs.dpi
-    const px = parseInt(qs.sub)
-    qrSize.value = px
-    physicalSizeMm.value = Math.round(pxToMm(px, qs.dpi))
+  outputDpi.value = qs.dpi
+  if (qs.canvasWmm && qs.canvasHmm) {
+    canvasWidthMm.value = qs.canvasWmm
+    canvasHeightMm.value = qs.canvasHmm
+    canvasWidthPx.value = mmToPx(qs.canvasWmm, qs.dpi)
+    canvasHeightPx.value = mmToPx(qs.canvasHmm, qs.dpi)
+    canvasRatio.value = qs.ratio || 'custom'
+    if (canvasRatio.value === 'custom') {
+      customRatioW.value = qs.canvasWmm
+      customRatioH.value = qs.canvasHmm
+    }
+  } else if (qs.px && qs.ratio) {
+    const preset = canvasRatioPresets.find(r => r.id === qs.ratio)
+    if (preset) {
+      canvasRatio.value = qs.ratio
+      canvasWidthPx.value = qs.px
+      canvasHeightPx.value = Math.round(qs.px * (preset.h / preset.w))
+      canvasWidthMm.value = Math.round(pxToMm(canvasWidthPx.value, qs.dpi))
+      canvasHeightMm.value = Math.round(pxToMm(canvasHeightPx.value, qs.dpi))
+    }
   }
+  updateQrSizeFromCanvas()
   selectedPreset.value = ''
   nextTick(() => generateQR())
 }
@@ -868,6 +1077,9 @@ const selectStyle = (styleId: string) => {
 const resetStyle = () => {
   selectStyle('classic')
   logoImage.value = ''
+  qrScalePercent.value = 80
+  canvasBgColor.value = '#ffffff'
+  canvasRatio.value = '3:2'
   selectedPreset.value = 'print-business-card'
   applyPreset('print-business-card')
   ElMessage.success('已重置为默认样式')
@@ -899,6 +1111,9 @@ const removeLogo = () => {
   ElMessage.success('已移除Logo')
 }
 
+const qrOffsetX = computed(() => Math.round((canvasWidthPx.value - qrSize.value) / 2))
+const qrOffsetY = computed(() => Math.round((canvasHeightPx.value - qrSize.value) / 2))
+
 const generateQR = async () => {
   const canvas = qrCanvasRef.value
   if (!canvas) return
@@ -910,6 +1125,8 @@ const generateQR = async () => {
     ElMessage.warning('请输入二维码内容')
     return
   }
+
+  updateQrSizeFromCanvas()
 
   try {
     const qrCanvas = document.createElement('canvas')
@@ -923,11 +1140,15 @@ const generateQR = async () => {
       }
     })
 
-    canvas.width = qrSize.value
-    canvas.height = qrSize.value
+    canvas.width = canvasWidthPx.value
+    canvas.height = canvasHeightPx.value
 
-    drawBackground(ctx)
-    drawPattern(ctx)
+    drawCanvasBackground(ctx)
+
+    ctx.save()
+    ctx.translate(qrOffsetX.value, qrOffsetY.value)
+    drawQRBackground(ctx)
+    drawQRPattern(ctx)
 
     const qrCtx = qrCanvas.getContext('2d')
     if (!qrCtx) return
@@ -943,6 +1164,7 @@ const generateQR = async () => {
     if (logoImage.value) {
       await drawLogo(ctx)
     }
+    ctx.restore()
   } catch (err) {
     console.error(err)
     ElMessage.error('生成二维码失败')
@@ -969,12 +1191,17 @@ const getModuleCount = (data: Uint8ClampedArray, width: number): number => {
   return 29
 }
 
-const drawBackground = (ctx: CanvasRenderingContext2D) => {
+const drawCanvasBackground = (ctx: CanvasRenderingContext2D) => {
+  ctx.fillStyle = canvasBgColor.value
+  ctx.fillRect(0, 0, canvasWidthPx.value, canvasHeightPx.value)
+}
+
+const drawQRBackground = (ctx: CanvasRenderingContext2D) => {
   ctx.fillStyle = backgroundColor.value
   ctx.fillRect(0, 0, qrSize.value, qrSize.value)
 }
 
-const drawPattern = (ctx: CanvasRenderingContext2D) => {
+const drawQRPattern = (ctx: CanvasRenderingContext2D) => {
   if (bgPattern.value === 'none') return
 
   ctx.save()
@@ -1249,13 +1476,14 @@ const doDownloadPNG = () => {
   const canvas = qrCanvasRef.value
   if (!canvas) return
 
+  const ratioTag = canvasRatio.value.replace('/', 'x').replace(':', 'x')
   const link = document.createElement('a')
-  link.download = `artistic-qrcode-${outputDpi.value}dpi-${physicalSizeMm.value}mm-${Date.now()}.png`
+  link.download = `artistic-qrcode-${canvasWidthPx.value}x${canvasHeightPx.value}-${ratioTag}-${outputDpi.value}dpi-${Date.now()}.png`
   link.href = canvas.toDataURL('image/png', 1.0)
   link.click()
   showDownloadConfirm.value = false
   ElMessage.success(
-    `已下载：${qrSize.value}×${qrSize.value}px · ${outputDpi.value}DPI · ${physicalSizeMm.value}mm`
+    `已下载：${canvasWidthPx.value}×${canvasHeightPx.value}px · ${canvasRatioLabel} · ${outputDpi.value}DPI`
   )
 }
 
@@ -1362,10 +1590,113 @@ onMounted(() => {
   align-items: center;
 }
 
+.ratio-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.ratio-buttons .el-button {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 12px;
+  height: auto;
+  min-width: 52px;
+}
+
+.ratio-label {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.ratio-sub {
+  font-size: 10px;
+  opacity: 0.75;
+  font-weight: normal;
+  line-height: 1.2;
+}
+
+.custom-ratio-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.ratio-colon {
+  font-size: 16px;
+  font-weight: bold;
+  color: #606266;
+}
+
+.canvas-size-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.size-input-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.size-axis-label {
+  font-size: 12px;
+  color: #909399;
+  font-weight: 500;
+  min-width: 14px;
+}
+
+.size-mul {
+  font-size: 14px;
+  color: #909399;
+  font-weight: bold;
+}
+
+.size-convert-line {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 6px;
+}
+
 .physical-size-row {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.canvas-wrapper {
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.canvas-wrapper-non-square {
+  border: 2px solid #e6a23c;
+}
+
+.canvas-aspect-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(230, 162, 60, 0.95);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+  z-index: 10;
 }
 
 .unit-text {
@@ -1475,14 +1806,6 @@ onMounted(() => {
   background: repeating-conic-gradient(#f0f0f0 0% 25%, #ffffff 0% 50%) 50% / 20px 20px;
   padding: 30px;
   border-radius: 8px;
-}
-
-.canvas-wrapper {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-  max-width: 100%;
 }
 
 .canvas-wrapper :deep(canvas) {
