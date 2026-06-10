@@ -440,6 +440,18 @@ export const toolCategories: ToolCategory[] = [
         qualityLevel: 'excellent'
       },
       {
+        name: '在线白板',
+        path: '/whiteboard',
+        icon: 'EditPen',
+        color: '#eb2f96',
+        description: '无限画布自由创作·头脑风暴·会议记录',
+        tags: ['效率办公', '创意应用'],
+        hot: true,
+        rating: 4.9,
+        usageCount: 156890,
+        qualityLevel: 'excellent'
+      },
+      {
         name: '系统设置',
         path: '/system/menu',
         icon: 'Setting',

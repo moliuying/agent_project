@@ -175,6 +175,11 @@ const routes: RouteRecordRaw[] = [
         path: '/artistic-qrcode',
         name: 'ArtisticQRCode',
         component: () => import('@/views/ArtisticQRCode.vue')
+      },
+      {
+        path: '/whiteboard',
+        name: 'Whiteboard',
+        component: () => import('@/views/Whiteboard.vue')
       }
     ]
   }
