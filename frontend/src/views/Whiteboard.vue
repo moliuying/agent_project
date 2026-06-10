@@ -3,6 +3,17 @@
     <div class="toolbar">
       <div class="toolbar-group">
         <div class="tool-btn-wrapper">
+          <el-tooltip content="手型/平移画布">
+            <el-button
+              :type="currentTool === 'hand' ? 'primary' : 'default'"
+              :icon="Rank"
+              @click="setTool('hand')"
+              circle
+            />
+          </el-tooltip>
+          <span class="shortcut-badge">H</span>
+        </div>
+        <div class="tool-btn-wrapper">
           <el-tooltip content="选择/移动">
             <el-button
               :type="currentTool === 'select' ? 'primary' : 'default'"
@@ -224,6 +235,7 @@
 
     <div
       class="canvas-container"
+      :class="[`tool-${currentTool}`, { 'is-panning': isPanning || spacePressed }]"
       ref="canvasContainerRef"
       @wheel.prevent="handleWheel"
       @mousedown="handleMouseDown"
@@ -253,6 +265,53 @@
         />
         <div class="text-input-hint">Ctrl+Enter 确认，Esc 取消</div>
       </div>
+
+      <div v-if="shapes.length === 0" class="welcome-overlay">
+        <div class="welcome-card">
+          <div class="welcome-icon">🎨</div>
+          <h2 class="welcome-title">开始你的创作</h2>
+          <p class="welcome-desc">无限画布 · 自由创作 · 头脑风暴</p>
+
+          <div class="welcome-shortcuts">
+            <div class="welcome-sc-title">常用快捷键</div>
+            <div class="welcome-sc-grid">
+              <div class="welcome-sc-item">
+                <span class="kbd">P</span>
+                <span>画笔</span>
+              </div>
+              <div class="welcome-sc-item">
+                <span class="kbd">E</span>
+                <span>橡皮擦</span>
+              </div>
+              <div class="welcome-sc-item">
+                <span class="kbd">R</span>
+                <span>矩形</span>
+              </div>
+              <div class="welcome-sc-item">
+                <span class="kbd">T</span>
+                <span>文字</span>
+              </div>
+              <div class="welcome-sc-item">
+                <span class="kbd">H</span>
+                <span>手型平移</span>
+              </div>
+              <div class="welcome-sc-item">
+                <span class="kbd">空格</span>
+                <span>临时平移</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="welcome-actions">
+            <el-button type="primary" size="large" :icon="EditPen" @click="setTool('pen')">
+              开始绘画
+            </el-button>
+            <el-button size="large" :icon="QuestionFilled" @click="showShortcutHelp = true">
+              查看全部快捷键
+            </el-button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="status-bar">
@@ -275,45 +334,60 @@
       </span>
     </div>
 
-    <el-dialog v-model="showShortcutHelp" title="⌨️ 快捷键参考" width="600px" class="shortcut-dialog">
+    <el-dialog v-model="showShortcutHelp" width="620px" class="shortcut-dialog" :close-on-click-modal="true">
+      <template #header>
+        <div class="shortcut-header">
+          <span class="shortcut-title">⌨️ 键盘快捷键</span>
+          <el-input
+            v-model="shortcutSearch"
+            placeholder="搜索快捷键..."
+            :prefix-icon="Search"
+            clearable
+            size="small"
+            class="shortcut-search"
+          />
+        </div>
+      </template>
       <div class="shortcut-content">
-        <div class="shortcut-section">
-          <h4>🎨 绘图工具</h4>
+        <div class="shortcut-section" v-if="filteredShortcuts.draw.length">
+          <h4>✏️ 绘图工具 <el-tag size="small" type="info" effect="plain">Figma / Sketch 习惯</el-tag></h4>
           <div class="shortcut-grid">
-            <div class="shortcut-row"><span class="kbd">V</span><span>选择/移动</span></div>
-            <div class="shortcut-row"><span class="kbd">P</span><span>画笔</span></div>
-            <div class="shortcut-row"><span class="kbd">E</span><span>橡皮擦</span></div>
-            <div class="shortcut-row"><span class="kbd">L</span><span>直线</span></div>
-            <div class="shortcut-row"><span class="kbd">A</span><span>箭头</span></div>
-            <div class="shortcut-row"><span class="kbd">R</span><span>矩形</span></div>
-            <div class="shortcut-row"><span class="kbd">C</span><span>圆形</span></div>
-            <div class="shortcut-row"><span class="kbd">T</span><span>文字</span></div>
+            <div class="shortcut-row" v-for="s in filteredShortcuts.draw" :key="s.key">
+              <span class="kbd" v-html="s.keyHtml"></span>
+              <span>{{ s.label }}</span>
+            </div>
           </div>
         </div>
 
-        <div class="shortcut-section">
-          <h4>🔧 编辑操作</h4>
+        <div class="shortcut-section" v-if="filteredShortcuts.edit.length">
+          <h4>🛠️ 编辑操作</h4>
           <div class="shortcut-grid">
-            <div class="shortcut-row"><span class="kbd"><span>⌘</span>+<span>Z</span></span><span>撤销</span></div>
-            <div class="shortcut-row"><span class="kbd"><span>⌘</span>+<span>Y</span></span><span>重做</span></div>
-            <div class="shortcut-row"><span class="kbd">Esc</span><span>取消文字输入</span></div>
-            <div class="shortcut-row"><span class="kbd"><span>⌘</span>+<span>Enter</span></span><span>确认文字输入</span></div>
+            <div class="shortcut-row" v-for="s in filteredShortcuts.edit" :key="s.key">
+              <span class="kbd" v-html="s.keyHtml"></span>
+              <span>{{ s.label }}</span>
+            </div>
           </div>
         </div>
 
-        <div class="shortcut-section">
-          <h4>🖼️ 画布导航</h4>
+        <div class="shortcut-section" v-if="filteredShortcuts.view.length">
+          <h4>🧭 画布导航 <el-tag size="small" type="info" effect="plain">Adobe / Figma 习惯</el-tag></h4>
           <div class="shortcut-grid">
-            <div class="shortcut-row"><span class="kbd">空格</span><span>+ 拖拽平移画布</span></div>
-            <div class="shortcut-row"><span class="kbd">滚轮</span><span>缩放画布（以鼠标为中心）</span></div>
-            <div class="shortcut-row"><span class="kbd">+</span><span>放大</span></div>
-            <div class="shortcut-row"><span class="kbd">-</span><span>缩小</span></div>
-            <div class="shortcut-row"><span class="kbd">0</span><span>重置视图 (100%)</span></div>
-            <div class="shortcut-row"><span class="kbd">?</span><span>打开快捷键帮助</span></div>
+            <div class="shortcut-row" v-for="s in filteredShortcuts.view" :key="s.key">
+              <span class="kbd" v-html="s.keyHtml"></span>
+              <span>{{ s.label }}</span>
+            </div>
           </div>
+        </div>
+
+        <div v-if="!filteredShortcuts.draw.length && !filteredShortcuts.edit.length && !filteredShortcuts.view.length" class="shortcut-empty">
+          <el-empty description="未找到匹配的快捷键" :image-size="80" />
         </div>
       </div>
       <template #footer>
+        <div class="shortcut-footer-hint">
+          <el-icon><InfoFilled /></el-icon>
+          大多数快捷键与 Figma / Sketch / Photoshop 保持一致
+        </div>
         <el-button type="primary" @click="showShortcutHelp = false">我知道了</el-button>
       </template>
     </el-dialog>
@@ -338,12 +412,15 @@ import {
   ZoomOut,
   FullScreen,
   Download,
-  QuestionFilled
+  QuestionFilled,
+  Rank,
+  Search,
+  InfoFilled
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Component } from 'vue'
 
-type ToolType = 'select' | 'pen' | 'eraser' | 'line' | 'arrow' | 'rect' | 'circle' | 'text'
+type ToolType = 'hand' | 'select' | 'pen' | 'eraser' | 'line' | 'arrow' | 'rect' | 'circle' | 'text'
 
 interface Point {
   x: number
@@ -397,6 +474,7 @@ interface TextShape extends BaseShape {
 type Shape = PenShape | LineShape | RectShape | CircleShape | TextShape
 
 const toolLabels: Record<ToolType, string> = {
+  hand: '手型/平移',
   select: '选择/移动',
   pen: '画笔',
   eraser: '橡皮擦',
@@ -408,6 +486,7 @@ const toolLabels: Record<ToolType, string> = {
 }
 
 const toolIcons: Record<ToolType, Component> = {
+  hand: Rank,
   select: Pointer,
   pen: EditPen,
   eraser: Delete,
@@ -421,6 +500,59 @@ const toolIcons: Record<ToolType, Component> = {
 const getToolIcon = (tool: ToolType): Component => toolIcons[tool]
 
 const showShortcutHelp = ref(false)
+const shortcutSearch = ref('')
+
+interface ShortcutItem {
+  key: string
+  keyHtml: string
+  label: string
+  searchText: string
+}
+
+const shortcutData: Record<'draw' | 'edit' | 'view', ShortcutItem[]> = {
+  draw: [
+    { key: 'H', keyHtml: 'H', label: '手型/平移画布', searchText: 'hand 手型 pan 平移' },
+    { key: 'V', keyHtml: 'V', label: '选择/移动', searchText: 'select 选择 move 移动' },
+    { key: 'P', keyHtml: 'P', label: '画笔', searchText: 'pen brush 画笔' },
+    { key: 'E', keyHtml: 'E', label: '橡皮擦', searchText: 'eraser 橡皮擦' },
+    { key: 'L', keyHtml: 'L', label: '直线', searchText: 'line 直线' },
+    { key: 'A', keyHtml: 'A', label: '箭头', searchText: 'arrow 箭头' },
+    { key: 'R', keyHtml: 'R', label: '矩形', searchText: 'rect rectangle 矩形' },
+    { key: 'C', keyHtml: 'C', label: '圆形/椭圆', searchText: 'circle ellipse 圆形 椭圆' },
+    { key: 'T', keyHtml: 'T', label: '文字工具', searchText: 'text type 文字 输入' }
+  ],
+  edit: [
+    { key: 'Ctrl+Z', keyHtml: '<span>⌘</span>+<span>Z</span>', label: '撤销', searchText: 'undo 撤销' },
+    { key: 'Ctrl+Y', keyHtml: '<span>⌘</span>+<span>Y</span>', label: '重做', searchText: 'redo 重做' },
+    { key: 'Ctrl+Plus', keyHtml: '<span>⌘</span>+<span>+</span>', label: '放大画布', searchText: 'zoom in 放大' },
+    { key: 'Ctrl+Minus', keyHtml: '<span>⌘</span>+<span>−</span>', label: '缩小画布', searchText: 'zoom out 缩小' },
+    { key: 'Ctrl+0', keyHtml: '<span>⌘</span>+<span>0</span>', label: '重置视图', searchText: 'reset 重置 view 视图' },
+    { key: 'Esc', keyHtml: 'Esc', label: '取消 / 退出文字输入', searchText: 'escape cancel 取消' },
+    { key: 'Ctrl+Enter', keyHtml: '<span>⌘</span>+<span>Enter</span>', label: '确认文字输入', searchText: 'confirm submit 确认' }
+  ],
+  view: [
+    { key: 'Space', keyHtml: '空格', label: '按住拖拽：临时平移画布', searchText: 'space pan hand 平移 空格' },
+    { key: 'Wheel', keyHtml: '滚轮', label: '缩放画布（以鼠标为中心）', searchText: 'wheel scroll zoom 缩放 滚轮' },
+    { key: 'Plus', keyHtml: '+', label: '放大画布', searchText: 'zoom in 放大' },
+    { key: 'Minus', keyHtml: '−', label: '缩小画布', searchText: 'zoom out 缩小' },
+    { key: '0', keyHtml: '0', label: '重置视图 (100%)', searchText: 'reset 重置 100%' },
+    { key: '?', keyHtml: '<span>Shift</span>+<span>/</span>', label: '打开快捷键帮助', searchText: 'help shortcut 快捷键 帮助 ?' }
+  ]
+}
+
+const filteredShortcuts = computed(() => {
+  const q = shortcutSearch.value.trim().toLowerCase()
+  if (!q) return shortcutData
+  const match = (item: ShortcutItem) =>
+    item.key.toLowerCase().includes(q) ||
+    item.label.toLowerCase().includes(q) ||
+    item.searchText.toLowerCase().includes(q)
+  return {
+    draw: shortcutData.draw.filter(match),
+    edit: shortcutData.edit.filter(match),
+    view: shortcutData.view.filter(match)
+  }
+})
 
 const canvasContainerRef = ref<HTMLElement | null>(null)
 const gridCanvasRef = ref<HTMLCanvasElement | null>(null)
@@ -767,7 +899,7 @@ const handleMouseDown = (e: MouseEvent) => {
   mousePos.x = world.x
   mousePos.y = world.y
 
-  if (e.button === 1 || (e.button === 0 && spacePressed.value)) {
+  if (e.button === 1 || (e.button === 0 && (spacePressed.value || currentTool.value === 'hand'))) {
     isPanning.value = true
     panStart.x = sx - offset.x
     panStart.y = sy - offset.y
@@ -787,7 +919,7 @@ const handleMouseDown = (e: MouseEvent) => {
     return
   }
 
-  if (currentTool.value === 'select') {
+  if (currentTool.value === 'select' || currentTool.value === 'hand') {
     return
   }
 
@@ -1121,6 +1253,18 @@ const handleKeyDown = (e: KeyboardEvent) => {
       e.preventDefault()
       redo()
       return
+    } else if (e.code === 'Equal' || e.code === 'NumpadAdd') {
+      e.preventDefault()
+      zoomIn()
+      return
+    } else if (e.code === 'Minus' || e.code === 'NumpadSubtract') {
+      e.preventDefault()
+      zoomOut()
+      return
+    } else if (e.code === 'Digit0') {
+      e.preventDefault()
+      resetView()
+      return
     }
   }
   if (e.code === 'Slash' && e.shiftKey) {
@@ -1128,8 +1272,17 @@ const handleKeyDown = (e: KeyboardEvent) => {
     showShortcutHelp.value = true
     return
   }
+  if (e.code === 'Escape') {
+    if (textInputVisible.value) {
+      cancelTextInput()
+    }
+    return
+  }
   if (textInputVisible.value) return
   switch (e.code) {
+    case 'KeyH':
+      setTool('hand')
+      break
     case 'KeyV':
       setTool('select')
       break
@@ -1456,5 +1609,173 @@ onUnmounted(() => {
 
 .kbd + .kbd {
   margin-left: 2px;
+}
+
+.welcome-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.welcome-card {
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 16px;
+  padding: 36px 44px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  text-align: center;
+  max-width: 520px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  animation: welcomeFadeIn 0.5s ease-out;
+}
+
+@keyframes welcomeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.welcome-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.welcome-title {
+  margin: 0 0 6px 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #1d2129;
+  letter-spacing: -0.5px;
+}
+
+.welcome-desc {
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  color: #86909c;
+}
+
+.welcome-shortcuts {
+  background: #f7f8fa;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.welcome-sc-title {
+  font-size: 12px;
+  color: #86909c;
+  margin-bottom: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.welcome-sc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 16px;
+}
+
+.welcome-sc-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4e5969;
+}
+
+.welcome-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.canvas-container {
+  cursor: crosshair;
+}
+
+.canvas-container.tool-hand {
+  cursor: grab;
+}
+
+.canvas-container.tool-hand.is-panning {
+  cursor: grabbing;
+}
+
+.canvas-container.tool-select {
+  cursor: default;
+}
+
+.canvas-container.tool-eraser {
+  cursor: cell;
+}
+
+.canvas-container.tool-text {
+  cursor: text;
+}
+
+.canvas-container.is-panning {
+  cursor: grabbing !important;
+}
+
+.shortcut-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.shortcut-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d2129;
+}
+
+.shortcut-search {
+  width: 220px;
+}
+
+.shortcut-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shortcut-empty {
+  padding: 32px 0;
+}
+
+.shortcut-footer-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #86909c;
+  margin-right: auto;
+}
+
+.welcome-sc-item .kbd {
+  min-width: 26px;
+  height: 24px;
+  font-size: 11px;
+  padding: 0 7px;
 }
 </style>
