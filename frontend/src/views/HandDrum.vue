@@ -12,15 +12,15 @@
       <div class="guide-content">
         <div class="guide-item">
           <el-icon class="guide-icon"><Mouse /></el-icon>
-          <span><strong>鼠标点击</strong>：点击任意鼓垫或乐器图标即可触发对应音效</span>
+          <span><strong>鼠标点击</strong>：点击任意鼓垫即可发声</span>
         </div>
         <div class="guide-item">
           <el-icon class="guide-icon"><Keyboard /></el-icon>
-          <span><strong>键盘弹奏</strong>：按鼓垫上标注的按键（Q W E / A S D / Z X C等）快速演奏</span>
+          <span><strong>键盘弹奏</strong>：鼓垫上的字母键就是对应按键，三排鼓对应键盘三排</span>
         </div>
         <div class="guide-item">
           <el-icon class="guide-icon"><MagicStick /></el-icon>
-          <span><strong>节奏练习</strong>：开启节拍器，选择预设节奏型，跟着节拍练习手鼓基本功</span>
+          <span><strong>节奏练习</strong>：开启节拍器，选择预设节奏型跟练</span>
         </div>
       </div>
     </el-card>
@@ -72,10 +72,10 @@
           <div class="metronome-control-item">
             <span class="control-label">拍号</span>
             <el-select v-model="beatsPerMeasure" :disabled="metronomeEnabled" size="small" style="width: 100px">
-              <el-option :label="'2/4'" :value="2" />
-              <el-option :label="'3/4'" :value="3" />
-              <el-option :label="'4/4'" :value="4" />
-              <el-option :label="'6/8'" :value="6" />
+              <el-option label="2/4" :value="2" />
+              <el-option label="3/4" :value="3" />
+              <el-option label="4/4" :value="4" />
+              <el-option label="6/8" :value="6" />
             </el-select>
           </div>
           <div class="metronome-control-item">
@@ -121,7 +121,7 @@
                 class="preset-beat"
                 :class="{ hit: beat !== '-', strong: beat === 'B' }"
               >
-                {{ beat }}
+                {{ beat === '-' ? '·' : beat }}
               </span>
             </div>
           </div>
@@ -136,99 +136,146 @@
             <Headset />
           </el-icon>
           <span>手鼓演奏台</span>
-          <span class="header-hint">非洲手鼓 · 打击乐器组</span>
+          <span class="header-hint">三排键位 · 一目了然</span>
+          <el-tag size="small" type="warning" class="keyboard-tip" effect="dark">
+            ⌨️ Q W E / A S D / Z X C
+          </el-tag>
         </div>
       </template>
 
       <div class="drum-stage">
-        <div class="djembe-section">
-          <div class="section-title">非洲手鼓 (Djembe)</div>
-          <div class="djembe-drums">
-            <div
-              v-for="drum in djembeDrums"
-              :key="drum.id"
-              class="drum-pad djembe-pad"
-              :class="{
-                active: activePads[drum.id],
-                [drum.size]: true
-              }"
-              :style="{ '--drum-color': drum.color, '--drum-color-dark': drum.colorDark }"
-              @mousedown="playDrum(drum)"
-              @touchstart.prevent="playDrum(drum)"
-            >
-              <div class="drum-skin">
-                <div class="drum-center"></div>
-                <div class="drum-rings"></div>
+        <div class="drum-rows">
+          <div class="drum-row row-high">
+            <div class="row-label">
+              <span class="row-key-hint">Q W E</span>
+              <span class="row-name">高音区</span>
+            </div>
+            <div class="row-drums">
+              <div
+                v-for="drum in highRowDrums"
+                :key="drum.id"
+                class="drum-pad"
+                :class="{ active: activePads[drum.id] }"
+                :style="{ '--drum-color': drum.color, '--drum-color-dark': drum.colorDark }"
+                @mousedown="playDrum(drum)"
+                @touchstart.prevent="playDrum(drum)"
+              >
+                <div class="drum-keytag">{{ drum.key }}</div>
+                <div class="drum-visual">
+                  <span v-if="drum.icon" class="drum-emoji">{{ drum.icon }}</span>
+                  <div v-else class="drum-circle"></div>
+                </div>
+                <div class="drum-name">{{ drum.name }}</div>
               </div>
-              <div class="drum-body">
-                <div class="drum-ropes"></div>
+            </div>
+          </div>
+
+          <div class="drum-row row-mid">
+            <div class="row-label">
+              <span class="row-key-hint">A S D</span>
+              <span class="row-name">主音区</span>
+            </div>
+            <div class="row-drums">
+              <div
+                v-for="drum in midRowDrums"
+                :key="drum.id"
+                class="drum-pad main-drum"
+                :class="{ active: activePads[drum.id] }"
+                :style="{ '--drum-color': drum.color, '--drum-color-dark': drum.colorDark }"
+                @mousedown="playDrum(drum)"
+                @touchstart.prevent="playDrum(drum)"
+              >
+                <div class="drum-keytag large">{{ drum.key }}</div>
+                <div class="drum-visual main">
+                  <div v-if="drum.icon" class="drum-emoji large">{{ drum.icon }}</div>
+                  <div v-else class="drum-skin-main">
+                    <div class="skin-ring ring1"></div>
+                    <div class="skin-ring ring2"></div>
+                    <div class="skin-center"></div>
+                  </div>
+                </div>
+                <div class="drum-name">{{ drum.name }}</div>
+                <div class="drum-tech">{{ drum.tech }}</div>
               </div>
-              <div class="drum-label">
-                <span class="drum-key">{{ drum.key }}</span>
-                <span class="drum-name">{{ drum.name }}</span>
+            </div>
+          </div>
+
+          <div class="drum-row row-low">
+            <div class="row-label">
+              <span class="row-key-hint">Z X C</span>
+              <span class="row-name">低音区</span>
+            </div>
+            <div class="row-drums">
+              <div
+                v-for="drum in lowRowDrums"
+                :key="drum.id"
+                class="drum-pad"
+                :class="{ active: activePads[drum.id] }"
+                :style="{ '--drum-color': drum.color, '--drum-color-dark': drum.colorDark }"
+                @mousedown="playDrum(drum)"
+                @touchstart.prevent="playDrum(drum)"
+              >
+                <div class="drum-keytag">{{ drum.key }}</div>
+                <div class="drum-visual">
+                  <span v-if="drum.icon" class="drum-emoji">{{ drum.icon }}</span>
+                  <div v-else class="drum-circle"></div>
+                </div>
+                <div class="drum-name">{{ drum.name }}</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="percussion-section">
-          <div class="section-title">打击乐器组</div>
-          <div class="percussion-grid">
-            <div
-              v-for="perc in percussionInstruments"
-              :key="perc.id"
-              class="drum-pad percussion-pad"
-              :class="{ active: activePads[perc.id] }"
-              :style="{ '--perc-color': perc.color, '--perc-color-dark': perc.colorDark }"
-              @mousedown="playDrum(perc)"
-              @touchstart.prevent="playDrum(perc)"
-            >
-              <div class="perc-icon">
-                <span v-html="perc.icon"></span>
+        <div class="keyboard-diagram">
+          <div class="diagram-title">
+            <el-icon><Keyboard /></el-icon>
+            <span>键盘对照图</span>
+          </div>
+          <div class="keyboard-body">
+            <div class="kbd-row kbd-row-1">
+              <div
+                v-for="k in keyboardDiagram.row1"
+                :key="k.key"
+                class="kbd-key"
+                :class="{
+                  active: pressedKeys[k.key],
+                  used: k.drum,
+                  empty: !k.drum
+                }"
+              >
+                <span class="kbd-letter">{{ k.key.toUpperCase() }}</span>
+                <span class="kbd-label" v-if="k.drum">{{ k.drum }}</span>
               </div>
-              <div class="drum-label">
-                <span class="drum-key">{{ perc.key }}</span>
-                <span class="drum-name">{{ perc.name }}</span>
+            </div>
+            <div class="kbd-row kbd-row-2">
+              <div
+                v-for="k in keyboardDiagram.row2"
+                :key="k.key"
+                class="kbd-key"
+                :class="{
+                  active: pressedKeys[k.key],
+                  used: k.drum,
+                  empty: !k.drum
+                }"
+              >
+                <span class="kbd-letter">{{ k.key.toUpperCase() }}</span>
+                <span class="kbd-label" v-if="k.drum">{{ k.drum }}</span>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="keyboard-reference">
-        <div class="section-title">键盘映射图</div>
-        <div class="keyboard-rows">
-          <div class="keyboard-row">
-            <div
-              v-for="k in keyboardRow1"
-              :key="k.key"
-              class="key-cap"
-              :class="{ active: pressedKeys[k.key] }"
-            >
-              <span class="key-cap-label">{{ k.key.toUpperCase() }}</span>
-              <span class="key-cap-drum">{{ k.drum }}</span>
-            </div>
-          </div>
-          <div class="keyboard-row">
-            <div
-              v-for="k in keyboardRow2"
-              :key="k.key"
-              class="key-cap"
-              :class="{ active: pressedKeys[k.key] }"
-            >
-              <span class="key-cap-label">{{ k.key.toUpperCase() }}</span>
-              <span class="key-cap-drum">{{ k.drum }}</span>
-            </div>
-          </div>
-          <div class="keyboard-row">
-            <div
-              v-for="k in keyboardRow3"
-              :key="k.key"
-              class="key-cap"
-              :class="{ active: pressedKeys[k.key] }"
-            >
-              <span class="key-cap-label">{{ k.key.toUpperCase() }}</span>
-              <span class="key-cap-drum">{{ k.drum }}</span>
+            <div class="kbd-row kbd-row-3">
+              <div
+                v-for="k in keyboardDiagram.row3"
+                :key="k.key"
+                class="kbd-key"
+                :class="{
+                  active: pressedKeys[k.key],
+                  used: k.drum,
+                  empty: !k.drum
+                }"
+              >
+                <span class="kbd-letter">{{ k.key.toUpperCase() }}</span>
+                <span class="kbd-label" v-if="k.drum">{{ k.drum }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -244,11 +291,11 @@ interface DrumPad {
   id: string
   name: string
   key: string
-  type: 'bass' | 'tone' | 'slap' | 'clap' | 'cowbell' | 'shaker' | 'hihat' | 'rim' | 'woodblock'
+  type: string
   color: string
   colorDark: string
-  size?: 'small' | 'medium' | 'large'
   icon?: string
+  tech?: string
 }
 
 interface RhythmPreset {
@@ -272,59 +319,45 @@ const activePreset = ref<RhythmPreset | null>(null)
 let presetInterval: number | null = null
 let presetStep = 0
 
-const djembeDrums: DrumPad[] = [
-  { id: 'bass', name: '低音 Bass', key: 'A', type: 'bass', color: '#8B4513', colorDark: '#5D2E0C', size: 'large' },
-  { id: 'tone', name: '中音 Tone', key: 'S', type: 'tone', color: '#D2691E', colorDark: '#8B4513', size: 'medium' },
-  { id: 'slap', name: '高音 Slap', key: 'D', type: 'slap', color: '#CD853F', colorDark: '#A0522D', size: 'small' }
+const highRowDrums: DrumPad[] = [
+  { id: 'slap', name: '高音', key: 'Q', type: 'slap', color: '#CD853F', colorDark: '#A0522D', tech: 'Slap' },
+  { id: 'rim', name: '边击', key: 'W', type: 'rim', color: '#909399', colorDark: '#606266', icon: '🥢' },
+  { id: 'cowbell', name: '牛铃', key: 'E', type: 'cowbell', color: '#67c23a', colorDark: '#529b2e', icon: '🔔' }
 ]
 
-const percussionInstruments: DrumPad[] = [
-  { id: 'clap', name: '拍手', key: 'Q', type: 'clap', color: '#e6a23c', colorDark: '#b88230', icon: '👏' },
-  { id: 'rim', name: '边击', key: 'W', type: 'rim', color: '#909399', colorDark: '#606266', icon: '🥢' },
-  { id: 'woodblock', name: '木鱼', key: 'E', type: 'woodblock', color: '#A0522D', colorDark: '#6B3410', icon: '🪵' },
-  { id: 'cowbell', name: '牛铃', key: 'Z', type: 'cowbell', color: '#67c23a', colorDark: '#529b2e', icon: '🔔' },
+const midRowDrums: DrumPad[] = [
+  { id: 'tone', name: '中音', key: 'A', type: 'tone', color: '#D2691E', colorDark: '#8B4513', tech: 'Tone · 指弹边缘' },
+  { id: 'bass', name: '低音', key: 'S', type: 'bass', color: '#8B4513', colorDark: '#5D2E0C', tech: 'Bass · 掌心击打' },
+  { id: 'clap', name: '拍手', key: 'D', type: 'clap', color: '#e6a23c', colorDark: '#b88230', icon: '👏' }
+]
+
+const lowRowDrums: DrumPad[] = [
+  { id: 'woodblock', name: '木鱼', key: 'Z', type: 'woodblock', color: '#A0522D', colorDark: '#6B3410', icon: '🪵' },
   { id: 'shaker', name: '沙锤', key: 'X', type: 'shaker', color: '#f56c6c', colorDark: '#c45656', icon: '🎋' },
   { id: 'hihat', name: '踩镲', key: 'C', type: 'hihat', color: '#b37feb', colorDark: '#9254de', icon: '💿' }
 ]
 
-const allDrums = [...djembeDrums, ...percussionInstruments]
+const allDrums = [...highRowDrums, ...midRowDrums, ...lowRowDrums]
 
 const keyboardMap: Record<string, DrumPad> = {}
 
-const keyboardRow1 = computed(() => [
-  { key: 'q', drum: '拍手' },
-  { key: 'w', drum: '边击' },
-  { key: 'e', drum: '木鱼' },
-  { key: 'r', drum: '—' },
-  { key: 't', drum: '—' },
-  { key: 'y', drum: '—' },
-  { key: 'u', drum: '—' },
-  { key: 'i', drum: '—' },
-  { key: 'o', drum: '—' },
-  { key: 'p', drum: '—' }
-])
+const keyboardDiagram = computed(() => {
+  const makeRow = (keys: string[], drumMap: Record<string, string>) =>
+    keys.map(key => ({
+      key,
+      drum: drumMap[key] || null
+    }))
 
-const keyboardRow2 = computed(() => [
-  { key: 'a', drum: '低音' },
-  { key: 's', drum: '中音' },
-  { key: 'd', drum: '高音' },
-  { key: 'f', drum: '—' },
-  { key: 'g', drum: '—' },
-  { key: 'h', drum: '—' },
-  { key: 'j', drum: '—' },
-  { key: 'k', drum: '—' },
-  { key: 'l', drum: '—' }
-])
+  const highMap: Record<string, string> = { q: '高音', w: '边击', e: '牛铃' }
+  const midMap: Record<string, string> = { a: '中音', s: '低音', d: '拍手' }
+  const lowMap: Record<string, string> = { z: '木鱼', x: '沙锤', c: '踩镲' }
 
-const keyboardRow3 = computed(() => [
-  { key: 'z', drum: '牛铃' },
-  { key: 'x', drum: '沙锤' },
-  { key: 'c', drum: '踩镲' },
-  { key: 'v', drum: '—' },
-  { key: 'b', drum: '—' },
-  { key: 'n', drum: '—' },
-  { key: 'm', drum: '—' }
-])
+  return {
+    row1: makeRow(['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'], highMap),
+    row2: makeRow(['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'], midMap),
+    row3: makeRow(['z', 'x', 'c', 'v', 'b', 'n', 'm'], lowMap)
+  }
+})
 
 const rhythmPresets: RhythmPreset[] = [
   {
@@ -806,6 +839,10 @@ function togglePreset(preset: RhythmPreset) {
   }
 }
 
+function getDrumById(id: string): DrumPad | undefined {
+  return allDrums.find(d => d.id === id)
+}
+
 function startPreset(preset: RhythmPreset) {
   stopPreset()
   initAudio()
@@ -821,11 +858,14 @@ function startPreset(preset: RhythmPreset) {
   presetInterval = window.setInterval(() => {
     const beat = preset.pattern[presetStep]
     if (beat === 'B') {
-      playDrum(djembeDrums[0])
+      const drum = getDrumById('bass')
+      if (drum) playDrum(drum)
     } else if (beat === 'T') {
-      playDrum(djembeDrums[1])
+      const drum = getDrumById('tone')
+      if (drum) playDrum(drum)
     } else if (beat === 'S') {
-      playDrum(djembeDrums[2])
+      const drum = getDrumById('slap')
+      if (drum) playDrum(drum)
     }
     presetStep = (presetStep + 1) % preset.pattern.length
   }, stepMs)
@@ -888,6 +928,11 @@ onUnmounted(() => {
   font-weight: 400;
   color: #67c23a;
   margin-left: 8px;
+}
+
+.keyboard-tip {
+  margin-left: auto;
+  font-weight: 700;
 }
 
 .guide-content {
@@ -1016,7 +1061,7 @@ onUnmounted(() => {
 
 .preset-item.active .preset-beat {
   background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .preset-item.active .preset-beat.hit {
@@ -1087,28 +1132,56 @@ onUnmounted(() => {
   gap: 30px;
 }
 
-.section-title {
-  font-size: 16px;
-  font-weight: 700;
+.drum-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 10px;
+}
+
+.drum-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.row-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.row-key-hint {
+  font-size: 20px;
+  font-weight: 800;
   color: #ffd700;
-  text-align: center;
-  margin-bottom: 16px;
+  letter-spacing: 2px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.djembe-section {
-  padding: 20px;
+.row-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
 }
 
-.djembe-drums {
+.row-drums {
   display: flex;
+  gap: 20px;
+  flex: 1;
   justify-content: center;
-  align-items: flex-end;
-  gap: 30px;
   flex-wrap: wrap;
 }
 
 .drum-pad {
+  position: relative;
+  min-width: 110px;
+  padding: 16px 14px;
+  background: linear-gradient(180deg, var(--drum-color) 0%, var(--drum-color-dark) 100%);
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.1s ease;
   user-select: none;
@@ -1116,229 +1189,250 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-}
-
-.drum-pad.active {
-  transform: scale(0.95) translateY(4px);
-}
-
-.djembe-pad.large .drum-skin {
-  width: 180px;
-  height: 180px;
-}
-
-.djembe-pad.medium .drum-skin {
-  width: 150px;
-  height: 150px;
-}
-
-.djembe-pad.small .drum-skin {
-  width: 120px;
-  height: 120px;
-}
-
-.drum-skin {
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #faf0e6, var(--drum-color) 70%, var(--drum-color-dark));
   box-shadow:
-    inset 0 -8px 20px rgba(0, 0, 0, 0.4),
-    inset 0 8px 20px rgba(255, 255, 255, 0.1),
-    0 10px 30px rgba(0, 0, 0, 0.5),
-    0 0 0 8px var(--drum-color-dark),
-    0 0 0 10px rgba(0, 0, 0, 0.3);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.1s;
-}
-
-.drum-pad.active .drum-skin {
-  box-shadow:
-    inset 0 -4px 10px rgba(0, 0, 0, 0.4),
-    inset 0 4px 10px rgba(255, 255, 255, 0.15),
-    0 4px 15px rgba(0, 0, 0, 0.5),
-    0 0 0 8px var(--drum-color-dark),
-    0 0 0 10px rgba(0, 0, 0, 0.3),
-    0 0 40px rgba(255, 215, 0, 0.6);
-}
-
-.drum-center {
-  width: 30%;
-  height: 30%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 0, 0, 0.15), transparent);
-}
-
-.drum-rings {
-  position: absolute;
-  inset: 15%;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 0, 0, 0.08);
-}
-
-.drum-rings::after {
-  content: '';
-  position: absolute;
-  inset: 15%;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 0, 0, 0.06);
-}
-
-.drum-body {
-  width: 70%;
-  height: 60px;
-  background: linear-gradient(180deg, var(--drum-color-dark) 0%, #1a0f08 100%);
-  border-radius: 0 0 40% 40%;
-  position: relative;
-  margin-top: -8px;
-}
-
-.drum-ropes {
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 18px,
-      rgba(255, 215, 0, 0.2) 18px,
-      rgba(255, 215, 0, 0.2) 22px
-    );
-  border-radius: 0 0 40% 40%;
-}
-
-.drum-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.drum-key {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(180deg, #ffffff 0%, #e8eaf0 100%);
-  border: 1px solid #c0c4cc;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 16px;
-  color: #303133;
-  box-shadow: 0 3px 0 #a8abb2, 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.drum-pad.active .drum-key {
-  background: linear-gradient(180deg, #ffd700 0%, #ffb300 100%);
-  color: #604000;
-  box-shadow: 0 1px 0 #b88230, 0 2px 4px rgba(0, 0, 0, 0.2);
-  transform: translateY(2px);
-}
-
-.drum-name {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 600;
-}
-
-.percussion-section {
-  padding: 20px;
-}
-
-.percussion-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 20px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.percussion-pad {
-  background: linear-gradient(180deg, var(--perc-color) 0%, var(--perc-color-dark) 100%);
-  border-radius: 16px;
-  padding: 16px 12px;
-  box-shadow:
-    inset 0 2px 4px rgba(255, 255, 255, 0.2),
-    inset 0 -4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.25),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.35),
     0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
-.percussion-pad.active {
+.drum-pad:hover {
+  transform: translateY(-2px);
   box-shadow:
     inset 0 2px 4px rgba(255, 255, 255, 0.3),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.35),
+    0 10px 24px rgba(0, 0, 0, 0.5);
+}
+
+.drum-pad.active {
+  transform: translateY(3px) scale(0.97);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.35),
     0 2px 8px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(255, 215, 0, 0.5);
+    0 0 40px rgba(255, 215, 0, 0.7);
 }
 
-.perc-icon {
-  font-size: 42px;
-  text-align: center;
-  margin-bottom: 8px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+.drum-pad.main-drum {
+  min-width: 140px;
+  padding: 20px 16px;
 }
 
-.keyboard-reference {
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+.drum-keytag {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(180deg, #ffffff 0%, #e8eaf0 100%);
+  border: 2px solid var(--drum-color-dark);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: #303133;
+  box-shadow: 0 3px 0 #a8abb2, 0 4px 8px rgba(0, 0, 0, 0.25);
+  z-index: 2;
 }
 
-.keyboard-rows {
+.drum-keytag.large {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  top: -12px;
+  right: -12px;
+}
+
+.drum-pad.active .drum-keytag {
+  background: linear-gradient(180deg, #ffd700 0%, #ffb300 100%);
+  color: #604000;
+  box-shadow: 0 1px 0 #b88230, 0 2px 4px rgba(0, 0, 0, 0.25);
+  transform: translateY(2px);
+}
+
+.drum-visual {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drum-visual.main {
+  width: 80px;
+  height: 80px;
+}
+
+.drum-emoji {
+  font-size: 48px;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+}
+
+.drum-emoji.large {
+  font-size: 60px;
+}
+
+.drum-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 60%),
+              radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+  border: 3px solid rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 -4px 8px rgba(0,0,0,0.3),
+              inset 0 2px 4px rgba(255,255,255,0.2);
+}
+
+.drum-skin-main {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 250, 240, 0.4), transparent 50%);
+}
+
+.skin-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.25);
+}
+
+.ring1 {
+  inset: 15%;
+}
+
+.ring2 {
+  inset: 30%;
+}
+
+.skin-center {
+  position: absolute;
+  inset: 42%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.2), transparent);
+}
+
+.drum-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.drum-tech {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.row-high {
+  opacity: 0.95;
+}
+
+.row-mid {
+  transform: scale(1.02);
+  transform-origin: center;
+}
+
+.row-low {
+  opacity: 0.95;
+}
+
+.keyboard-diagram {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.diagram-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffd700;
+  margin-bottom: 16px;
+}
+
+.keyboard-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
-.keyboard-row {
+.kbd-row {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 
-.key-cap {
+.kbd-key {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 52px;
-  height: 58px;
-  background: linear-gradient(180deg, #ffffff 0%, #e8eaf0 100%);
-  border: 1px solid #c0c4cc;
+  min-width: 50px;
+  height: 56px;
+  background: linear-gradient(180deg, #4a3520 0%, #2a1810 100%);
+  border: 2px solid #1a0f08;
   border-radius: 8px;
-  box-shadow: 0 3px 0 #a8abb2, 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 4px 8px;
+  padding: 4px 6px;
   transition: all 0.08s ease;
   user-select: none;
+  box-shadow: 0 3px 0 #0d0704, 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.key-cap.active {
-  background: linear-gradient(180deg, #ffd700 0%, #ffb300 100%);
-  border-color: #e6a23c;
-  box-shadow: 0 1px 0 #b88230, 0 0 15px rgba(255, 183, 0, 0.6);
+.kbd-key.empty {
+  opacity: 0.5;
+  background: linear-gradient(180deg, #3a2818 0%, #1a0f08 100%);
+}
+
+.kbd-key.used {
+  background: linear-gradient(180deg, #6b4423 0%, #4a2c10 100%);
+  border-color: #2a1810;
+}
+
+.kbd-key.active {
+  background: linear-gradient(180deg, #ffd700 0%, #e6a23c 100%);
+  border-color: #b88230;
+  box-shadow: 0 1px 0 #8b6914, 0 0 20px rgba(255, 215, 0, 0.7);
   transform: translateY(2px);
 }
 
-.key-cap-label {
-  font-size: 15px;
+.kbd-letter {
+  font-size: 14px;
   font-weight: 800;
-  color: #303133;
+  color: #c9b99a;
   line-height: 1;
 }
 
-.key-cap.active .key-cap-label {
+.kbd-key.used .kbd-letter {
+  color: #fff;
+}
+
+.kbd-key.active .kbd-letter {
   color: #604000;
 }
 
-.key-cap-drum {
-  font-size: 10px;
-  color: #909399;
-  margin-top: 4px;
+.kbd-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 3px;
+  font-weight: 600;
 }
 
-.key-cap.active .key-cap-drum {
-  color: #8b6914;
+.kbd-key.used .kbd-label {
+  color: #ffd700;
 }
+
+.kbd-key.active .kbd-label {
+  color: #604000;
+}
+
+.kbd-row-1 { margin-left: 0; }
+.kbd-row-2 { margin-left: 15px; }
+.kbd-row-3 { margin-left: 30px; }
 </style>
